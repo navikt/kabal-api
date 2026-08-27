@@ -1,8 +1,14 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import org.hibernate.envers.Audited
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "brevmottaker", schema = "klage")
@@ -28,7 +34,7 @@ class Brevmottaker(
             AttributeOverride(name = "postnummer", column = Column(name = "address_postnummer")),
             AttributeOverride(name = "poststed", column = Column(name = "address_poststed")),
             AttributeOverride(name = "landkode", column = Column(name = "address_landkode")),
-        ]
+        ],
     )
     var address: Adresse?,
     @Column(name = "navn")
@@ -62,8 +68,6 @@ class Brevmottaker(
         return result
     }
 
-    override fun toString(): String {
-        return "Brevmottaker(id=$id, technicalPartId=$technicalPartId, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
-    }
-
+    override fun toString(): String =
+        "Brevmottaker(id=$id, technicalPartId=$technicalPartId, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
 }

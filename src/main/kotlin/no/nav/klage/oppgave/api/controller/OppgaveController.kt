@@ -18,7 +18,7 @@ import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -28,7 +28,6 @@ class OppgaveController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val oppgaveService: OppgaveService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -36,7 +35,7 @@ class OppgaveController(
 
     @GetMapping("/oppgaver/{behandlingId}")
     fun getOppgaveView(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): OppgaveView {
         logBehandlingMethodDetails(
             methodName = ::getOppgaveView.name,
@@ -49,9 +48,7 @@ class OppgaveController(
     }
 
     @GetMapping("/oppgaver/ferdigstilte", produces = ["application/json"])
-    fun getMineFerdigstilteOppgaver(
-        queryParams: MineFerdigstilteOppgaverQueryParams
-    ): BehandlingerListResponse {
+    fun getMineFerdigstilteOppgaver(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
         logMethodDetails(
             methodName = ::getMineFerdigstilteOppgaver.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -66,7 +63,7 @@ class OppgaveController(
     fun getEnhetensFerdigstilteOppgaver(
         @Parameter(name = "EnhetId til enheten den ansatte jobber i")
         @PathVariable enhetId: String,
-        queryParams: EnhetensFerdigstilteOppgaverQueryParams
+        queryParams: EnhetensFerdigstilteOppgaverQueryParams,
     ): BehandlingerListResponse {
         logMethodDetails(
             methodName = ::getEnhetensFerdigstilteOppgaver.name,

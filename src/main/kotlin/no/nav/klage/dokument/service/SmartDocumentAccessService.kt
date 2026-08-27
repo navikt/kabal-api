@@ -30,7 +30,7 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -41,11 +41,10 @@ class SmartDocumentAccessService(
     private val documentPolicyService: DocumentPolicyService,
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    @Value("\${SMART_DOCUMENT_WRITE_ACCESS_TOPIC}")
+    @Value($$"${SMART_DOCUMENT_WRITE_ACCESS_TOPIC}")
     private val smartDocumentWriteAccessTopic: String,
-    private val klageLookupGateway: KlageLookupGateway
+    private val klageLookupGateway: KlageLookupGateway,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -81,9 +80,10 @@ class SmartDocumentAccessService(
             documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
             dua as SmartdokumentUnderArbeidAsVedlegg
 
-            val behandling = behandlingCache.getOrPut(dua.behandlingId) {
-                getBehandling(dua.behandlingId)
-            }
+            val behandling =
+                behandlingCache.getOrPut(dua.behandlingId) {
+                    getBehandling(dua.behandlingId)
+                }
 
             val dokumentType = documentPolicyService.getDokumentType(dua.id)
             val parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId)
@@ -97,7 +97,7 @@ class SmartDocumentAccessService(
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
                         duaMarkertFerdig = dua.erMarkertFerdig(),
-                        isSystemContext = false, //to force actual validation
+                        isSystemContext = false, // to force actual validation
                         saksbehandler = navIdent,
                         isRol = role == DuaAccessPolicy.User.ROL,
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
@@ -119,9 +119,10 @@ class SmartDocumentAccessService(
             documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
             dua as SmartdokumentUnderArbeidAsHoveddokument
 
-            val behandling = behandlingCache.getOrPut(dua.behandlingId) {
-                getBehandling(dua.behandlingId)
-            }
+            val behandling =
+                behandlingCache.getOrPut(dua.behandlingId) {
+                    getBehandling(dua.behandlingId)
+                }
 
             val dokumentType = documentPolicyService.getDokumentType(dua.id)
 
@@ -134,7 +135,7 @@ class SmartDocumentAccessService(
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
                         duaMarkertFerdig = dua.erMarkertFerdig(),
-                        isSystemContext = false, //to force actual validation
+                        isSystemContext = false, // to force actual validation
                         saksbehandler = navIdent,
                         isRol = role == DuaAccessPolicy.User.ROL,
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
@@ -153,12 +154,13 @@ class SmartDocumentAccessService(
         }
 
         return SmartDocumentsWriteAccessList(
-            smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
-                SmartDocumentWriteAccess(
-                    documentId = documentId,
-                    navIdents = navIdents.toList(),
-                )
-            }
+            smartDocumentWriteAccessList =
+                documentIdToNavIdents.map { (documentId, navIdents) ->
+                    SmartDocumentWriteAccess(
+                        documentId = documentId,
+                        navIdents = navIdents.toList(),
+                    )
+                },
         )
     }
 
@@ -181,9 +183,13 @@ class SmartDocumentAccessService(
 
         val dokumentType = documentPolicyService.getDokumentType(smartDocument.id)
         val parentDokumentType =
-            if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) documentPolicyService.getParentDokumentType(
-                smartDocument.parentId
-            ) else DuaAccessPolicy.Parent.NONE
+            if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) {
+                documentPolicyService.getParentDokumentType(
+                    smartDocument.parentId,
+                )
+            } else {
+                DuaAccessPolicy.Parent.NONE
+            }
 
         (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
             try {
@@ -195,7 +201,7 @@ class SmartDocumentAccessService(
                     documentRole = smartDocument.creatorRole,
                     action = DuaAccessPolicy.Action.WRITE,
                     duaMarkertFerdig = false,
-                    isSystemContext = false, //to force actual validation
+                    isSystemContext = false, // to force actual validation
                     saksbehandler = navIdent,
                     isRol = role == DuaAccessPolicy.User.ROL,
                     isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
@@ -218,23 +224,23 @@ class SmartDocumentAccessService(
         )
     }
 
-    fun getSmartDocumentWriteAccessListForBehandling(
-        behandling: Behandling,
-    ): SmartDocumentsWriteAccessList {
-        val smartDocuments = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
-            .filterIsInstance<DokumentUnderArbeidAsSmartdokument>()
+    fun getSmartDocumentWriteAccessListForBehandling(behandling: Behandling): SmartDocumentsWriteAccessList {
+        val smartDocuments =
+            dokumentUnderArbeidRepository
+                .findByBehandlingId(behandling.id)
+                .filterIsInstance<DokumentUnderArbeidAsSmartdokument>()
 
         if (smartDocuments.isEmpty()) {
             return SmartDocumentsWriteAccessList(emptyList())
         }
 
-        val (vedlegg, hoveddokumenter) = smartDocuments
-            .partition { it is SmartdokumentUnderArbeidAsVedlegg }
+        val (vedlegg, hoveddokumenter) =
+            smartDocuments
+                .partition { it is SmartdokumentUnderArbeidAsVedlegg }
 
         val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
-
 
         vedlegg.forEach { dua ->
             documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
@@ -257,7 +263,7 @@ class SmartDocumentAccessService(
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
                         duaMarkertFerdig = dua.erMarkertFerdig(),
-                        isSystemContext = false, //to force actual validation
+                        isSystemContext = false, // to force actual validation
                         saksbehandler = navIdent,
                         isRol = role == DuaAccessPolicy.User.ROL,
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
@@ -295,7 +301,7 @@ class SmartDocumentAccessService(
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
                         duaMarkertFerdig = dua.erMarkertFerdig(),
-                        isSystemContext = false, //to force actual validation
+                        isSystemContext = false, // to force actual validation
                         saksbehandler = navIdent,
                         isRol = role == DuaAccessPolicy.User.ROL,
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
@@ -313,21 +319,24 @@ class SmartDocumentAccessService(
             }
         }
         return SmartDocumentsWriteAccessList(
-            smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
-                SmartDocumentWriteAccess(
-                    documentId = documentId,
-                    navIdents = navIdents.toList(),
-                )
-            }
+            smartDocumentWriteAccessList =
+                documentIdToNavIdents.map { (documentId, navIdents) ->
+                    SmartDocumentWriteAccess(
+                        documentId = documentId,
+                        navIdents = navIdents.toList(),
+                    )
+                },
         )
     }
 
     private fun getUsers(): Pair<List<Pair<String, DuaAccessPolicy.User>>, List<Pair<String, DuaAccessPolicy.User>>> {
         val saksbehandlerIdentList =
-            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_SAKSBEHANDLING)
+            klageLookupGateway
+                .getUsersInGroup(AzureGroup.KABAL_SAKSBEHANDLING)
                 .map { it.navIdent to DuaAccessPolicy.User.SAKSBEHANDLER }
         val rolIdentList =
-            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_ROL)
+            klageLookupGateway
+                .getUsersInGroup(AzureGroup.KABAL_ROL)
                 .map { it.navIdent to DuaAccessPolicy.User.ROL }
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -335,7 +344,7 @@ class SmartDocumentAccessService(
             rolIdentList.size,
         )
 
-        return Pair(saksbehandlerIdentList, rolIdentList)
+        return Pair(first = saksbehandlerIdentList, second = rolIdentList)
     }
 
     /**
@@ -347,7 +356,7 @@ class SmartDocumentAccessService(
     fun notifyFrontendAboutPossibleDocumentRightChanges(smartDocumentAccessBehandlingEvent: SmartDocumentAccessBehandlingEvent) {
         logger.debug(
             "Notifying frontend about possible document right changes for behandling {}",
-            smartDocumentAccessBehandlingEvent.behandling.id
+            smartDocumentAccessBehandlingEvent.behandling.id,
         )
         getSmartDocumentWriteAccessListForBehandling(
             behandling = smartDocumentAccessBehandlingEvent.behandling,
@@ -367,7 +376,7 @@ class SmartDocumentAccessService(
     fun notifyFrontendAboutDocumentMarkedAsFinished(smartDocumentMarkedAsFinishedEvent: SmartDocumentMarkedAsFinishedEvent) {
         logger.debug(
             "Notifying frontend about document marked as finished: {}",
-            smartDocumentMarkedAsFinishedEvent.duaId
+            smartDocumentMarkedAsFinishedEvent.duaId,
         )
         publishToKafkaTopic(
             key = smartDocumentMarkedAsFinishedEvent.duaId.toString(),
@@ -383,7 +392,7 @@ class SmartDocumentAccessService(
     fun notifyFrontendAboutDocumentDeleted(smartDocumentDeletedEvent: SmartDocumentDeletedEvent) {
         logger.debug(
             "Notifying frontend about document deleted: {}",
-            smartDocumentDeletedEvent.duaId
+            smartDocumentDeletedEvent.duaId,
         )
         publishToKafkaTopic(
             key = smartDocumentDeletedEvent.duaId.toString(),
@@ -391,7 +400,10 @@ class SmartDocumentAccessService(
         )
     }
 
-    private fun publishToKafkaTopic(key: String, json: String?) {
+    private fun publishToKafkaTopic(
+        key: String,
+        json: String?,
+    ) {
         logger.debug("Sending to Kafka topic: {}", smartDocumentWriteAccessTopic)
         runCatching {
             aivenKafkaTemplate.send(smartDocumentWriteAccessTopic, key, json).get()
@@ -402,6 +414,7 @@ class SmartDocumentAccessService(
     }
 
     private fun getBehandling(behandlingId: UUID): Behandling =
-        behandlingRepository.findById(behandlingId)
+        behandlingRepository
+            .findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 }

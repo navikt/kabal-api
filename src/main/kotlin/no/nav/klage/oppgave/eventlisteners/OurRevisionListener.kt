@@ -13,9 +13,8 @@ import org.springframework.web.context.request.ServletRequestAttributes
 @Service
 class OurRevisionListener(
     private val tokenUtil: TokenUtil,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) : RevisionListener {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -26,45 +25,49 @@ class OurRevisionListener(
 
         var actor: String? = null
 
-        val request = try {
-            val requestAttributes = RequestContextHolder.getRequestAttributes()
-            if (requestAttributes != null) {
-                val request = (requestAttributes as ServletRequestAttributes).request
-                request.method + " " + request.requestURI
-            } else {
-                //no exception occurred, we just don't have a request
-                actor = systembrukerIdent
+        val request =
+            try {
+                val requestAttributes = RequestContextHolder.getRequestAttributes()
+                if (requestAttributes != null) {
+                    val request = (requestAttributes as ServletRequestAttributes).request
+                    request.method + " " + request.requestURI
+                } else {
+                    // no exception occurred, we just don't have a request
+                    actor = systembrukerIdent
+                    null
+                }
+            } catch (e: Exception) {
+                logger.debug("No request found to set on revision entity. Setting to null.", e)
                 null
             }
-        } catch (e: Exception) {
-            logger.debug("No request found to set on revision entity. Setting to null.", e)
-            null
-        }
 
-        val navIdentFromToken = try {
-            tokenUtil.getIdent()
-        } catch (e: Exception) {
-            logger.debug("No NAVIdent found in token.", e)
-            null
-        }
+        val navIdentFromToken =
+            try {
+                tokenUtil.getIdent()
+            } catch (e: Exception) {
+                logger.debug("No NAVIdent found in token.", e)
+                null
+            }
 
-        val callingApplication = try {
-            tokenUtil.getCallingApplication()
-        } catch (e: Exception) {
-            logger.debug("Failed to get calling application from token.", e)
-            null
-        }
+        val callingApplication =
+            try {
+                tokenUtil.getCallingApplication()
+            } catch (e: Exception) {
+                logger.debug("Failed to get calling application from token.", e)
+                null
+            }
 
         if (navIdentFromToken != null || callingApplication != null) {
             actor = navIdentFromToken ?: callingApplication
         }
 
-        val traceId = try {
-            Span.current().spanContext.traceId
-        } catch (e: Exception) {
-            logger.warn("Failed to set traceId on revision entity. Setting 'unknown'.", e)
-            "unknown"
-        }
+        val traceId =
+            try {
+                Span.current().spanContext.traceId
+            } catch (e: Exception) {
+                logger.warn("Failed to set traceId on revision entity. Setting 'unknown'.", e)
+                "unknown"
+            }
 
         revisionEntity.request = request
         revisionEntity.actor = actor ?: "unknown"

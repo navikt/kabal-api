@@ -1,9 +1,7 @@
 package no.nav.klage.oppgave.clients.gosysoppgave
 
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import tools.jackson.databind.annotation.JsonDeserialize
-
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -32,45 +30,45 @@ data class GosysOppgaveRecord(
     val ferdigstiltTidspunkt: LocalDateTime?,
     val bruker: BrukerDto,
 ) {
-    fun isEditable(): Boolean {
-        return status !in listOf(
-            Status.FERDIGSTILT,
-            Status.FEILREGISTRERT
-        )
-    }
+    fun isEditable(): Boolean =
+        status !in
+            listOf(
+                Status.FERDIGSTILT,
+                Status.FEILREGISTRERT,
+            )
 
     data class BrukerDto(
         val ident: String,
-        val type: BrukerType
+        val type: BrukerType,
     ) {
         enum class BrukerType {
             PERSON,
             ARBEIDSGIVER,
-            SAMHANDLER
+            SAMHANDLER,
         }
     }
 }
 
-enum class Status(val statusId: Long) {
-
+enum class Status(
+    val statusId: Long,
+) {
     OPPRETTET(1),
     AAPNET(2),
     UNDER_BEHANDLING(3),
     FERDIGSTILT(4),
-    FEILREGISTRERT(5);
+    FEILREGISTRERT(5),
+    ;
 
     companion object {
-
-        fun of(statusId: Long): Status {
-            return entries.firstOrNull { it.statusId == statusId }
+        fun of(statusId: Long): Status =
+            entries.firstOrNull { it.statusId == statusId }
                 ?: throw IllegalArgumentException("No status with $statusId exists")
-        }
     }
 }
 
 data class OppgaveMapperResponse(
     val antallTreffTotalt: Int,
-    val mapper: List<OppgaveMappe>
+    val mapper: List<OppgaveMappe>,
 ) {
     data class OppgaveMappe(
         val id: Long?,
@@ -83,13 +81,13 @@ data class OppgaveMapperResponse(
         @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
         val opprettetTidspunkt: LocalDateTime?,
         @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
-        val endretTidspunkt: LocalDateTime?
+        val endretTidspunkt: LocalDateTime?,
     )
 }
 
 data class OppgaveListResponse(
     val antallTreffTotalt: Int,
-    val oppgaver: List<GosysOppgaveRecord>
+    val oppgaver: List<GosysOppgaveRecord>,
 )
 
 data class Gjelder(

@@ -19,9 +19,9 @@ sealed interface Mottaker {
 }
 
 class MottakerPartId(
-    override val value: PartId
+    override val value: PartId,
 ) : Mottaker
 
 class MottakerNavn(
-    override val value: String
+    override val value: String,
 ) : Mottaker

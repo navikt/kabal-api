@@ -19,53 +19,53 @@ import org.springframework.context.annotation.Configuration
     type = SecuritySchemeType.HTTP,
     bearerFormat = "jwt",
     name = "bearerAuth",
-    scheme = "bearer", `in` = SecuritySchemeIn.HEADER
+    scheme = "bearer",
+    `in` = SecuritySchemeIn.HEADER,
 )
 class OpenApiConfig {
-
     @Bean
-    fun apiInternal(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
+    fun apiInternal(): GroupedOpenApi =
+        GroupedOpenApi
+            .builder()
             .packagesToScan(BehandlingDetaljerController::class.java.packageName)
             .group("internal")
             .pathsToMatch("/**")
             .pathsToExclude("/api/**")
             .build()
-    }
 
     @Bean
-    fun apiInternalDokumenterUnderArbeid(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
+    fun apiInternalDokumenterUnderArbeid(): GroupedOpenApi =
+        GroupedOpenApi
+            .builder()
             .packagesToScan(DokumentUnderArbeidController::class.java.packageName)
             .group("internal-documents")
             .pathsToMatch("/**")
             .build()
-    }
 
     @Bean
-    fun apiInternalKaptein(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
+    fun apiInternalKaptein(): GroupedOpenApi =
+        GroupedOpenApi
+            .builder()
             .packagesToScan(KapteinController::class.java.packageName)
             .group("internal-kaptein")
             .pathsToMatch("/**")
             .build()
-    }
 
     @Bean
-    fun apiInternalInnsyn(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
+    fun apiInternalInnsyn(): GroupedOpenApi =
+        GroupedOpenApi
+            .builder()
             .packagesToScan(InnsynController::class.java.packageName)
             .group("internal-innsyn")
             .pathsToMatch("/**")
             .build()
-    }
 
     @Bean
-    fun apiExternal(): GroupedOpenApi {
-        return GroupedOpenApi.builder()
+    fun apiExternal(): GroupedOpenApi =
+        GroupedOpenApi
+            .builder()
             .packagesToScan(ExternalApiController::class.java.packageName)
             .group("external")
             .pathsToMatch("/api/**")
             .build()
-    }
 }

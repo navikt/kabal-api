@@ -22,15 +22,15 @@ data class SakAssignedInput(
 )
 
 data class HandledInKabalInput(
-    val fristAsString: String
+    val fristAsString: String,
 )
 
 data class FeilregistrertInKabalInput(
-    val saksbehandlerIdent: String
+    val saksbehandlerIdent: String,
 )
 
 data class GetSakAppAccessInput(
-    val saksbehandlerIdent: String
+    val saksbehandlerIdent: String,
 )
 
 data class SakFinishedInput(
@@ -47,11 +47,13 @@ data class SakFinishedInput(
     }
 
     enum class Nivaa {
-        KA, TR
+        KA,
+        TR,
     }
 
     enum class TypeResultat {
-        RESULTAT, INNSTILLING_2
+        RESULTAT,
+        INNSTILLING_2,
     }
 
     enum class Utfall {
@@ -73,12 +75,11 @@ data class SakFinishedInput(
         POLITIANMELDELSE,
         TILBAKEBETALING,
         TVANGSGEBYR_FASTHOLDES,
-        IKKE_BRUK
+        IKKE_BRUK,
     }
 
     enum class Mottaker {
-        TRYGDEKONTOR, TRYGDERETTEN
+        TRYGDEKONTOR,
+        TRYGDERETTEN,
     }
-
 }
-

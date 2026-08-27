@@ -9,42 +9,40 @@ import org.springframework.stereotype.Service
 
 @Service
 class MeldingMapper(
-    private val saksbehandlerService: SaksbehandlerService
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
-
-    fun toMeldingView(melding: Melding): MeldingView {
-        return MeldingView(
+    fun toMeldingView(melding: Melding): MeldingView =
+        MeldingView(
             id = melding.id,
             text = melding.text,
-            author = SaksbehandlerView(
-                navIdent = melding.saksbehandlerident,
-                navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
-            ),
-            notify = melding.notify,
-            created = melding.created,
-            modified = melding.modified
-        )
-    }
-
-    fun toModifiedView(melding: Melding): MeldingModified {
-        return MeldingModified(
-            modified = melding.modified ?: throw RuntimeException("modified on melding not set")
-        )
-    }
-
-    fun toMeldingerView(meldinger: List<Melding>): List<MeldingView> {
-        return meldinger.map { melding ->
-            MeldingView(
-                id = melding.id,
-                text = melding.text,
-                author = SaksbehandlerView(
+            author =
+                SaksbehandlerView(
                     navIdent = melding.saksbehandlerident,
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
                 ),
+            notify = melding.notify,
+            created = melding.created,
+            modified = melding.modified,
+        )
+
+    fun toModifiedView(melding: Melding): MeldingModified =
+        MeldingModified(
+            modified = melding.modified ?: throw RuntimeException("modified on melding not set"),
+        )
+
+    fun toMeldingerView(meldinger: List<Melding>): List<MeldingView> =
+        meldinger.map { melding ->
+            MeldingView(
+                id = melding.id,
+                text = melding.text,
+                author =
+                    SaksbehandlerView(
+                        navIdent = melding.saksbehandlerident,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
+                    ),
                 notify = melding.notify,
                 created = melding.created,
-                modified = melding.modified
+                modified = melding.modified,
             )
         }
-    }
 }

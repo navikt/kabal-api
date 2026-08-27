@@ -11,7 +11,20 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
-import no.nav.klage.oppgave.api.view.kabin.*
+import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnJournalpostInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling
+import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreatedBehandlingResponse
+import no.nav.klage.oppgave.api.view.kabin.CreatedBehandlingStatusForKabin
+import no.nav.klage.oppgave.api.view.kabin.ExistingBehandling
+import no.nav.klage.oppgave.api.view.kabin.KabinResponseSvarbrev
+import no.nav.klage.oppgave.api.view.kabin.MellomlagretDocumentInput
+import no.nav.klage.oppgave.api.view.kabin.Mulighet
+import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
+import no.nav.klage.oppgave.api.view.kabin.TildeltSaksbehandler
+import no.nav.klage.oppgave.api.view.kabin.UploadedDocumentInput
+import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
@@ -26,7 +39,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -48,37 +61,44 @@ class KabinApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getAnkemuligheter(partIdValue: String): List<Mulighet> {
-        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
+    fun getAnkemuligheter(partIdValue: String): List<Mulighet> =
+        behandlingService
+            .getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.ANKE) }
-    }
 
     fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
-        val infotrygdSak = klankeService.getSakWithAppAccess(
-            sakId = infotrygdSakId, input = GetSakAppAccessInput(
-                saksbehandlerIdent = tokenUtil.getIdent()
+        val infotrygdSak =
+            klankeService.getSakWithAppAccess(
+                sakId = infotrygdSakId,
+                input =
+                    GetSakAppAccessInput(
+                        saksbehandlerIdent = tokenUtil.getIdent(),
+                    ),
             )
-        )
         val ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema =
             behandlingService.getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
                 partIdValue = infotrygdSak.fnr,
-                tema = Tema.valueOf(infotrygdSak.tema)
+                tema = Tema.valueOf(infotrygdSak.tema),
             )
-        logger.debug("Found ${ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.size} infotrygd muligheter for infotrygdSakId $infotrygdSakId")
+        logger.debug(
+            "Found ${ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.size} infotrygd muligheter for infotrygdSakId $infotrygdSakId",
+        )
         return ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.map { it.toMulighet(mulighetType = Type.ANKE) }
     }
 
-    fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> {
-        return behandlingService.getOmgjoeringskravmuligheterByPartIdValue(partIdValue = partIdValue)
+    fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> =
+        behandlingService
+            .getOmgjoeringskravmuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
-    }
 
-    fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> {
-        return behandlingService.getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
+    fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> =
+        behandlingService
+            .getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK) }
-    }
 
-    fun createBehandlingFromPreviousKabalBehandling(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): CreatedBehandlingResponse {
+    fun createBehandlingFromPreviousKabalBehandling(
+        input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,
+    ): CreatedBehandlingResponse {
         val behandling = mottakService.createMottakAndBehandlingFromKabinInputWithPreviousKabalBehandling(input = input)
 
         createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
@@ -129,45 +149,51 @@ class KabinApiService(
             behandlingService.setSaksbehandler(
                 behandlingId = behandling.id,
                 tildeltSaksbehandlerIdent = saksbehandlerIdent,
-                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    navIdent = saksbehandlerIdent,
-                ).enhetId,
+                enhetId =
+                    saksbehandlerService
+                        .getEnhetForSaksbehandler(
+                            navIdent = saksbehandlerIdent,
+                        ).enhetId,
                 fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
 
-        //Create DokumentUnderArbeid from input based on svarbrevInput.
+        // Create DokumentUnderArbeid from input based on svarbrevInput.
         if (!svarbrevInput.doNotSendLetter) {
             dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
                 svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
                 behandling = behandling,
-                //Hardkodes til KA Oslo
+                // Hardkodes til KA Oslo
                 avsenderEnhetId = Enhet.E4291.navn,
             )
         }
 
-        //TODO: remove check after client adjusts.
+        // TODO: remove check after client adjusts.
         if (!svarbrevInput.doNotSendLetter || svarbrevInput.reasonNoLetter != null) {
             behandlingService.setVarsletFrist(
-                varsletBehandlingstidUnitType = getTimeUnitType(
-                    varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
-                    varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
-                ),
+                varsletBehandlingstidUnitType =
+                    getTimeUnitType(
+                        varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
+                        varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                    ),
                 varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandlingId = behandling.id,
                 systemUserContext = false,
-                mottakere = svarbrevInput.receivers.map {
-                    if (it.identifikator != null) {
-                        MottakerPartId(
-                            value = getPartIdFromIdentifikator(it.identifikator)
-                        )
-                    } else if (it.navn != null) {
-                        MottakerNavn(
-                            value = it.navn
-                        )
-                    } else throw IllegalArgumentException("Missing values in receiver: $it")
-                },
+                mottakere =
+                    svarbrevInput.receivers.map {
+                        if (it.identifikator != null) {
+                            MottakerPartId(
+                                value = getPartIdFromIdentifikator(it.identifikator),
+                            )
+                        } else if (it.navn != null) {
+                            MottakerNavn(
+                                value = it.navn,
+                            )
+                        } else {
+                            throw IllegalArgumentException("Missing values in receiver: $it")
+                        }
+                    },
                 fromDate = behandling.mottattKlageinstans.toLocalDate(),
                 varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
                 varsletFrist = null,
@@ -184,47 +210,48 @@ class KabinApiService(
         }
     }
 
-    private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev {
-        return Svarbrev(
+    private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev =
+        Svarbrev(
             title = title,
-            receivers = receivers.map { receiver ->
-                Svarbrev.Receiver(
-                    identifikator = receiver.identifikator,
-                    overriddenAddress = receiver.overriddenAddress?.let {
-                        Svarbrev.Receiver.AddressInput(
-                            adresselinje1 = it.adresselinje1,
-                            adresselinje2 = it.adresselinje2,
-                            adresselinje3 = it.adresselinje3,
-                            landkode = it.landkode,
-                            postnummer = it.postnummer,
-                        )
-                    },
-                    handling = Svarbrev.Receiver.HandlingEnum.valueOf(receiver.handling.name),
-                    navn = receiver.navn,
-                )
-            },
+            receivers =
+                receivers.map { receiver ->
+                    Svarbrev.Receiver(
+                        identifikator = receiver.identifikator,
+                        overriddenAddress =
+                            receiver.overriddenAddress?.let {
+                                Svarbrev.Receiver.AddressInput(
+                                    adresselinje1 = it.adresselinje1,
+                                    adresselinje2 = it.adresselinje2,
+                                    adresselinje3 = it.adresselinje3,
+                                    landkode = it.landkode,
+                                    postnummer = it.postnummer,
+                                )
+                            },
+                        handling = Svarbrev.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                        navn = receiver.navn,
+                    )
+                },
             fullmektigFritekst = fullmektigFritekst,
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitType = getTimeUnitType(
-                varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
-                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType
-            ),
+            varsletBehandlingstidUnitType =
+                getTimeUnitType(
+                    varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
+                    varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+                ),
             type = behandling.type,
             initialCustomText = initialCustomText,
             customText = customText,
         )
-    }
 
     private fun getTimeUnitType(
         varsletBehandlingstidUnitTypeId: String?,
-        varsletBehandlingstidUnitType: TimeUnitType?
-    ): TimeUnitType {
-        return if (varsletBehandlingstidUnitTypeId != null) {
+        varsletBehandlingstidUnitType: TimeUnitType?,
+    ): TimeUnitType =
+        if (varsletBehandlingstidUnitTypeId != null) {
             TimeUnitType.of(varsletBehandlingstidUnitTypeId)
         } else {
             varsletBehandlingstidUnitType!!
         }
-    }
 
     private fun createUploadedIncomingDocumentIfPresent(
         behandling: Behandling,
@@ -241,16 +268,15 @@ class KabinApiService(
         )
     }
 
-    private fun MellomlagretDocumentInput.toReference() = MellomlagretDokumentReference(
-        mellomlagerId = mellomlagerId,
-        name = name,
-        size = size,
-        sortIndex = sortIndex,
-    )
+    private fun MellomlagretDocumentInput.toReference() =
+        MellomlagretDokumentReference(
+            mellomlagerId = mellomlagerId,
+            name = name,
+            size = size,
+            sortIndex = sortIndex,
+        )
 
-    fun createKlage(
-        input: CreateKlageBasedOnKabinInput
-    ): CreatedBehandlingResponse {
+    fun createKlage(input: CreateKlageBasedOnKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
         setSaksbehandlerAndCreateSvarbrev(
@@ -262,55 +288,62 @@ class KabinApiService(
         return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
-    fun getCreatedBehandlingStatus(
-        behandlingId: UUID
-    ): CreatedBehandlingStatusForKabin {
+    fun getCreatedBehandlingStatus(behandlingId: UUID): CreatedBehandlingStatusForKabin {
         val behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId)
 
         return getCreatedBehandlingStatusForKabin(behandling = behandling)
     }
 
-    private fun getCreatedBehandlingStatusForKabin(
-        behandling: Behandling,
-    ): CreatedBehandlingStatusForKabin {
+    private fun getCreatedBehandlingStatusForKabin(behandling: Behandling): CreatedBehandlingStatusForKabin {
         if (behandling !is BehandlingWithMottakDokument || behandling !is BehandlingWithVarsletBehandlingstid) {
             error("Unsupported type")
         }
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = behandling.id)
 
-        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
-            dokumentMapper.mapToDokumentView(
-                dokumentUnderArbeid = dokumentUnderArbeid,
-                behandling = behandling,
-                journalpost = null,
-                smartEditorDocument = null,
-            )
-        } else null
+        val dokumentView: DokumentView? =
+            if (dokumentUnderArbeid != null) {
+                dokumentMapper.mapToDokumentView(
+                    dokumentUnderArbeid = dokumentUnderArbeid,
+                    behandling = behandling,
+                    journalpost = null,
+                    smartEditorDocument = null,
+                )
+            } else {
+                null
+            }
 
         return CreatedBehandlingStatusForKabin(
             typeId = behandling.type.id,
             ytelseId = behandling.ytelse.id,
-            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = behandling)
-                .toKabinPartView(),
-            klager = behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = behandling.klager.id,
-                partId = behandling.klager.partId,
-                behandling = behandling,
-                navn = null,
-                address = null,
-            ).toKabinPartView(),
-            fullmektig = if (behandling.prosessfullmektig?.partId != null) {
-                val prosessfullmektig = behandling.prosessfullmektig!!
-                behandlingMapper.getPartViewWithUtsendingskanal(
-                    technicalPartId = prosessfullmektig.id,
-                    partId = prosessfullmektig.partId,
-                    behandling = behandling,
-                    navn = prosessfullmektig.navn,
-                    address = prosessfullmektig.address
-                ).toKabinPartView()
-            } else null,
+            sakenGjelder =
+                behandlingMapper
+                    .getSakenGjelderViewWithUtsendingskanal(behandling = behandling)
+                    .toKabinPartView(),
+            klager =
+                behandlingMapper
+                    .getPartViewWithUtsendingskanal(
+                        technicalPartId = behandling.klager.id,
+                        partId = behandling.klager.partId,
+                        behandling = behandling,
+                        navn = null,
+                        address = null,
+                    ).toKabinPartView(),
+            fullmektig =
+                if (behandling.prosessfullmektig?.partId != null) {
+                    val prosessfullmektig = behandling.prosessfullmektig!!
+                    behandlingMapper
+                        .getPartViewWithUtsendingskanal(
+                            technicalPartId = prosessfullmektig.id,
+                            partId = prosessfullmektig.partId,
+                            behandling = behandling,
+                            navn = prosessfullmektig.navn,
+                            address = prosessfullmektig.address,
+                        ).toKabinPartView()
+                } else {
+                    null
+                },
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
             mottattVedtaksinstans = null,
             frist = behandling.frist!!,
@@ -319,38 +352,43 @@ class KabinApiService(
             varsletFristUnitTypeId = behandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
             fagsakId = behandling.fagsakId,
             fagsystemId = behandling.fagsystem.id,
-            //Null when the behandling was created based on an uploaded document instead of an existing journalpost.
-            journalpost = behandling.mottakDokument.find { it.type == behandling.type.getMottakDokumentType() }
-                ?.let { mottakDokument ->
-                    dokumentService.getDokumentReferanse(
-                        journalpostId = mottakDokument.journalpostId,
-                        behandling = behandling
+            // Null when the behandling was created based on an uploaded document instead of an existing journalpost.
+            journalpost =
+                behandling.mottakDokument
+                    .find { it.type == behandling.type.getMottakDokumentType() }
+                    ?.let { mottakDokument ->
+                        dokumentService.getDokumentReferanse(
+                            journalpostId = mottakDokument.journalpostId,
+                            behandling = behandling,
+                        )
+                    },
+            tildeltSaksbehandler =
+                behandling.tildeling?.saksbehandlerident?.let {
+                    TildeltSaksbehandler(
+                        navIdent = it,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                     )
                 },
-            tildeltSaksbehandler = behandling.tildeling?.saksbehandlerident?.let {
-                TildeltSaksbehandler(
-                    navIdent = it,
-                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
-                )
-            },
-            svarbrev = dokumentView?.let { document ->
-                KabinResponseSvarbrev(
-                    dokumentUnderArbeidId = document.id,
-                    title = document.tittel,
-                    receivers = document.mottakerList.map { mottaker ->
-                        KabinResponseSvarbrev.Receiver(
-                            part = mottaker.part,
-                            overriddenAddress = mottaker.overriddenAddress,
-                            handling = mottaker.handling,
-                        )
-                    }
-                )
-            }
+            svarbrev =
+                dokumentView?.let { document ->
+                    KabinResponseSvarbrev(
+                        dokumentUnderArbeidId = document.id,
+                        title = document.tittel,
+                        receivers =
+                            document.mottakerList.map { mottaker ->
+                                KabinResponseSvarbrev.Receiver(
+                                    part = mottaker.part,
+                                    overriddenAddress = mottaker.overriddenAddress,
+                                    handling = mottaker.handling,
+                                )
+                            },
+                    )
+                },
         )
     }
 
     private fun Behandling.toMulighet(mulighetType: Type): Mulighet {
-        //Exclude hjemler where utfases = true
+        // Exclude hjemler where utfases = true
         val relevantHjemler = ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }
         val filteredHjemmelList = hjemler.filter { it in relevantHjemler }
 
@@ -363,23 +401,28 @@ class KabinApiService(
             hjemmelIdList = filteredHjemmelList.map { it.id },
             vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
-            klager = behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = klager.id,
-                partId = klager.partId,
-                behandling = this,
-                navn = null,
-                address = null,
-            )
-                .toKabinPartView(),
-            fullmektig = if (prosessfullmektig?.partId != null) {
-                behandlingMapper.getPartViewWithUtsendingskanal(
-                    technicalPartId = prosessfullmektig!!.id,
-                    partId = prosessfullmektig!!.partId,
-                    behandling = this,
-                    navn = prosessfullmektig!!.navn,
-                    address = prosessfullmektig!!.address,
-                ).toKabinPartView()
-            } else null,
+            klager =
+                behandlingMapper
+                    .getPartViewWithUtsendingskanal(
+                        technicalPartId = klager.id,
+                        partId = klager.partId,
+                        behandling = this,
+                        navn = null,
+                        address = null,
+                    ).toKabinPartView(),
+            fullmektig =
+                if (prosessfullmektig?.partId != null) {
+                    behandlingMapper
+                        .getPartViewWithUtsendingskanal(
+                            technicalPartId = prosessfullmektig!!.id,
+                            partId = prosessfullmektig!!.partId,
+                            behandling = this,
+                            navn = prosessfullmektig!!.navn,
+                            address = prosessfullmektig!!.address,
+                        ).toKabinPartView()
+                } else {
+                    null
+                },
             fagsakId = fagsakId,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,
@@ -388,14 +431,15 @@ class KabinApiService(
             tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
             originalTypeId = type.id,
             typeId = mulighetType.id,
-            existingBehandlingList = behandlingerBasedOnThisBehandling.map {
-                ExistingBehandling(
-                    id = it.id,
-                    typeId = it.type.id,
-                    created = it.created,
-                    completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
-                )
-            },
+            existingBehandlingList =
+                behandlingerBasedOnThisBehandling.map {
+                    ExistingBehandling(
+                        id = it.id,
+                        typeId = it.type.id,
+                        created = it.created,
+                        completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
+                    )
+                },
             gosysOppgaveRequired = gosysOppgaveRequired,
             kjennelseMottatt = (this as? BehandlingITrygderetten)?.kjennelseMottatt,
         )

@@ -13,7 +13,7 @@ data class NoekkelInfoOmOrganisasjon(
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Navn(
-        val sammensattnavn: String
+        val sammensattnavn: String,
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,7 +26,7 @@ data class NoekkelInfoOmOrganisasjon(
         val poststed: String?,
     )
 
-
     fun isActive() = opphoersdato == null || opphoersdato.isAfter(LocalDate.now())
+
     fun isDeltAnsvar() = enhetstype == "DA"
 }

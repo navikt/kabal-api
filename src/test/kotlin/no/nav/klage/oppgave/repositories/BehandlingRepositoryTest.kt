@@ -8,8 +8,22 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.behandling.*
-import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnKabalBehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -23,25 +37,24 @@ import org.springframework.test.annotation.Commit
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import java.util.stream.Stream
 
 @ActiveProfiles("local")
 @DataJpaTest
 class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
-    private val ENHET_1 = "ENHET_1"
-    private val ENHET_2 = "ENHET_2"
+    private val enhet1 = "ENHET_1"
+    private val enhet2 = "ENHET_2"
 
     @ParameterizedTest
     @MethodSource("behandlingProvider")
@@ -62,19 +75,19 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
         forlengetBehandlingstidDraft.title = "title"
 
-        val receiver = Brevmottaker(
-            technicalPartId = UUID.randomUUID(),
-            identifikator = "abc",
-            localPrint = false,
-            forceCentralPrint = false,
-            address = null,
-            navn = "Test Navn"
-        )
+        val receiver =
+            Brevmottaker(
+                technicalPartId = UUID.randomUUID(),
+                identifikator = "abc",
+                localPrint = false,
+                forceCentralPrint = false,
+                address = null,
+                navn = "Test Navn",
+            )
 
         forlengetBehandlingstidDraft.receivers.add(receiver)
 
         klage.forlengetBehandlingstidDraft = forlengetBehandlingstidDraft
-
 
         behandlingRepository.save(klage)
 
@@ -102,13 +115,14 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     fun `store Klagebehandling with feilregistrering works`() {
         val klagebehandling = getKlagebehandling()
 
-        klagebehandling.feilregistrering = Feilregistrering(
-            navIdent = "navIdent",
-            navn = "navn",
-            registered = LocalDateTime.now(),
-            reason = "reason",
-            fagsystem = Fagsystem.K9,
-        )
+        klagebehandling.feilregistrering =
+            Feilregistrering(
+                navIdent = "navIdent",
+                navn = "navn",
+                registered = LocalDateTime.now(),
+                reason = "reason",
+                fagsystem = Fagsystem.K9,
+            )
 
         behandlingRepository.save(klagebehandling)
 
@@ -116,336 +130,375 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         testEntityManager.clear()
 
         assertThat(
-            behandlingRepository.findById(klagebehandling.id).get().feilregistrering!!.navIdent
+            behandlingRepository
+                .findById(klagebehandling.id)
+                .get()
+                .feilregistrering!!
+                .navIdent,
         ).isEqualTo(klagebehandling.feilregistrering!!.navIdent)
     }
 
     @Test
     fun `enhet based query works`() {
         val klageTildeltEnhet1 = getKlagebehandling()
-        klageTildeltEnhet1.tildeling = Tildeling(
-            saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
-        )
+        klageTildeltEnhet1.tildeling =
+            Tildeling(
+                saksbehandlerident = "1",
+                enhet = enhet1,
+                tidspunkt = LocalDateTime.now(),
+            )
 
         val klageTildeltEnhet2 = getKlagebehandling()
-        klageTildeltEnhet2.tildeling = Tildeling(
-            saksbehandlerident = "1", enhet = ENHET_2, tidspunkt = LocalDateTime.now()
-        )
+        klageTildeltEnhet2.tildeling =
+            Tildeling(
+                saksbehandlerident = "1",
+                enhet = enhet2,
+                tidspunkt = LocalDateTime.now(),
+            )
 
         val klageUtenTildeling = getKlagebehandling()
         val fullfoertKlage = getKlagebehandling()
-        fullfoertKlage.tildeling = Tildeling(
-            saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
-        )
-        fullfoertKlage.ferdigstilling = Ferdigstilling(
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        fullfoertKlage.tildeling =
+            Tildeling(
+                saksbehandlerident = "1",
+                enhet = enhet1,
+                tidspunkt = LocalDateTime.now(),
+            )
+        fullfoertKlage.ferdigstilling =
+            Ferdigstilling(
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
         behandlingRepository.saveAll(listOf(klageTildeltEnhet1, klageTildeltEnhet2, klageUtenTildeling, fullfoertKlage))
 
         testEntityManager.flush()
         testEntityManager.clear()
         val result =
-            behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet = ENHET_1)
+            behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet = enhet1)
 
         assertThat(result).isEqualTo(listOf(klageTildeltEnhet1))
     }
 
     companion object {
-
         private val PAAANKET_VEDTAKSDATO: LocalDate = LocalDate.of(2020, 1, 1)
 
         @JvmStatic
-        fun behandlingProvider(): Stream<Behandling> = Stream.of(
-            getKlagebehandling(),
-            getAnkebehandling(),
-            getAnkeITrygderettenbehandling(),
-            getBehandlingEtterTrygderettenOpphevet(),
-            getOmgjoeringskravbehandlingBasedOnKabalBehandling(),
-            getOmgjoeringskravbehandlingBasedOnJournalpost(),
-            getGjenopptaksbehandlingBasedOnJournalpost(),
-            getGjenopptaksbehandlingBasedOnKabalBehandling(),
-            getGjenopptakITrygderettenbehandling(),
-        )
-
-        private fun getKlagebehandling() = Klagebehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            avsenderEnhetFoersteinstans = "0101",
-            mottattVedtaksinstans = LocalDate.now(),
-            kakaKvalitetsvurderingVersion = 2,
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
-
-        private fun getAnkebehandling() = Ankebehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.ANKE,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            klageBehandlendeEnhet = "4219",
-            kakaKvalitetsvurderingVersion = 2,
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-            forsterketRett = true,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
-
-        private fun getOmgjoeringskravbehandlingBasedOnKabalBehandling() = OmgjoeringskravbehandlingBasedOnKabalBehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.OMGJOERINGSKRAV,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            klageBehandlendeEnhet = "4219",
-            kakaKvalitetsvurderingVersion = 2,
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-            oppgaveId = null,
-
+        fun behandlingProvider(): Stream<Behandling> =
+            Stream.of(
+                getKlagebehandling(),
+                getAnkebehandling(),
+                getAnkeITrygderettenbehandling(),
+                getBehandlingEtterTrygderettenOpphevet(),
+                getOmgjoeringskravbehandlingBasedOnKabalBehandling(),
+                getOmgjoeringskravbehandlingBasedOnJournalpost(),
+                getGjenopptaksbehandlingBasedOnJournalpost(),
+                getGjenopptaksbehandlingBasedOnKabalBehandling(),
+                getGjenopptakITrygderettenbehandling(),
             )
 
-        private fun getOmgjoeringskravbehandlingBasedOnJournalpost() = OmgjoeringskravbehandlingBasedOnJournalpost(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.OMGJOERINGSKRAV,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            klageBehandlendeEnhet = "4219",
-            kakaKvalitetsvurderingVersion = 2,
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-            oppgaveId = null,
-        )
+        private fun getKlagebehandling() =
+            Klagebehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.KLAGE,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                avsenderEnhetFoersteinstans = "0101",
+                mottattVedtaksinstans = LocalDate.now(),
+                kakaKvalitetsvurderingVersion = 2,
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
 
-        private fun getAnkeITrygderettenbehandling() = AnkeITrygderettenbehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.ANKE_I_TRYGDERETTEN,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            sendtTilTrygderetten = LocalDateTime.now(),
-            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-            forsterketRett = true,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        private fun getAnkebehandling() =
+            Ankebehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.ANKE,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                klageBehandlendeEnhet = "4219",
+                kakaKvalitetsvurderingVersion = 2,
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+                forsterketRett = true,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
 
-        private fun getGjenopptakITrygderettenbehandling() = GjenopptakITrygderettenbehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            sendtTilTrygderetten = LocalDateTime.now(),
-            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-            forsterketRett = true,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        private fun getOmgjoeringskravbehandlingBasedOnKabalBehandling() =
+            OmgjoeringskravbehandlingBasedOnKabalBehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.OMGJOERINGSKRAV,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                klageBehandlendeEnhet = "4219",
+                kakaKvalitetsvurderingVersion = 2,
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+                oppgaveId = null,
+            )
 
-        private fun getBehandlingEtterTrygderettenOpphevet() = BehandlingEtterTrygderettenOpphevet(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            kakaKvalitetsvurderingVersion = 2,
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            varsletBehandlingstid = null,
-            kjennelseMottatt = LocalDateTime.now(),
-            ankeBehandlendeEnhet = "4219",
-            forlengetBehandlingstidDraft = null,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        private fun getOmgjoeringskravbehandlingBasedOnJournalpost() =
+            OmgjoeringskravbehandlingBasedOnJournalpost(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.OMGJOERINGSKRAV,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                klageBehandlendeEnhet = "4219",
+                kakaKvalitetsvurderingVersion = 2,
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+                oppgaveId = null,
+            )
 
-        private fun getGjenopptaksbehandlingBasedOnJournalpost() = GjenopptaksbehandlingBasedOnJournalpost(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.BEGJAERING_OM_GJENOPPTAK,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            klageBehandlendeEnhet = "4219",
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            kakaKvalitetsvurderingVersion = 2,
-            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-            forsterketRett = true,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        private fun getAnkeITrygderettenbehandling() =
+            AnkeITrygderettenbehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.ANKE_I_TRYGDERETTEN,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                sendtTilTrygderetten = LocalDateTime.now(),
+                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+                forsterketRett = true,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
 
-        private fun getGjenopptaksbehandlingBasedOnKabalBehandling() = GjenopptaksbehandlingBasedOnKabalBehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.BEGJAERING_OM_GJENOPPTAK,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            klageBehandlendeEnhet = "4219",
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            kakaKvalitetsvurderingVersion = 2,
-            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-            forsterketRett = true,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        private fun getGjenopptakITrygderettenbehandling() =
+            GjenopptakITrygderettenbehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                sendtTilTrygderetten = LocalDateTime.now(),
+                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+                forsterketRett = true,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
+
+        private fun getBehandlingEtterTrygderettenOpphevet() =
+            BehandlingEtterTrygderettenOpphevet(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                kakaKvalitetsvurderingVersion = 2,
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                varsletBehandlingstid = null,
+                kjennelseMottatt = LocalDateTime.now(),
+                ankeBehandlendeEnhet = "4219",
+                forlengetBehandlingstidDraft = null,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
+
+        private fun getGjenopptaksbehandlingBasedOnJournalpost() =
+            GjenopptaksbehandlingBasedOnJournalpost(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.BEGJAERING_OM_GJENOPPTAK,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                klageBehandlendeEnhet = "4219",
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+                forsterketRett = true,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
+
+        private fun getGjenopptaksbehandlingBasedOnKabalBehandling() =
+            GjenopptaksbehandlingBasedOnKabalBehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.BEGJAERING_OM_GJENOPPTAK,
+                frist = LocalDate.now(),
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                klageBehandlendeEnhet = "4219",
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+                forsterketRett = true,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
     }
-
 }

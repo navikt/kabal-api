@@ -8,21 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class KakaApiClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${KAKA_API_BASE_URL}")
+    @Value($$"${KAKA_API_BASE_URL}")
     private lateinit var kakaApiURL: String
 
     @Bean
-    fun kakaApiWebClient(): WebClient {
-        return webClientBuilder
+    fun kakaApiWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(kakaApiURL)
             .build()
-    }
 }

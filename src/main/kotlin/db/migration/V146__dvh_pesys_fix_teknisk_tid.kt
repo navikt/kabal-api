@@ -5,28 +5,29 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class V146__dvh_pesys_fix_teknisk_tid : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 update klage.kafka_event
                     set json_payload = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
                     where ke.type = 'STATS_DVH'
                       and ke.kilde_referanse in ('66053136', '68377705', '68377717', '68377745', '68377764', '68377816', '68377844', '68378050')
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val kafkaEventId = rows.getObject(1, UUID::class.java)
                         val jsonPayload = rows.getString(2)
@@ -41,7 +42,6 @@ class V146__dvh_pesys_fix_teknisk_tid : BaseJavaMigration() {
 
                         preparedStatement.executeUpdate()
                     }
-
                 }
         }
     }

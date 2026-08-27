@@ -1,9 +1,15 @@
 package no.nav.klage.oppgave.domain.behandling.historikk
 
-import jakarta.persistence.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "satt_paa_vent_historikk", schema = "klage")
@@ -17,7 +23,7 @@ class SattPaaVentHistorikk(
             AttributeOverride(name = "to", column = Column(name = "satt_paa_vent_to")),
             AttributeOverride(name = "reason", column = Column(name = "satt_paa_vent_reason")),
             AttributeOverride(name = "reasonId", column = Column(name = "satt_paa_vent_reason_id")),
-        ]
+        ],
     )
     val sattPaaVent: SattPaaVent?,
     @Column(name = "tidspunkt", nullable = false)
@@ -36,12 +42,8 @@ class SattPaaVentHistorikk(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "SattPaaVentHistorikk(id=$id, sattPaaVent=$sattPaaVent, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
-    }
-
+    override fun toString(): String =
+        "SattPaaVentHistorikk(id=$id, sattPaaVent=$sattPaaVent, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
 }

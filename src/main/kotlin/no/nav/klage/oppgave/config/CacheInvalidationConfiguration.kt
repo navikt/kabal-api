@@ -8,9 +8,9 @@ import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 
 @Configuration
-class CacheInvalidationConfiguration(val cacheManager: CacheManager) :
-    ApplicationListener<ContextRefreshedEvent> {
-
+class CacheInvalidationConfiguration(
+    val cacheManager: CacheManager,
+) : ApplicationListener<ContextRefreshedEvent> {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)

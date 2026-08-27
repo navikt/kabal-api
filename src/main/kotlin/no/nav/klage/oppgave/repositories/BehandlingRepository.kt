@@ -7,12 +7,17 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE
-import org.springframework.data.jpa.repository.*
-import java.util.*
+import org.springframework.data.jpa.repository.EntityGraph
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.jpa.repository.QueryHints
+import java.util.UUID
 import java.util.stream.Stream
 
-interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificationExecutor<Behandling> {
-
+interface BehandlingRepository :
+    JpaRepository<Behandling, UUID>,
+    JpaSpecificationExecutor<Behandling> {
     fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
         fagsystem: Fagsystem,
         kildeReferanse: String,
@@ -29,9 +34,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         fagsakId: String,
     ): List<Behandling>
 
-    fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
-        gosysOppgaveId: Long,
-    ): List<Behandling>
+    fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(gosysOppgaveId: Long): List<Behandling>
 
     fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
@@ -54,7 +57,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             left join fetch b.hjemler h
             where b.ferdigstilling is null
             and b.feilregistrering is null
-        """
+        """,
     )
     fun findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler(): List<Behandling>
 
@@ -85,20 +88,22 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
             AND b.type NOT IN :excludedTypes
-        """
+        """,
     )
     fun getOmgjoeringskravmuligheter(
         partIdValue: String,
-        utfallWithoutAnkemulighet: List<Utfall> = listOf(
-            Utfall.INNSTILLING_AVVIST,
-            Utfall.INNSTILLING_STADFESTELSE,
-            Utfall.INNSTILLING_GJENOPPTAS_IKKE,
-            Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES
-        ),
-        excludedTypes: List<Type> = listOf(
-            Type.ANKE_I_TRYGDERETTEN,
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
-        )
+        utfallWithoutAnkemulighet: List<Utfall> =
+            listOf(
+                Utfall.INNSTILLING_AVVIST,
+                Utfall.INNSTILLING_STADFESTELSE,
+                Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+                Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
+            ),
+        excludedTypes: List<Type> =
+            listOf(
+                Type.ANKE_I_TRYGDERETTEN,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+            ),
     ): List<Behandling>
 
     @EntityGraph(attributePaths = ["hjemler"])
@@ -109,14 +114,15 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             WHERE b.ferdigstilling.avsluttet IS NOT null
             AND b.sakenGjelder.partId.value = :partIdValue            
             AND b.type IN :includedTypes
-        """
+        """,
     )
     fun getGjenopptaksmuligheter(
         partIdValue: String,
-        includedTypes: List<Type> = listOf(
-            Type.ANKE_I_TRYGDERETTEN,
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
-        )
+        includedTypes: List<Type> =
+            listOf(
+                Type.ANKE_I_TRYGDERETTEN,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+            ),
     ): List<Behandling>
 
     @EntityGraph(attributePaths = ["hjemler"])
@@ -129,20 +135,21 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
             AND b.type NOT IN :excludedTypes
-        """
+        """,
     )
     fun getAnkemuligheter(
         partIdValue: String,
         excludedFagsystems: List<Fagsystem> = listOf(Fagsystem.IT01),
-        utfallWithoutAnkemulighet: List<Utfall> = listOf(
-            Utfall.INNSTILLING_AVVIST,
-            Utfall.INNSTILLING_STADFESTELSE,
-        ),
-        excludedTypes: List<Type> = listOf(
-            Type.ANKE_I_TRYGDERETTEN,
-        )
+        utfallWithoutAnkemulighet: List<Utfall> =
+            listOf(
+                Utfall.INNSTILLING_AVVIST,
+                Utfall.INNSTILLING_STADFESTELSE,
+            ),
+        excludedTypes: List<Type> =
+            listOf(
+                Type.ANKE_I_TRYGDERETTEN,
+            ),
     ): List<Behandling>
-
 
     @EntityGraph(attributePaths = ["hjemler"])
     @Query(
@@ -154,15 +161,16 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.sakenGjelder.partId.value = :partIdValue            
             AND b.type IN :includedTypes
             AND b.ytelse IN :ytelseList
-        """
+        """,
     )
     fun getAnkeMuligheterBasedOnInfotrygd(
         partIdValue: String,
         infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
-        includedTypes: List<Type> = listOf(
-            Type.KLAGE
-        ),
-        ytelseList: List<Ytelse>
+        includedTypes: List<Type> =
+            listOf(
+                Type.KLAGE,
+            ),
+        ytelseList: List<Ytelse>,
     ): List<Behandling>
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
@@ -175,7 +183,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             left join fetch b.hjemler h
             left join fetch b.registreringshjemler rh
             order by b.id
-        """
+        """,
     )
     fun findAllForKapteinStreamed(): Stream<Behandling>
 
@@ -185,7 +193,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             select b
             from Behandling b
             where b.feilregistrering is null
-        """
+        """,
     )
     fun findAllForAdminStreamed(): Stream<Behandling>
 
@@ -203,7 +211,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         """
             SELECT DISTINCT b.sakenGjelder.partId.value
             FROM Behandling b
-        """
+        """,
     )
     fun findDistinctSakenGjelderPersonValues(): Set<String>
 }

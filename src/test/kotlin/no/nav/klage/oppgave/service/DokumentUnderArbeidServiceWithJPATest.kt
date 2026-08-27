@@ -6,8 +6,17 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.repositories.*
-import no.nav.klage.dokument.service.*
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.repositories.OpplastetDokumentUnderArbeidAsHoveddokumentRepository
+import no.nav.klage.dokument.repositories.OpplastetDokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
+import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.dokument.service.MellomlagerService
+import no.nav.klage.dokument.service.MellomlagretDokumentValidatorService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -19,12 +28,11 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var dokumentUnderArbeidRepository: DokumentUnderArbeidRepository
 
@@ -82,60 +90,60 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
     @MockkBean
     lateinit var dokumentMapper: DokumentMapper
 
-
     lateinit var dokumentUnderArbeidService: DokumentUnderArbeidService
-
 
     @BeforeEach
     fun setup() {
-        dokumentUnderArbeidService = DokumentUnderArbeidService(
-            dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
-            dokumentUnderArbeidCommonService = dokumentUnderArbeidCommonService,
-            opplastetDokumentUnderArbeidAsHoveddokumentRepository = opplastetDokumentUnderArbeidAsHoveddokumentRepository,
-            opplastetDokumentUnderArbeidAsVedleggRepository = opplastetDokumentUnderArbeidAsVedleggRepository,
-            smartDokumentUnderArbeidAsHoveddokumentRepository = smartDokumentUnderArbeidAsHoveddokumentRepository,
-            smartDokumentUnderArbeidAsVedleggRepository = smartDokumentUnderArbeidAsVedleggRepository,
-            journalfoertDokumentUnderArbeidRepository = journalfoertDokumentUnderArbeidRepository,
-            mellomlagerService = mellomlagerService,
-            smartEditorApiGateway = smartEditorApiGateway,
-            behandlingService = behandlingService,
-            kabalDocumentGateway = kabalDocumentGateway,
-            applicationEventPublisher = applicationEventPublisher,
-            innloggetSaksbehandlerService = innloggetSaksbehandlerService,
-            dokumentService = dokumentService,
-            innholdsfortegnelseService = innholdsfortegnelseService,
-            safFacade = safFacade,
-            dokumentMapper = dokumentMapper,
-            kafkaInternalEventService = mockk(),
-            saksbehandlerService = mockk(),
-            meterRegistry = mockk(),
-            partSearchService = mockk(),
-            kodeverkService = mockk(),
-            dokDistKanalService = mockk(),
-            kabalJsonToPdfService = mockk(),
-            tokenUtil = mockk(),
-            innsynsbegjaeringTemplateId = "templateId",
-            organisasjonsnummerTrygderetten = "123456789",
-            activeSpringProfile = "dev",
-            documentPolicyService = mockk(),
-        )
+        dokumentUnderArbeidService =
+            DokumentUnderArbeidService(
+                dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
+                dokumentUnderArbeidCommonService = dokumentUnderArbeidCommonService,
+                opplastetDokumentUnderArbeidAsHoveddokumentRepository = opplastetDokumentUnderArbeidAsHoveddokumentRepository,
+                opplastetDokumentUnderArbeidAsVedleggRepository = opplastetDokumentUnderArbeidAsVedleggRepository,
+                smartDokumentUnderArbeidAsHoveddokumentRepository = smartDokumentUnderArbeidAsHoveddokumentRepository,
+                smartDokumentUnderArbeidAsVedleggRepository = smartDokumentUnderArbeidAsVedleggRepository,
+                journalfoertDokumentUnderArbeidRepository = journalfoertDokumentUnderArbeidRepository,
+                mellomlagerService = mellomlagerService,
+                smartEditorApiGateway = smartEditorApiGateway,
+                behandlingService = behandlingService,
+                kabalDocumentGateway = kabalDocumentGateway,
+                applicationEventPublisher = applicationEventPublisher,
+                innloggetSaksbehandlerService = innloggetSaksbehandlerService,
+                dokumentService = dokumentService,
+                innholdsfortegnelseService = innholdsfortegnelseService,
+                safFacade = safFacade,
+                dokumentMapper = dokumentMapper,
+                kafkaInternalEventService = mockk(),
+                saksbehandlerService = mockk(),
+                meterRegistry = mockk(),
+                partSearchService = mockk(),
+                kodeverkService = mockk(),
+                dokDistKanalService = mockk(),
+                kabalJsonToPdfService = mockk(),
+                tokenUtil = mockk(),
+                innsynsbegjaeringTemplateId = "templateId",
+                organisasjonsnummerTrygderetten = "123456789",
+                activeSpringProfile = "dev",
+                documentPolicyService = mockk(),
+            )
 
         val behandlingId = UUID.randomUUID()
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            id = UUID.fromString("0a57804e-6da4-4e4b-9f74-33e8791dbe7e"),
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            markertFerdig = LocalDateTime.now(),
-            size = 1002,
-            name = "Vedtak.pdf",
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                id = UUID.fromString("0a57804e-6da4-4e4b-9f74-33e8791dbe7e"),
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                markertFerdig = LocalDateTime.now(),
+                size = 1002,
+                name = "Vedtak.pdf",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
         dokumentUnderArbeidRepository.save(hovedDokument)
     }
 }

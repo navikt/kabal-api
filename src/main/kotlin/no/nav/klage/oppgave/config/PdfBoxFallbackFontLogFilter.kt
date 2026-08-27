@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.util.getLogger
 import org.slf4j.Marker
 
 class PdfBoxFallbackFontLogFilter : TurboFilter() {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val ourLogger = getLogger(javaClass.enclosingClass)
@@ -20,7 +19,7 @@ class PdfBoxFallbackFontLogFilter : TurboFilter() {
         level: Level?,
         format: String?,
         params: Array<out Any>?,
-        throwable: Throwable?
+        throwable: Throwable?,
     ): FilterReply {
         if (level == Level.WARN &&
             logger?.name == "org.apache.pdfbox.pdmodel.font.PDType1Font" &&

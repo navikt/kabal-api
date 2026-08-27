@@ -6,7 +6,35 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.BehandlingDateInput
+import no.nav.klage.oppgave.api.view.BehandlingDateNullableInput
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.BehandlingEditedView
+import no.nav.klage.oppgave.api.view.BehandlingFullfoertView
+import no.nav.klage.oppgave.api.view.ExtraUtfallEditedView
+import no.nav.klage.oppgave.api.view.FeilregistreringInput
+import no.nav.klage.oppgave.api.view.FeilregistreringResponse
+import no.nav.klage.oppgave.api.view.ForsterketRettInput
+import no.nav.klage.oppgave.api.view.FullmektigInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveEditedView
+import no.nav.klage.oppgave.api.view.GosysOppgaveIdInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveView
+import no.nav.klage.oppgave.api.view.HistoryResponse
+import no.nav.klage.oppgave.api.view.IdentifikatorInput
+import no.nav.klage.oppgave.api.view.InnsendingshjemlerInput
+import no.nav.klage.oppgave.api.view.RelevantBehandlingerResponse
+import no.nav.klage.oppgave.api.view.Rols
+import no.nav.klage.oppgave.api.view.SattPaaVentInput
+import no.nav.klage.oppgave.api.view.TilbakekrevingInput
+import no.nav.klage.oppgave.api.view.TildelingEvent
+import no.nav.klage.oppgave.api.view.UrlView
+import no.nav.klage.oppgave.api.view.UtfallEditedView
+import no.nav.klage.oppgave.api.view.ValidationPassedResponse
+import no.nav.klage.oppgave.api.view.VedtakExtraUtfallSetInput
+import no.nav.klage.oppgave.api.view.VedtakHjemlerInput
+import no.nav.klage.oppgave.api.view.VedtakUtfallInput
+import no.nav.klage.oppgave.api.view.WithPrevious
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -18,9 +46,17 @@ import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.ModelAndView
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -39,20 +75,21 @@ class BehandlingController(
     fun setSattPaaVent(
         @Parameter(description = "Id til en behandling")
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: SattPaaVentInput
+        @RequestBody input: SattPaaVentInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setSattPaaVent.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setSattPaaVent.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setSattPaaVent(
-            behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            input = input,
-        )
+        val modified =
+            behandlingService.setSattPaaVent(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                input = input,
+            )
         return BehandlingEditedView(modified = modified)
     }
 
@@ -62,31 +99,32 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::deleteSattPaaVent.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-        val modified = behandlingService.setSattPaaVent(
+            methodName = ::deleteSattPaaVent.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            input = null
+            logger = logger,
         )
+        val modified =
+            behandlingService.setSattPaaVent(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                input = null,
+            )
         return BehandlingEditedView(modified = modified)
     }
 
     @PostMapping("/{behandlingId}/fullfoer")
     fun fullfoerBehandling(
         @PathVariable("behandlingId") behandlingId: UUID,
-        //change value name after testing
+        // change value name after testing
         @RequestParam(value = "nybehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
         @RequestBody(required = false) gosysOppgaveInput: GosysOppgaveInput?,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
-            ::fullfoerBehandling.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::fullfoerBehandling.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            klagebehandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.ferdigstillBehandling(
@@ -97,24 +135,24 @@ class BehandlingController(
         )
     }
 
-
     @PutMapping("/{behandlingId}/mottattklageinstans")
     fun setMottattKlageinstans(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateInput
+        @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setMottattKlageinstans.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setMottattKlageinstans.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setMottattKlageinstans(
-            behandlingId = behandlingId,
-            date = input.date.atStartOfDay(),
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setMottattKlageinstans(
+                behandlingId = behandlingId,
+                date = input.date.atStartOfDay(),
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -122,20 +160,21 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/mottattvedtaksinstans")
     fun setMottattVedtaksinstans(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateInput
+        @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setMottattVedtaksinstans.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setMottattVedtaksinstans.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setMottattVedtaksinstans(
-            behandlingId = behandlingId,
-            date = input.date,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setMottattVedtaksinstans(
+                behandlingId = behandlingId,
+                date = input.date,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -143,20 +182,21 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/sendttiltrygderetten")
     fun setSendtTilTrygderetten(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateInput
+        @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setSendtTilTrygderetten.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setSendtTilTrygderetten.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setSendtTilTrygderetten(
-            behandlingId = behandlingId,
-            date = input.date.atStartOfDay(),
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setSendtTilTrygderetten(
+                behandlingId = behandlingId,
+                date = input.date.atStartOfDay(),
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -164,20 +204,21 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/kjennelsemottatt")
     fun setKjennelseMottatt(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateNullableInput
+        @RequestBody input: BehandlingDateNullableInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setKjennelseMottatt.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setKjennelseMottatt.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setKjennelseMottatt(
-            behandlingId = behandlingId,
-            date = input.date?.atStartOfDay(),
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setKjennelseMottatt(
+                behandlingId = behandlingId,
+                date = input.date?.atStartOfDay(),
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -185,20 +226,21 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/frist")
     fun setFrist(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateInput
+        @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setFrist.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setFrist.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setFrist(
-            behandlingId = behandlingId,
-            frist = input.date,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setFrist(
+                behandlingId = behandlingId,
+                frist = input.date,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -209,16 +251,16 @@ class BehandlingController(
      */
     @GetMapping("/{behandlingId}/validate", "/{behandlingId}/validate/fullfoer")
     fun validate(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): ValidationPassedResponse {
         logKlagebehandlingMethodDetails(
-            ::validate.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::validate.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            klagebehandlingId = behandlingId,
+            logger = logger,
         )
 
-        behandlingService.validateBehandlingBeforeFinalize(behandlingId, false)
+        behandlingService.validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandlingEtterTROpphevet = false)
         return ValidationPassedResponse()
     }
 
@@ -227,13 +269,13 @@ class BehandlingController(
      */
     @GetMapping("/{behandlingId}/validate/feilregistrer")
     fun validateFeilregistrering(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): ValidationPassedResponse {
         logKlagebehandlingMethodDetails(
-            ::validateFeilregistrering.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::validateFeilregistrering.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            klagebehandlingId = behandlingId,
+            logger = logger,
         )
 
         behandlingService.validateFeilregistrering(behandlingId)
@@ -245,13 +287,13 @@ class BehandlingController(
      */
     @GetMapping(value = ["/{behandlingId}/validate/nyankebehandling", "/{behandlingId}/validate/nybehandlingfratrygderettbehandling"])
     fun validateAnkebehandling(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): ValidationPassedResponse {
         logKlagebehandlingMethodDetails(
-            ::validateAnkebehandling.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::validateAnkebehandling.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            klagebehandlingId = behandlingId,
+            logger = logger,
         )
 
         behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
@@ -264,17 +306,18 @@ class BehandlingController(
         @RequestBody input: InnsendingshjemlerInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setInnsendingshjemler.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setInnsendingshjemler.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setInnsendingshjemler(
-            behandlingId = behandlingId,
-            hjemler = input.hjemmelIdList,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setInnsendingshjemler(
+                behandlingId = behandlingId,
+                hjemler = input.hjemmelIdList,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -285,17 +328,18 @@ class BehandlingController(
         @RequestBody input: FullmektigInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setFullmektig.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setFullmektig.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setFullmektig(
-            behandlingId = behandlingId,
-            input = input,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setFullmektig(
+                behandlingId = behandlingId,
+                input = input,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -306,17 +350,18 @@ class BehandlingController(
         @RequestBody input: IdentifikatorInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setKlager.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setKlager.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setKlager(
-            behandlingId = behandlingId,
-            identifikator = input.identifikator,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setKlager(
+                behandlingId = behandlingId,
+                identifikator = input.identifikator,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -327,17 +372,18 @@ class BehandlingController(
         @RequestBody input: TilbakekrevingInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setTilbakekreving.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setTilbakekreving.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setTilbakekreving(
-            behandlingId = behandlingId,
-            tilbakekreving = input.tilbakekreving,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setTilbakekreving(
+                behandlingId = behandlingId,
+                tilbakekreving = input.tilbakekreving,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -348,17 +394,18 @@ class BehandlingController(
         @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setPaaanketVedtaksdato.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setPaaanketVedtaksdato.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setPaaanketVedtaksdato(
-            behandlingId = behandlingId,
-            paaanketVedtaksdato = input.date,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setPaaanketVedtaksdato(
+                behandlingId = behandlingId,
+                paaanketVedtaksdato = input.date,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -369,17 +416,18 @@ class BehandlingController(
         @RequestBody input: ForsterketRettInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setForsterketRett.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setForsterketRett.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setForsterketRett(
-            behandlingId = behandlingId,
-            forsterketRett = input.forsterketRett,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val modified =
+            behandlingService.setForsterketRett(
+                behandlingId = behandlingId,
+                forsterketRett = input.forsterketRett,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return BehandlingEditedView(modified = modified)
     }
@@ -389,9 +437,9 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): Saksbehandlere {
         logMethodDetails(
-            ::getPotentialSaksbehandlere.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getPotentialSaksbehandlere.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getPotentialSaksbehandlereForBehandling(behandlingId = behandlingId)
@@ -402,9 +450,9 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): Medunderskrivere {
         logMethodDetails(
-            ::getPotentialMedunderskrivere.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getPotentialMedunderskrivere.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getPotentialMedunderskrivereForBehandling(behandlingId = behandlingId)
@@ -415,9 +463,9 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): Rols {
         logMethodDetails(
-            ::getPotentialROL.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getPotentialROL.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getPotentialROLForBehandling(behandlingId = behandlingId)
@@ -428,40 +476,40 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): BehandlingDetaljerView.SakenGjelderView {
         logMethodDetails(
-            ::getSakenGjelder.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getSakenGjelder.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getSakenGjelderView(behandlingId)
     }
 
-    //TODO: Remove url without redirect
+    // TODO: Remove url without redirect
     @GetMapping(value = ["/{behandlingId}/ainntekt", "/{behandlingId}/ainntekt/redirect"])
     fun getAInntektRedirect(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): ModelAndView {
         logMethodDetails(
-            ::getAInntektRedirect.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getAInntektRedirect.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
-        return ModelAndView(/* viewName = */ "redirect:" + behandlingService.getAInntektUrl(behandlingId))
+        return ModelAndView("redirect:" + behandlingService.getAInntektUrl(behandlingId))
     }
 
-    //TODO: Remove url without redirect
+    // TODO: Remove url without redirect
     @GetMapping(value = ["/{behandlingId}/aaregister", "/{behandlingId}/aaregister/redirect"])
     fun getAARegisterRedirect(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): ModelAndView {
         logMethodDetails(
-            ::getAARegisterRedirect.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getAARegisterRedirect.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
-        return ModelAndView(/* viewName = */ "redirect:" + behandlingService.getAARegisterUrl(behandlingId))
+        return ModelAndView("redirect:" + behandlingService.getAARegisterUrl(behandlingId))
     }
 
     @GetMapping("/{behandlingId}/ainntekt/url")
@@ -469,13 +517,13 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): UrlView {
         logMethodDetails(
-            ::getAInntektUrl.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getAInntektUrl.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return UrlView(
-            url = behandlingService.getAInntektUrl(behandlingId)
+            url = behandlingService.getAInntektUrl(behandlingId),
         )
     }
 
@@ -484,13 +532,13 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): UrlView {
         logMethodDetails(
-            ::getAARegisterUrl.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getAARegisterUrl.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return UrlView(
-            url = behandlingService.getAARegisterUrl(behandlingId)
+            url = behandlingService.getAARegisterUrl(behandlingId),
         )
     }
 
@@ -500,9 +548,9 @@ class BehandlingController(
         @RequestBody input: FeilregistreringInput,
     ): FeilregistreringResponse {
         logMethodDetails(
-            ::setBehandlingFeilregistrert.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::setBehandlingFeilregistrert.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.feilregistrer(
@@ -515,13 +563,13 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/gosysoppgaveid")
     fun setGosysOppgaveId(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: GosysOppgaveIdInput
+        @RequestBody input: GosysOppgaveIdInput,
     ): GosysOppgaveEditedView {
         logBehandlingMethodDetails(
-            ::setGosysOppgaveId.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setGosysOppgaveId.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.setGosysOppgaveId(
@@ -534,58 +582,60 @@ class BehandlingController(
     @PutMapping("/{behandlingId}/resultat/utfall")
     fun setUtfall(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: VedtakUtfallInput
+        @RequestBody input: VedtakUtfallInput,
     ): UtfallEditedView {
         logBehandlingMethodDetails(
-            ::setUtfall.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setUtfall.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.setUtfall(
             behandlingId = behandlingId,
             utfall = if (input.utfallId != null) Utfall.of(input.utfallId) else null,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
     @PutMapping("/{behandlingId}/resultat/extra-utfall-set")
     fun setUtfallSet(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: VedtakExtraUtfallSetInput
+        @RequestBody input: VedtakExtraUtfallSetInput,
     ): ExtraUtfallEditedView {
         logBehandlingMethodDetails(
-            ::setUtfallSet.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setUtfallSet.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.setExtraUtfallSet(
             behandlingId = behandlingId,
             extraUtfallSet = input.extraUtfallIdSet.map { Utfall.of(it) }.toSet(),
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
     @PutMapping("/{behandlingId}/resultat/hjemler")
     fun setRegistreringshjemler(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: VedtakHjemlerInput
+        @RequestBody input: VedtakHjemlerInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setRegistreringshjemler.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setRegistreringshjemler.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val modified = behandlingService.setRegistreringshjemler(
-            behandlingId = behandlingId,
-            registreringshjemler = input.hjemmelIdSet.map { Registreringshjemmel.of(it) }.toSet(),
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        ).modified
+        val modified =
+            behandlingService
+                .setRegistreringshjemler(
+                    behandlingId = behandlingId,
+                    registreringshjemler = input.hjemmelIdSet.map { Registreringshjemmel.of(it) }.toSet(),
+                    utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                ).modified
 
         return BehandlingEditedView(modified = modified)
     }
@@ -595,16 +645,16 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ) {
         logMethodDetails(
-            ::nyAnkebehandlingKA.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::nyAnkebehandlingKA.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
 
         behandlingService.setNyBehandlingKAAndSetToAvsluttet(
             behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
@@ -613,9 +663,9 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): HistoryResponse {
         logMethodDetails(
-            ::getHistory.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getHistory.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getHistory(behandlingId = behandlingId)
@@ -623,59 +673,65 @@ class BehandlingController(
 
     @Operation(
         summary = "Søk relevante oppgaver som gjelder en gitt person",
-        description = "Finner alle relevante oppgaver som omhandler en gitt person."
+        description = "Finner alle relevante oppgaver som omhandler en gitt person.",
     )
     @GetMapping("/{behandlingId}/relevant", produces = ["application/json"])
     fun findRelevantBehandlinger(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): RelevantBehandlingerResponse {
         logMethodDetails(
-            ::findRelevantBehandlinger.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::findRelevantBehandlinger.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         val behandlinger: List<Behandling> = behandlingService.findRelevantBehandlinger(behandlingId = behandlingId)
 
         return RelevantBehandlingerResponse(
-            aapneBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent == null }
-                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
-            paaVentBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent != null }
-                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
+            aapneBehandlinger =
+                behandlinger
+                    .filter { it.id != behandlingId && it.sattPaaVent == null }
+                    .sortedByDescending { it.mottattKlageinstans }
+                    .map { it.id },
+            paaVentBehandlinger =
+                behandlinger
+                    .filter { it.id != behandlingId && it.sattPaaVent != null }
+                    .sortedByDescending { it.mottattKlageinstans }
+                    .map { it.id },
         )
     }
 
     @Operation(
         summary = "Hent oppgaver i Gosys gjelder personen i behandlingen",
-        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder."
+        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder.",
     )
     @GetMapping("/{behandlingId}/gosysoppgaver", produces = ["application/json"])
     fun findGosysoppgaver(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): List<GosysOppgaveView> {
         logMethodDetails(
-            ::findGosysoppgaver.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::findGosysoppgaver.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.findRelevantGosysOppgaver(
-            behandlingId = behandlingId
+            behandlingId = behandlingId,
         )
     }
 
     @Operation(
         summary = "Hent gjeldende Gosys-oppgave for behandlingen",
-        description = "Henter en Gosys-oppgave."
+        description = "Henter en Gosys-oppgave.",
     )
     @GetMapping("/{behandlingId}/gosysoppgave", produces = ["application/json"])
     fun getGosysOppgave(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): GosysOppgaveView {
         logMethodDetails(
-            ::getGosysOppgave.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getGosysOppgave.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return behandlingService.getGosysOppgave(
@@ -685,13 +741,13 @@ class BehandlingController(
 
     @GetMapping("/{behandlingId}/fradelingreason")
     fun getFradelingReason(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): WithPrevious<TildelingEvent>? {
         logBehandlingMethodDetails(
-            ::getFradelingReason.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getFradelingReason.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.getFradelingReason(behandlingId)

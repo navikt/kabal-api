@@ -64,20 +64,15 @@ class KlageLookupGateway(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String? = null,
-    ): TilgangService.Access {
-        return klageLookupClient.getAccess(
+    ): TilgangService.Access =
+        klageLookupClient.getAccess(
             brukerId = brukerId,
             navIdent = navIdent,
         )
-    }
 
-    fun getPersongalleri(sak: Sak): List<String> {
-        return klageLookupClient.getPersongalleri(sak = sak).foedselsnummerList
-    }
+    fun getPersongalleri(sak: Sak): List<String> = klageLookupClient.getPersongalleri(sak = sak).foedselsnummerList
 
-    fun getPerson(fnr: String): Person {
-        return klageLookupClient.getPerson(fnr = fnr).toPerson()
-    }
+    fun getPerson(fnr: String): Person = klageLookupClient.getPerson(fnr = fnr).toPerson()
 
     fun getPersonBulk(fnrList: List<String>): List<Person> {
         val response = klageLookupClient.getPersonBulk(fnrList = fnrList)
@@ -88,33 +83,28 @@ class KlageLookupGateway(
         return response.hits.map { it.toPerson() }
     }
 
-    fun getFoedselsnummerFromIdent(ident: String): String {
-        return klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
-    }
+    fun getFoedselsnummerFromIdent(ident: String): String = klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
 
-    fun getAktoerIdFromIdent(ident: String): String {
-        return klageLookupClient.getAktoerIdFromIdent(ident = ident)
-    }
+    fun getAktoerIdFromIdent(ident: String): String = klageLookupClient.getAktoerIdFromIdent(ident = ident)
 
-    private fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo {
-        return SaksbehandlerPersonligInfo(
+    private fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo =
+        SaksbehandlerPersonligInfo(
             navIdent = this.navIdent,
             fornavn = this.fornavn,
             etternavn = this.etternavn,
             sammensattNavn = this.sammensattNavn,
-            enhet = SaksbehandlerEnhet(
-                enhetId = this.enhet.enhetNr,
-                navn = this.enhet.enhetNavn,
-            )
+            enhet =
+                SaksbehandlerEnhet(
+                    enhetId = this.enhet.enhetNr,
+                    navn = this.enhet.enhetNavn,
+                ),
         )
-    }
 
-    private fun SluttdatoResponse.toSaksbehandlerSluttdato(): SaksbehandlerSluttdato {
-        return SaksbehandlerSluttdato(
+    private fun SluttdatoResponse.toSaksbehandlerSluttdato(): SaksbehandlerSluttdato =
+        SaksbehandlerSluttdato(
             navIdent = this.navIdent,
             sluttdato = this.sluttdato,
         )
-    }
 
     private fun BatchedSluttdatoResponse.toSaksbehandlerSluttdatoList(): List<SaksbehandlerSluttdato> {
         val resultList = mutableListOf<SaksbehandlerSluttdato>()
@@ -123,7 +113,7 @@ class KlageLookupGateway(
                 SaksbehandlerSluttdato(
                     navIdent = it.navIdent,
                     sluttdato = it.sluttdato,
-                )
+                ),
             )
         }
         misses.forEach {
@@ -131,20 +121,19 @@ class KlageLookupGateway(
                 SaksbehandlerSluttdato(
                     navIdent = it,
                     sluttdato = null,
-                )
+                ),
             )
         }
         return resultList
     }
 
-    private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
-        return SaksbehandlerGroups(
-            groups = this.groupIds.map { AzureGroup.of(it) }
+    private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups =
+        SaksbehandlerGroups(
+            groups = this.groupIds.map { AzureGroup.of(it) },
         )
-    }
 
-    private fun PersonResponse.toPerson(): Person {
-        return Person(
+    private fun PersonResponse.toPerson(): Person =
+        Person(
             foedselsnr = foedselsnr,
             fornavn = fornavn,
             mellomnavn = mellomnavn,
@@ -159,16 +148,14 @@ class KlageLookupGateway(
             vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
             sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
         )
-    }
 
-    private fun PersonResponse.SikkerhetstiltakResponse.toSikkerhetstiltak(): Person.Sikkerhetstiltak {
-        return Person.Sikkerhetstiltak(
+    private fun PersonResponse.SikkerhetstiltakResponse.toSikkerhetstiltak(): Person.Sikkerhetstiltak =
+        Person.Sikkerhetstiltak(
             tiltakstype = Person.Sikkerhetstiltak.Tiltakstype.valueOf(tiltakstype),
             beskrivelse = beskrivelse,
             gyldigFraOgMed = gyldigFraOgMed,
             gyldigTilOgMed = gyldigTilOgMed,
         )
-    }
 
     fun getAddressForPerson(fnr: String): PostadresseResponse? {
         val response = klageLookupClient.getPostadresse(ident = fnr)

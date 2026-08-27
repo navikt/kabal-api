@@ -14,8 +14,13 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -25,7 +30,6 @@ class BehandlingAssignmentController(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -35,24 +39,27 @@ class BehandlingAssignmentController(
     fun setSaksbehandler(
         @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody saksbehandlerInput: SetSaksbehandlerInput
+        @RequestBody saksbehandlerInput: SetSaksbehandlerInput,
     ): SaksbehandlerViewWrapped {
         logBehandlingMethodDetails(
-            ::setSaksbehandler.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setSaksbehandler.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        val saksbehandler = behandlingService.setSaksbehandler(
-            behandlingId = behandlingId,
-            tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
-            enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                saksbehandlerInput.navIdent,
-            ).enhetId,
-            fradelingReason = null,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-        )
+        val saksbehandler =
+            behandlingService.setSaksbehandler(
+                behandlingId = behandlingId,
+                tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
+                enhetId =
+                    saksbehandlerService
+                        .getEnhetForSaksbehandler(
+                            saksbehandlerInput.navIdent,
+                        ).enhetId,
+                fradelingReason = null,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
         return saksbehandler
     }
@@ -61,13 +68,13 @@ class BehandlingAssignmentController(
     fun fradelSaksbehandler(
         @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody saksbehandlerInput: FradelSaksbehandlerInput
+        @RequestBody saksbehandlerInput: FradelSaksbehandlerInput,
     ): FradeltSaksbehandlerViewWrapped {
         logBehandlingMethodDetails(
-            ::fradelSaksbehandler.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::fradelSaksbehandler.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         behandlingService.fradelSaksbehandlerAndMaybeSetHjemler(
@@ -86,10 +93,10 @@ class BehandlingAssignmentController(
         @PathVariable("id") behandlingId: UUID,
     ): SaksbehandlerViewWrapped {
         logBehandlingMethodDetails(
-            ::getSaksbehandler.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getSaksbehandler.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.getSaksbehandler(behandlingId)

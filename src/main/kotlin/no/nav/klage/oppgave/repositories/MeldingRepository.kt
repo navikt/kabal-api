@@ -3,11 +3,9 @@ package no.nav.klage.oppgave.repositories
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface MeldingRepository : JpaRepository<Melding, UUID> {
-
     fun findByBehandlingIdOrderByCreatedDesc(behandlingId: UUID): List<Melding>
-
 }

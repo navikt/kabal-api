@@ -15,7 +15,6 @@ import java.time.Instant
  */
 @Component
 class SchedulerHealthGate {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,7 +30,9 @@ class SchedulerHealthGate {
         if (newState == ReadinessState.ACCEPTING_TRAFFIC) {
             if (readyAt == null) {
                 readyAt = Instant.now()
-                logger.debug("Application is now ready. Scheduled jobs will be allowed to run after ${WARMUP_DURATION.seconds}s warmup period.")
+                logger.debug(
+                    "Application is now ready. Scheduled jobs will be allowed to run after ${WARMUP_DURATION.seconds}s warmup period.",
+                )
             }
         } else {
             logger.debug("Application is no longer ready. Scheduled jobs will be skipped.")

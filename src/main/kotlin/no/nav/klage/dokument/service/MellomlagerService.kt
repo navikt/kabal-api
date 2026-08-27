@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.service
 
-
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.oppgave.util.Image2PDF
 import no.nav.klage.oppgave.util.getLogger
@@ -29,9 +28,9 @@ class MellomlagerService(
         logger.debug("Attachment validation took ${System.currentTimeMillis() - start} ms")
 
         return fileApiClient.uploadDocument(
-            //If uploaded file is an image, convert to pdf
+            // If uploaded file is an image, convert to pdf
             resource = image2PDF.convertIfImage(file),
-            systemUser = systemContext
+            systemUser = systemContext,
         )
     }
 
@@ -40,23 +39,21 @@ class MellomlagerService(
             resource = resource,
         )
 
-    fun getUploadedDocument(mellomlagerId: String): Resource {
-        return fileApiClient.getDocument(mellomlagerId)
-    }
+    fun getUploadedDocument(mellomlagerId: String): Resource = fileApiClient.getDocument(mellomlagerId)
 
     fun getUploadedDocumentAsSignedURL(
         mellomlagerId: String,
         filename: String,
         contentDisposition: String,
-    ): String {
-        return fileApiClient.getDocumentAsSignedURL(
+    ): String =
+        fileApiClient.getDocumentAsSignedURL(
             id = mellomlagerId,
             filename = filename,
             contentDisposition = contentDisposition,
         )
-    }
 
-    fun deleteDocument(mellomlagerId: String, systemContext: Boolean = false): Unit =
-        fileApiClient.deleteDocument(mellomlagerId, systemContext)
-
+    fun deleteDocument(
+        mellomlagerId: String,
+        systemContext: Boolean = false,
+    ): Unit = fileApiClient.deleteDocument(id = mellomlagerId, systemUser = systemContext)
 }

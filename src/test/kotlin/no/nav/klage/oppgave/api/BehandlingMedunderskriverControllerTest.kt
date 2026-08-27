@@ -13,12 +13,11 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.put
-import java.util.*
+import java.util.UUID
 
 @WebMvcTest(BehandlingMedunderskriverController::class)
 @ActiveProfiles("local")
 class BehandlingMedunderskriverControllerTest {
-
     @Autowired
     lateinit var mockMvc: MockMvc
 
@@ -32,7 +31,6 @@ class BehandlingMedunderskriverControllerTest {
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 
     private val klagebehandlingId = UUID.randomUUID()
-
 
     @BeforeEach
     fun setup() {
@@ -70,10 +68,10 @@ class BehandlingMedunderskriverControllerTest {
 
     @Test
     fun `putMedunderskriverident with incorrect input should return 400 error`() {
-        mockMvc.put("/behandlinger/$klagebehandlingId/medunderskriver") {
-        }.andExpect {
-            status { is4xxClientError() }
-        }
+        mockMvc
+            .put("/behandlinger/$klagebehandlingId/medunderskriver") {
+            }.andExpect {
+                status { is4xxClientError() }
+            }
     }
-
 }

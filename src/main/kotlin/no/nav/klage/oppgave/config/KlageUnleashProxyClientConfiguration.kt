@@ -8,9 +8,8 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class KlageUnleashProxyClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -20,9 +19,8 @@ class KlageUnleashProxyClientConfiguration(
     private lateinit var klageUnleashProxyURL: String
 
     @Bean
-    fun klageUnleashProxyWebClient(): WebClient {
-        return webClientBuilder
+    fun klageUnleashProxyWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(klageUnleashProxyURL)
             .build()
-    }
 }

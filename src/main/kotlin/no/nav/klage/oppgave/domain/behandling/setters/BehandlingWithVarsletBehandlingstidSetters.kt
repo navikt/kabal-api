@@ -64,8 +64,7 @@ object BehandlingWithVarsletBehandlingstidSetters {
                 utfoerendeIdent = utfoerendeIdent,
                 utfoerendeNavn = utfoerendeNavn,
                 varsletBehandlingstid = varsletBehandlingstid,
-            )
+            ),
         )
-
     }
 }

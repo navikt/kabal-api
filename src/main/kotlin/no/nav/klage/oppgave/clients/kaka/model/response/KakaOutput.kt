@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.clients.kaka.model.response
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import java.util.*
+import java.util.UUID
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KakaOutput(
@@ -10,7 +10,10 @@ data class KakaOutput(
 )
 
 data class ValidationErrors(
-    val validationErrors: List<InvalidProperty>
+    val validationErrors: List<InvalidProperty>,
 ) {
-    data class InvalidProperty(val field: String, val reason: String)
+    data class InvalidProperty(
+        val field: String,
+        val reason: String,
+    )
 }

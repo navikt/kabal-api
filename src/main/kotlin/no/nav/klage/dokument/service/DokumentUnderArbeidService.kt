@@ -3,15 +3,51 @@ package no.nav.klage.dokument.service
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
-import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.api.view.AddressInput
+import no.nav.klage.dokument.api.view.AvsenderInput
+import no.nav.klage.dokument.api.view.DocumentValidationResponse
+import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.api.view.DokumentViewWithList
+import no.nav.klage.dokument.api.view.HandlingEnum
+import no.nav.klage.dokument.api.view.InngaaendeKanal
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.api.view.JournalfoerteDokumenterInput
+import no.nav.klage.dokument.api.view.JournalfoerteDokumenterResponse
+import no.nav.klage.dokument.api.view.MellomlagretDokumentReference
+import no.nav.klage.dokument.api.view.Mottaker
+import no.nav.klage.dokument.api.view.MottakerInput
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse.DocumentValidationError
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.SmartDocumentDeletedEvent
 import no.nav.klage.dokument.domain.SmartDocumentMarkedAsFinishedEvent
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid.Companion.MAX_NAME_LENGTH
-import no.nav.klage.dokument.exceptions.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidDokarkivReference
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
+import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
+import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
+import no.nav.klage.dokument.exceptions.DokumentValidationException
+import no.nav.klage.dokument.exceptions.NoAccessToDocumentException
+import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.repositories.*
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.repositories.OpplastetDokumentUnderArbeidAsHoveddokumentRepository
+import no.nav.klage.dokument.repositories.OpplastetDokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
+import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
@@ -34,10 +70,30 @@ import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.DocumentsAddedEvent
+import no.nav.klage.oppgave.domain.kafka.DocumentsChangedEvent
+import no.nav.klage.oppgave.domain.kafka.DocumentsRemovedEvent
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.IncludedDocumentsChangedEvent
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.JournalfoertDokument
+import no.nav.klage.oppgave.domain.kafka.SmartDocumentChangedEvent
+import no.nav.klage.oppgave.domain.kafka.currentTraceparent
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.service.*
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.DokumentService
+import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.KafkaInternalEventService
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.PartSearchService
+import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.buildFilename
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSortKey
+import no.nav.klage.oppgave.util.isInngaaende
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
@@ -60,9 +116,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.Locale
+import java.util.UUID
 import kotlin.time.measureTime
-
 
 @Service
 @Transactional
@@ -92,9 +148,9 @@ class DokumentUnderArbeidService(
     private val dokDistKanalService: DokDistKanalService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
     private val tokenUtil: TokenUtil,
-    @Value("\${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
-    @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
-    @Value("\${spring.profiles.active:}") private val activeSpringProfile: String,
+    @Value($$"${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
+    @Value($$"${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
+    @Value($$"${spring.profiles.active:}") private val activeSpringProfile: String,
     private val documentPolicyService: DocumentPolicyService,
 ) {
     companion object {
@@ -110,10 +166,11 @@ class DokumentUnderArbeidService(
         const val GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME = "gjenopptakelsesbegjæring-ettersending-til-tr"
     }
 
-    private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
-        name = "smartDocument.versions",
-        baseUnit = "versions",
-    )
+    private val metricForSmartDocumentVersions =
+        meterRegistry.getHistogram(
+            name = "smartDocument.versions",
+            baseUnit = "versions",
+        )
 
     fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
@@ -129,88 +186,96 @@ class DokumentUnderArbeidService(
 
         val title = filename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i fil-request") })
 
-        //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = if (systemContext) {
-            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
-        } else {
-            behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
-        }
+        // Sjekker lesetilgang på behandlingsnivå:
+        val behandling =
+            if (systemContext) {
+                behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+            } else {
+                behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
+            }
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
-                documentRole = behandlingRole,
-                action = DuaAccessPolicy.Action.CREATE,
-                duaMarkertFerdig = false,
-                isSystemContext = systemContext,
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+                    documentRole = behandlingRole,
+                    action = DuaAccessPolicy.Action.CREATE,
+                    duaMarkertFerdig = false,
+                    isSystemContext = systemContext,
+                )
+            }
         logger.debug(
             "Validated createOpplastetDokumentUnderArbeid action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
-        //File gets deleted when uploading, so keep this for later.
+        // File gets deleted when uploading, so keep this for later.
         val fileSize = file.length()
-        val mellomlagerId = mellomlagerService.uploadFile(
-            file = file,
-            systemContext = systemContext,
-            scanForVirus = scanForVirus,
-        )
-
-        val document = if (parentId == null) {
-            opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
-                OpplastetDokumentUnderArbeidAsHoveddokument(
-                    mellomlagerId = mellomlagerId,
-                    size = fileSize,
-                    name = title,
-                    dokumentType = dokumentType,
-                    behandlingId = behandlingId,
-                    creatorIdent = utfoerendeIdent,
-                    creatorRole = behandlingRole,
-                    datoMottatt = null,
-                    journalfoerendeEnhetId = null,
-                    inngaaendeKanal = null,
-                )
+        val mellomlagerId =
+            mellomlagerService.uploadFile(
+                file = file,
+                systemContext = systemContext,
+                scanForVirus = scanForVirus,
             )
-        } else {
-            opplastetDokumentUnderArbeidAsVedleggRepository.save(
-                OpplastetDokumentUnderArbeidAsVedlegg(
-                    mellomlagerId = mellomlagerId,
-                    size = file.length(),
-                    name = title,
-                    behandlingId = behandlingId,
-                    creatorIdent = utfoerendeIdent,
-                    creatorRole = behandlingRole,
-                    parentId = parentId,
-                )
-            )
-        }
 
-        val dokumentView = dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = document,
-            journalpost = null,
-            smartEditorDocument = null,
-            behandling = behandling,
-        )
+        val document =
+            if (parentId == null) {
+                opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
+                    OpplastetDokumentUnderArbeidAsHoveddokument(
+                        mellomlagerId = mellomlagerId,
+                        size = fileSize,
+                        name = title,
+                        dokumentType = dokumentType,
+                        behandlingId = behandlingId,
+                        creatorIdent = utfoerendeIdent,
+                        creatorRole = behandlingRole,
+                        datoMottatt = null,
+                        journalfoerendeEnhetId = null,
+                        inngaaendeKanal = null,
+                    ),
+                )
+            } else {
+                opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                    OpplastetDokumentUnderArbeidAsVedlegg(
+                        mellomlagerId = mellomlagerId,
+                        size = file.length(),
+                        name = title,
+                        behandlingId = behandlingId,
+                        creatorIdent = utfoerendeIdent,
+                        creatorRole = behandlingRole,
+                        parentId = parentId,
+                    ),
+                )
+            }
+
+        val dokumentView =
+            dokumentMapper.mapToDokumentView(
+                dokumentUnderArbeid = document,
+                journalpost = null,
+                smartEditorDocument = null,
+                behandling = behandling,
+            )
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsAddedEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsAddedEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                dokumentView,
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        dokumentView
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_ADDED,
         )
@@ -236,10 +301,10 @@ class DokumentUnderArbeidService(
         logger.debug(
             "Checked Content-Length header in {} ms. It was {}",
             (System.currentTimeMillis() - start),
-            contentLength
+            contentLength,
         )
 
-        //500 MiB
+        // 500 MiB
         if (contentLength > 524288000) {
             throw AttachmentTooLargeException()
         }
@@ -308,74 +373,84 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
 
-        var duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
-                documentRole = dua.creatorRole,
-                action = DuaAccessPolicy.Action.REMOVE,
-                duaMarkertFerdig = dua.erMarkertFerdig(),
-            )
-        }
+        var duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+                    documentRole = dua.creatorRole,
+                    action = DuaAccessPolicy.Action.REMOVE,
+                    duaMarkertFerdig = dua.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated kobleEllerFrikobleVedlegg REMOVE action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
-        duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
-                documentRole = behandlingRole,
-                action = DuaAccessPolicy.Action.CREATE,
-                duaMarkertFerdig = dua.erMarkertFerdig(),
-            )
-        }
+        duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+                    documentRole = behandlingRole,
+                    action = DuaAccessPolicy.Action.CREATE,
+                    duaMarkertFerdig = dua.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated kobleEllerFrikobleVedlegg CREATE action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
-        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = setAsVedlegg(
-            newParentId = optionalParentDocumentId,
-            dokumentId = persistentDokumentId,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
+        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) =
+            setAsVedlegg(
+                newParentId = optionalParentDocumentId,
+                dokumentId = persistentDokumentId,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
 
-        val journalpostIdSet = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
-            .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-            .map { it.journalpostId }.toSet()
+        val journalpostIdSet =
+            dokumentUnderArbeidList
+                .plus(duplicateJournalfoerteDokumenter)
+                .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .map { it.journalpostId }
+                .toSet()
 
-        val journalpostListForUser = safFacade.getJournalposter(
-            journalpostIdSet = journalpostIdSet,
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = true,
-        )
+        val journalpostListForUser =
+            safFacade.getJournalposter(
+                journalpostIdSet = journalpostIdSet,
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
+            )
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            dokumentUnderArbeidList.map {
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = it.id.toString(),
+                                    parentId = if (it is DokumentUnderArbeidAsVedlegg) it.parentId.toString() else null,
+                                    dokumentTypeId = getDokumentTypeIdFromThisOrParent(it),
+                                    tittel = it.name,
+                                    isMarkertAvsluttet = it.erMarkertFerdig(),
+                                )
+                            },
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = dokumentUnderArbeidList.map {
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = it.id.toString(),
-                            parentId = if (it is DokumentUnderArbeidAsVedlegg) it.parentId.toString() else null,
-                            dokumentTypeId = getDokumentTypeIdFromThisOrParent(it),
-                            tittel = it.name,
-                            isMarkertAvsluttet = it.erMarkertFerdig(),
-                        )
-                    },
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -387,8 +462,8 @@ class DokumentUnderArbeidService(
         )
     }
 
-    private fun getDokumentTypeIdFromThisOrParent(dokumentUnderArbeid: DokumentUnderArbeid): String? {
-        return if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+    private fun getDokumentTypeIdFromThisOrParent(dokumentUnderArbeid: DokumentUnderArbeid): String? =
+        if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
             dokumentUnderArbeid.dokumentType.id
         } else {
             dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
@@ -396,69 +471,76 @@ class DokumentUnderArbeidService(
             parentDocument as DokumentUnderArbeidAsHoveddokument
             parentDocument.dokumentType.id
         }
-    }
 
     fun addJournalfoerteDokumenterAsVedlegg(
         behandlingId: UUID,
         journalfoerteDokumenterInput: JournalfoerteDokumenterInput,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): JournalfoerteDokumenterResponse {
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = DuaAccessPolicy.DokumentType.JOURNALFOERT,
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = journalfoerteDokumenterInput.parentId),
-                documentRole = behandlingRole,
-                action = DuaAccessPolicy.Action.CREATE,
-                duaMarkertFerdig = false,
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = DuaAccessPolicy.DokumentType.JOURNALFOERT,
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = journalfoerteDokumenterInput.parentId),
+                    documentRole = behandlingRole,
+                    action = DuaAccessPolicy.Action.CREATE,
+                    duaMarkertFerdig = false,
+                )
+            }
         logger.debug(
             "Validated addJournalfoerteDokumenterAsVedlegg CREATE action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
-        val journalpostListForUser = safFacade.getJournalposter(
-            journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = true,
-        )
+        val journalpostListForUser =
+            safFacade.getJournalposter(
+                journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
+            )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
-            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som vedlegg. Fullfør journalføring i Gosys for å gjøre dette.")
+            throw DokumentValidationException(
+                "Kan ikke legge til journalførte dokumenter med status 'Mottatt' som vedlegg. Fullfør journalføring i Gosys for å gjøre dette.",
+            )
         }
 
-        val (added, duplicates) = createJournalfoerteDokumenter(
-            parentId = journalfoerteDokumenterInput.parentId,
-            journalfoerteDokumenter = journalfoerteDokumenterInput.journalfoerteDokumenter,
-            behandling = behandling,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            journalpostListForUser = journalpostListForUser
-        )
+        val (added, duplicates) =
+            createJournalfoerteDokumenter(
+                parentId = journalfoerteDokumenterInput.parentId,
+                journalfoerteDokumenter = journalfoerteDokumenterInput.journalfoerteDokumenter,
+                behandling = behandling,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                journalpostListForUser = journalpostListForUser,
+            )
 
-        val addedJournalfoerteDokumenter = getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
-            dokumentUnderArbeidList = added,
-            behandling = behandling,
-            journalpostList = journalpostListForUser,
-        )
+        val addedJournalfoerteDokumenter =
+            getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+                dokumentUnderArbeidList = added,
+                behandling = behandling,
+                journalpostList = journalpostListForUser,
+            )
 
         if (addedJournalfoerteDokumenter.isNotEmpty()) {
             publishInternalEvent(
-                data = jacksonObjectMapper.writeValueAsString(
-                    DocumentsAddedEvent(
-                        actor = Employee(
-                            navIdent = innloggetIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        DocumentsAddedEvent(
+                            actor =
+                                Employee(
+                                    navIdent = innloggetIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                                ),
+                            timestamp = LocalDateTime.now(),
+                            documents = addedJournalfoerteDokumenter,
+                            traceparent = currentTraceparent(),
                         ),
-                        timestamp = LocalDateTime.now(),
-                        documents = addedJournalfoerteDokumenter,
-                        traceparent = currentTraceparent(),
-                    )
-                ),
+                    ),
                 behandlingId = behandling.id,
                 type = InternalEventType.DOCUMENTS_ADDED,
             )
@@ -473,9 +555,10 @@ class DokumentUnderArbeidService(
     fun getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
         dokumentUnderArbeidList: List<JournalfoertDokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
-        journalpostList: List<Journalpost>
-    ): List<DokumentView> {
-        return dokumentUnderArbeidList.sortedBy { it.sortKey }
+        journalpostList: List<Journalpost>,
+    ): List<DokumentView> =
+        dokumentUnderArbeidList
+            .sortedBy { it.sortKey }
             .map { journalfoertVedlegg ->
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = journalfoertVedlegg,
@@ -484,7 +567,6 @@ class DokumentUnderArbeidService(
                     behandling = behandling,
                 )
             }
-    }
 
     private fun createJournalfoerteDokumenter(
         parentId: UUID,
@@ -510,7 +592,7 @@ class DokumentUnderArbeidService(
                     journalfoertDokumentReferenceSet = journalfoerteDokumenter,
                     saksbehandlerIdent = innloggetIdent,
                     systemUserContext = false,
-                    ignoreCheckSkrivetilgang = isCurrentROL
+                    ignoreCheckSkrivetilgang = isCurrentROL,
                 )
             }
         }
@@ -518,52 +600,60 @@ class DokumentUnderArbeidService(
         val alreadyAddedDocuments =
             journalfoertDokumentUnderArbeidRepository.findByParentId(parentId)
 
-        val alreadAddedDocumentsMapped = alreadyAddedDocuments.map {
-            JournalfoertDokumentReference(
-                journalpostId = it.journalpostId,
-                dokumentInfoId = it.dokumentInfoId,
-            )
-        }.toSet()
+        val alreadAddedDocumentsMapped =
+            alreadyAddedDocuments
+                .map {
+                    JournalfoertDokumentReference(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId,
+                    )
+                }.toSet()
 
         val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadAddedDocumentsMapped }
 
-        val resultingDocuments = toAdd.map { journalfoertDokumentReference ->
-            val journalpostInDokarkiv =
-                journalpostListForUser.find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
+        val resultingDocuments =
+            toAdd.map { journalfoertDokumentReference ->
+                val journalpostInDokarkiv =
+                    journalpostListForUser.find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
 
-            val document = JournalfoertDokumentUnderArbeidAsVedlegg(
-                name = getDokumentTitle(
-                    journalpost = journalpostInDokarkiv,
-                    dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
-                ),
-                behandlingId = behandling.id,
-                parentId = parentId,
-                journalpostId = journalfoertDokumentReference.journalpostId,
-                dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
-                creatorIdent = innloggetIdent,
-                creatorRole = behandlingRole,
-                opprettet = journalpostInDokarkiv.datoOpprettet,
-                markertFerdig = null,
-                markertFerdigBy = null,
-                ferdigstilt = null,
-                sortKey = getSortKey(
-                    journalpost = journalpostInDokarkiv,
-                    dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
-                ),
-            )
+                val document =
+                    JournalfoertDokumentUnderArbeidAsVedlegg(
+                        name =
+                            getDokumentTitle(
+                                journalpost = journalpostInDokarkiv,
+                                dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
+                            ),
+                        behandlingId = behandling.id,
+                        parentId = parentId,
+                        journalpostId = journalfoertDokumentReference.journalpostId,
+                        dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
+                        creatorIdent = innloggetIdent,
+                        creatorRole = behandlingRole,
+                        opprettet = journalpostInDokarkiv.datoOpprettet,
+                        markertFerdig = null,
+                        markertFerdigBy = null,
+                        ferdigstilt = null,
+                        sortKey =
+                            getSortKey(
+                                journalpost = journalpostInDokarkiv,
+                                dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
+                            ),
+                    )
 
-            journalfoertDokumentUnderArbeidRepository.save(
-                document
-            )
-        }
+                journalfoertDokumentUnderArbeidRepository.save(
+                    document,
+                )
+            }
 
         return resultingDocuments to duplicates
     }
 
-    private fun getDokumentTitle(journalpost: Journalpost, dokumentInfoId: String): String {
-        return journalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
+    private fun getDokumentTitle(
+        journalpost: Journalpost,
+        dokumentInfoId: String,
+    ): String =
+        journalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
             ?: error("can't be null")
-    }
 
     fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid =
         dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
@@ -571,40 +661,43 @@ class DokumentUnderArbeidService(
         }
 
     fun updateDokumentType(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         newDokumentType: DokumentType,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsHoveddokument) {
             throw DokumentValidationException("Kan ikke endre dokumenttype på vedlegg")
         }
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
-                documentRole = dokumentUnderArbeid.creatorRole,
-                action = DuaAccessPolicy.Action.CHANGE_TYPE,
-                duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+                    documentRole = dokumentUnderArbeid.creatorRole,
+                    action = DuaAccessPolicy.Action.CHANGE_TYPE,
+                    duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated updateDokumentType action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
         val vedlegg = getVedlegg(dokumentId)
 
         if (newDokumentType.isInngaaende()) {
             if (vedlegg.any { it !is OpplastetDokumentUnderArbeidAsVedlegg }) {
-                throw DokumentValidationException("${newDokumentType.navn} kan kun ha opplastede vedlegg. Fjern ugyldige vedlegg og prøv på nytt.")
+                throw DokumentValidationException(
+                    "${newDokumentType.navn} kan kun ha opplastede vedlegg. Fjern ugyldige vedlegg og prøv på nytt.",
+                )
             }
         }
 
@@ -612,7 +705,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = dokumentUnderArbeid,
             newDokumentType = newDokumentType,
             behandling = behandling,
-            innloggetIdent = innloggetIdent
+            innloggetIdent = innloggetIdent,
         )
 
         return dokumentUnderArbeid
@@ -622,32 +715,35 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument,
         newDokumentType: DokumentType,
         behandling: Behandling,
-        innloggetIdent: String
+        innloggetIdent: String,
     ) {
         dokumentUnderArbeid.dokumentType = newDokumentType
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = null,
-                            dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -657,12 +753,12 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         datoMottatt: LocalDate,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid =
             getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
@@ -682,25 +778,28 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = null,
-                            dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -712,7 +811,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         inngaaendeKanal: InngaaendeKanal,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
@@ -731,25 +830,28 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = null,
-                            dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -761,13 +863,12 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         avsenderInput: AvsenderInput,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): OpplastetDokumentUnderArbeidAsHoveddokument {
-
-        //Validate part
+        // Validate part
         partSearchService.searchPart(
             identifikator = avsenderInput.identifikator,
-            systemUserContext = true
+            systemUserContext = true,
         )
 
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
@@ -799,31 +900,34 @@ class DokumentUnderArbeidService(
                 forceCentralPrint = false,
                 address = null,
                 navn = null,
-            )
+            ),
         )
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = null,
-                            dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -831,7 +935,7 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
-    //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
+    // TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
     fun updateMottakere(
         behandlingId: UUID,
         dokumentId: UUID,
@@ -843,7 +947,7 @@ class DokumentUnderArbeidService(
 
         validateMottakerList(
             mottakerInput = mottakerInput,
-            systemContext = systemContext
+            systemContext = systemContext,
         )
 
         if (dokumentUnderArbeid.isVedlegg()) {
@@ -852,11 +956,12 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
-        val behandling = if (systemContext) {
-            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
-        } else {
-            behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
-        }
+        val behandling =
+            if (systemContext) {
+                behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+            } else {
+                behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
+            }
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette mottakere på et dokument som er ferdigstilt")
@@ -867,23 +972,26 @@ class DokumentUnderArbeidService(
         }
 
         val existingMottakere = dokumentUnderArbeid.brevmottakere
-        val (mottakereToUpdate, mottakereToAdd) = mottakerInput.mottakerList.partition { inputMottaker ->
-            inputMottaker.id in (existingMottakere.map { it.technicalPartId })
-        }
+        val (mottakereToUpdate, mottakereToAdd) =
+            mottakerInput.mottakerList.partition { inputMottaker ->
+                inputMottaker.id in (existingMottakere.map { it.technicalPartId })
+            }
 
-        val mottakereToDelete = existingMottakere.filter { existingMottaker ->
-            existingMottaker.technicalPartId !in (mottakerInput.mottakerList.map { it.id })
-        }
+        val mottakereToDelete =
+            existingMottakere.filter { existingMottaker ->
+                existingMottaker.technicalPartId !in (mottakerInput.mottakerList.map { it.id })
+            }
 
         mottakerInput.mottakerList.forEach { inputMottaker ->
-            val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
-                identifikator = inputMottaker.identifikator,
-                handling = inputMottaker.handling,
-                isAddressOverridden = inputMottaker.overriddenAddress != null,
-                sakenGjelderFnr = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-                systemContext = systemContext,
-            )
+            val (markLocalPrint, forceCentralPrint) =
+                getPreferredHandling(
+                    identifikator = inputMottaker.identifikator,
+                    handling = inputMottaker.handling,
+                    isAddressOverridden = inputMottaker.overriddenAddress != null,
+                    sakenGjelderFnr = behandling.sakenGjelder.partId.value,
+                    tema = behandling.ytelse.toTema(),
+                    systemContext = systemContext,
+                )
 
             val technicalPartId =
                 inputMottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = inputMottaker.identifikator)
@@ -893,11 +1001,12 @@ class DokumentUnderArbeidService(
                 throw DokumentValidationException("Kun fullmektig kan brukes som mottaker uten identifikator.")
             }
 
-            val resolvedAddress = getDokumentUnderArbeidAdresse(
-                overrideAddress = inputMottaker.overriddenAddress,
-                getAddressFromFullmektig = getAddressFromFullmektig,
-                fullmektig = behandling.prosessfullmektig,
-            )
+            val resolvedAddress =
+                getDokumentUnderArbeidAdresse(
+                    overrideAddress = inputMottaker.overriddenAddress,
+                    getAddressFromFullmektig = getAddressFromFullmektig,
+                    fullmektig = behandling.prosessfullmektig,
+                )
 
             if (inputMottaker.identifikator == null && (inputMottaker.navn == null || resolvedAddress == null)) {
                 throw DokumentValidationException("Mottaker uten identifikator må ha navn og adresse.")
@@ -913,7 +1022,7 @@ class DokumentUnderArbeidService(
                             forceCentralPrint = forceCentralPrint,
                             address = resolvedAddress,
                             navn = inputMottaker.navn,
-                        )
+                        ),
                     )
                 }
 
@@ -938,25 +1047,28 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = null,
-                            dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -974,18 +1086,31 @@ class DokumentUnderArbeidService(
             }
 
             if (mottaker.identifikator != null) {
-                val part = partSearchService.searchPart(
-                    identifikator = mottaker.identifikator,
-                    systemUserContext = systemContext
-                )
+                val part =
+                    partSearchService.searchPart(
+                        identifikator = mottaker.identifikator,
+                        systemUserContext = systemContext,
+                    )
 
                 when (part.type) {
-                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
-                        throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
+                    BehandlingDetaljerView.IdType.FNR -> {
+                        if (part.statusList.any {
+                                it.status ==
+                                    BehandlingDetaljerView.PartStatus.Status.DEAD
+                            }
+                        ) {
+                            throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
+                        }
                     }
 
-                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
-                        throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                    BehandlingDetaljerView.IdType.ORGNR -> {
+                        if (part.statusList.any {
+                                it.status ==
+                                    BehandlingDetaljerView.PartStatus.Status.DELETED
+                            }
+                        ) {
+                            throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                        }
                     }
                 }
             }
@@ -1007,18 +1132,19 @@ class DokumentUnderArbeidService(
         isAddressOverridden: Boolean,
         sakenGjelderFnr: String,
         tema: Tema,
-        systemContext: Boolean
+        systemContext: Boolean,
     ) = when (handling) {
         HandlingEnum.AUTO -> {
             if (identifikator == null) {
                 false to false
             } else {
-                val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
-                    mottakerId = identifikator,
-                    brukerId = sakenGjelderFnr,
-                    tema = tema,
-                    saksbehandlerContext = !systemContext,
-                )
+                val defaultUtsendingskanal =
+                    dokDistKanalService.getUtsendingskanal(
+                        mottakerId = identifikator,
+                        brukerId = sakenGjelderFnr,
+                        tema = tema,
+                        saksbehandlerContext = !systemContext,
+                    )
 
                 if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
                     false to true
@@ -1028,21 +1154,31 @@ class DokumentUnderArbeidService(
             }
         }
 
-        HandlingEnum.LOCAL_PRINT -> true to false
-        HandlingEnum.CENTRAL_PRINT -> false to true
+        HandlingEnum.LOCAL_PRINT -> {
+            true to false
+        }
+
+        HandlingEnum.CENTRAL_PRINT -> {
+            false to true
+        }
     }
 
     fun getDokumentUnderArbeidAdresse(
         overrideAddress: AddressInput?,
         getAddressFromFullmektig: Boolean,
         fullmektig: Prosessfullmektig?,
-    ): Adresse? {
-        return if (overrideAddress != null) {
-            val poststed = if (overrideAddress.landkode == "NO") {
-                if (overrideAddress.postnummer != null) {
-                    kodeverkService.getPoststed(overrideAddress.postnummer)
-                } else null
-            } else null
+    ): Adresse? =
+        if (overrideAddress != null) {
+            val poststed =
+                if (overrideAddress.landkode == "NO") {
+                    if (overrideAddress.postnummer != null) {
+                        kodeverkService.getPoststed(overrideAddress.postnummer)
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
 
             Adresse(
                 adresselinje1 = overrideAddress.adresselinje1,
@@ -1050,7 +1186,7 @@ class DokumentUnderArbeidService(
                 adresselinje3 = overrideAddress.adresselinje3,
                 postnummer = overrideAddress.postnummer,
                 poststed = poststed,
-                landkode = overrideAddress.landkode
+                landkode = overrideAddress.landkode,
             )
         } else if (getAddressFromFullmektig) {
             Adresse(
@@ -1061,39 +1197,44 @@ class DokumentUnderArbeidService(
                 poststed = fullmektig.address!!.poststed,
                 landkode = fullmektig.address!!.landkode,
             )
-        } else null
-    }
+        } else {
+            null
+        }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
         val duaUnproxied = Hibernate.unproxy(this)
         return duaUnproxied is SmartdokumentUnderArbeidAsVedlegg ||
-                duaUnproxied is OpplastetDokumentUnderArbeidAsVedlegg ||
-                duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg
+            duaUnproxied is OpplastetDokumentUnderArbeidAsVedlegg ||
+            duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg
     }
 
     fun updateDokumentTitle(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         dokumentTitle: String,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): DokumentUnderArbeid {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(dokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null),
-                documentRole = dokumentUnderArbeid.creatorRole,
-                action = DuaAccessPolicy.Action.RENAME,
-                duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(dokumentId),
+                    parentDokumentType =
+                        documentPolicyService.getParentDokumentType(
+                            parentDuaId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+                        ),
+                    documentRole = dokumentUnderArbeid.creatorRole,
+                    action = DuaAccessPolicy.Action.RENAME,
+                    duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated updateDokumentTitle action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
         if (dokumentTitle.length > MAX_NAME_LENGTH) {
@@ -1103,25 +1244,34 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.name = dokumentTitle
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            listOf(
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = dokumentUnderArbeid.id.toString(),
+                                    parentId =
+                                        if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) {
+                                            dokumentUnderArbeid.parentId
+                                                .toString()
+                                        } else {
+                                            null
+                                        },
+                                    dokumentTypeId = getDokumentTypeIdFromThisOrParent(dokumentUnderArbeid),
+                                    tittel = dokumentUnderArbeid.name,
+                                    isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
+                                ),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = dokumentUnderArbeid.id.toString(),
-                            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId.toString() else null,
-                            dokumentTypeId = getDokumentTypeIdFromThisOrParent(dokumentUnderArbeid),
-                            tittel = dokumentUnderArbeid.name,
-                            isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
-                        )
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -1130,10 +1280,10 @@ class DokumentUnderArbeidService(
     }
 
     fun updateSmartdokumentLanguage(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         language: Language,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): DokumentUnderArbeid {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
@@ -1143,7 +1293,9 @@ class DokumentUnderArbeidService(
 
         if (behandling.ferdigstilling == null) {
             if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-                throw MissingTilgangException("$behandlingRole har ikke anledning til å endre språk på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
+                throw MissingTilgangException(
+                    "$behandlingRole har ikke anledning til å endre språk på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.",
+                )
             }
         }
 
@@ -1156,20 +1308,23 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.language = language
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                SmartDocumentChangedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    SmartDocumentChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        document =
+                            SmartDocumentChangedEvent.SmartDocumentChanged(
+                                id = dokumentUnderArbeid.id.toString(),
+                                language = DokumentView.Language.valueOf(dokumentUnderArbeid.language.name),
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    document = SmartDocumentChangedEvent.SmartDocumentChanged(
-                        id = dokumentUnderArbeid.id.toString(),
-                        language = DokumentView.Language.valueOf(dokumentUnderArbeid.language.name),
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.SMART_DOCUMENT_LANGUAGE,
         )
@@ -1183,25 +1338,28 @@ class DokumentUnderArbeidService(
     ) {
         val dokument = getDokumentUnderArbeid(dokumentId)
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null),
-                documentRole = dokument.creatorRole,
-                action = DuaAccessPolicy.Action.WRITE,
-                duaMarkertFerdig = dokument.erMarkertFerdig(),
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                    parentDokumentType =
+                        documentPolicyService.getParentDokumentType(
+                            parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null,
+                        ),
+                    documentRole = dokument.creatorRole,
+                    action = DuaAccessPolicy.Action.WRITE,
+                    duaMarkertFerdig = dokument.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated validateWriteAccessToSmartDocument action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
     }
 
-    private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
-        return dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
-    }
+    private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> =
+        dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
 
     private fun validatePlaceholdersInSingleSmartDocument(dokument: DokumentUnderArbeidAsSmartdokument): DocumentValidationResponse {
         logger.debug("Getting json document, dokumentId: {}", dokument.id)
@@ -1210,17 +1368,18 @@ class DokumentUnderArbeidService(
         val response = kabalJsonToPdfService.validateJsonDocument(documentJson)
         return DocumentValidationResponse(
             dokumentId = dokument.id,
-            errors = response.errors.map {
-                when (it) {
-                    no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse.DocumentValidationError.EMPTY_PLACEHOLDER -> {
-                        DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER
-                    }
+            errors =
+                response.errors.map {
+                    when (it) {
+                        DocumentValidationError.EMPTY_PLACEHOLDER -> {
+                            DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER
+                        }
 
-                    no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse.DocumentValidationError.EMPTY_REGELVERK -> {
-                        DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK
+                        DocumentValidationError.EMPTY_REGELVERK -> {
+                            DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK
+                        }
                     }
-                }
-            }
+                },
         )
     }
 
@@ -1236,52 +1395,57 @@ class DokumentUnderArbeidService(
             throw RuntimeException("document is not hoveddokument")
         }
 
-        val behandling = if (systemContext) {
-            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
-        } else {
-            behandlingService.getBehandlingAndCheckReadAccessToSak(hovedDokument.behandlingId)
-        }
+        val behandling =
+            if (systemContext) {
+                behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+            } else {
+                behandlingService.getBehandlingAndCheckReadAccessToSak(hovedDokument.behandlingId)
+            }
 
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
-                documentRole = hovedDokument.creatorRole,
-                action = DuaAccessPolicy.Action.FINISH,
-                duaMarkertFerdig = hovedDokument.erMarkertFerdig(),
-                isSystemContext = systemContext,
-            )
-        }
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+                    documentRole = hovedDokument.creatorRole,
+                    action = DuaAccessPolicy.Action.FINISH,
+                    duaMarkertFerdig = hovedDokument.erMarkertFerdig(),
+                    isSystemContext = systemContext,
+                )
+            }
         logger.debug(
             "Validated finnOgMarkerFerdigHovedDokument action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
-        hovedDokument.journalfoerendeEnhetId = if (systemContext) {
-            "9999"
-        } else {
-            saksbehandlerService.getEnhetForSaksbehandler(
-                navIdent = utfoerendeIdent,
-            ).enhetId
-        }
+        hovedDokument.journalfoerendeEnhetId =
+            if (systemContext) {
+                "9999"
+            } else {
+                saksbehandlerService
+                    .getEnhetForSaksbehandler(
+                        navIdent = utfoerendeIdent,
+                    ).enhetId
+            }
 
-        if (hovedDokument.dokumentType in listOf(
+        if (hovedDokument.dokumentType in
+            listOf(
                 DokumentType.KJENNELSE_FRA_TRYGDERETTEN,
-                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN,
             )
         ) {
             hovedDokument.brevmottakere.clear()
             hovedDokument.brevmottakere.add(
                 Brevmottaker(
-                    //Hardkoder Trygderetten
+                    // Hardkoder Trygderetten
                     technicalPartId = UUID.randomUUID(),
                     identifikator = organisasjonsnummerTrygderetten,
                     localPrint = false,
                     forceCentralPrint = false,
                     address = null,
                     navn = null,
-                )
+                ),
             )
         }
 
@@ -1296,9 +1460,11 @@ class DokumentUnderArbeidService(
         if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
             try {
                 metricForSmartDocumentVersions.record(
-                    smartEditorApiGateway.getSmartDocumentResponse(
-                        smartEditorId = hovedDokument.smartEditorId
-                    ).version.toDouble()
+                    smartEditorApiGateway
+                        .getSmartDocumentResponse(
+                            smartEditorId = hovedDokument.smartEditorId,
+                        ).version
+                        .toDouble(),
                 )
             } catch (e: Exception) {
                 logger.warn("could not record metrics for smart document versions", e)
@@ -1311,7 +1477,7 @@ class DokumentUnderArbeidService(
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
                 tidspunkt = now,
-                saksbehandlerIdent = utfoerendeIdent
+                saksbehandlerIdent = utfoerendeIdent,
             )
         }
 
@@ -1326,31 +1492,35 @@ class DokumentUnderArbeidService(
         applicationEventPublisher.publishEvent(DokumentFerdigstiltAvSaksbehandler(hovedDokument))
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsChangedEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsChangedEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        documents =
+                            vedlegg.map {
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = it.id.toString(),
+                                    parentId = it.parentId.toString(),
+                                    dokumentTypeId = getDokumentTypeIdFromThisOrParent(it),
+                                    tittel = it.name,
+                                    isMarkertAvsluttet = it.erMarkertFerdig(),
+                                )
+                            } +
+                                DocumentsChangedEvent.DocumentChanged(
+                                    id = hovedDokument.id.toString(),
+                                    parentId = null,
+                                    dokumentTypeId = hovedDokument.dokumentType.id,
+                                    tittel = hovedDokument.name,
+                                    isMarkertAvsluttet = hovedDokument.erMarkertFerdig(),
+                                ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    documents = vedlegg.map {
-                        DocumentsChangedEvent.DocumentChanged(
-                            id = it.id.toString(),
-                            parentId = it.parentId.toString(),
-                            dokumentTypeId = getDokumentTypeIdFromThisOrParent(it),
-                            tittel = it.name,
-                            isMarkertAvsluttet = it.erMarkertFerdig(),
-                        )
-                    } + DocumentsChangedEvent.DocumentChanged(
-                        id = hovedDokument.id.toString(),
-                        parentId = null,
-                        dokumentTypeId = hovedDokument.dokumentType.id,
-                        tittel = hovedDokument.name,
-                        isMarkertAvsluttet = hovedDokument.erMarkertFerdig(),
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
@@ -1369,12 +1539,13 @@ class DokumentUnderArbeidService(
     }
 
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
-        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
+        val dokumentUnderArbeid =
+            getDokumentUnderArbeid(dokumentUnderArbeidId)
                 as DokumentUnderArbeidAsHoveddokument
         return validateDokumentUnderArbeidAndVedlegg(
             dokumentUnderArbeid = dokumentUnderArbeid,
             vedlegg = getVedlegg(hoveddokumentId = dokumentUnderArbeidId),
-            systemContext = false
+            systemContext = false,
         )
     }
 
@@ -1383,51 +1554,70 @@ class DokumentUnderArbeidService(
         vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         systemContext: Boolean,
     ): List<DocumentValidationResponse> {
-
-        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(
-            behandlingId = dokumentUnderArbeid.behandlingId
-        )
+        val behandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(
+                behandlingId = dokumentUnderArbeid.behandlingId,
+            )
 
         val errors = mutableListOf<DocumentValidationResponse>()
 
         dokumentUnderArbeid.brevmottakere.forEach { mottaker ->
             if (mottaker.identifikator != null) {
-                val part = partSearchService.searchPartWithUtsendingskanal(
-                    identifikator = mottaker.identifikator!!,
-                    systemUserContext = true,
-                    sakenGjelderId = behandling.sakenGjelder.partId.value,
-                    tema = behandling.ytelse.toTema(),
-                    systemContext = systemContext,
-                )
+                val part =
+                    partSearchService.searchPartWithUtsendingskanal(
+                        identifikator = mottaker.identifikator!!,
+                        systemUserContext = true,
+                        sakenGjelderId = behandling.sakenGjelder.partId.value,
+                        tema = behandling.ytelse.toTema(),
+                        systemContext = systemContext,
+                    )
 
                 if (documentWillGoToCentralPrint(mottaker, part)) {
                     if (mottaker.address == null && part.address == null) {
-                        errors += DocumentValidationResponse(
-                            dokumentId = dokumentUnderArbeid.id,
-                            errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                        errors +=
+                            DocumentValidationResponse(
+                                dokumentId = dokumentUnderArbeid.id,
+                                errors =
+                                    listOf(
+                                        DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                                    ),
                             )
-                        )
                     }
                 }
 
                 when (part.type) {
-                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
-                        errors += DocumentValidationResponse(
-                            dokumentId = dokumentUnderArbeid.id,
-                            errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
-                            )
-                        )
+                    BehandlingDetaljerView.IdType.FNR -> {
+                        if (part.statusList.any {
+                                it.status ==
+                                    BehandlingDetaljerView.PartStatus.Status.DEAD
+                            }
+                        ) {
+                            errors +=
+                                DocumentValidationResponse(
+                                    dokumentId = dokumentUnderArbeid.id,
+                                    errors =
+                                        listOf(
+                                            DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                                        ),
+                                )
+                        }
                     }
 
-                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
-                        errors += DocumentValidationResponse(
-                            dokumentId = dokumentUnderArbeid.id,
-                            errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
-                            )
-                        )
+                    BehandlingDetaljerView.IdType.ORGNR -> {
+                        if (part.statusList.any {
+                                it.status ==
+                                    BehandlingDetaljerView.PartStatus.Status.DELETED
+                            }
+                        ) {
+                            errors +=
+                                DocumentValidationResponse(
+                                    dokumentId = dokumentUnderArbeid.id,
+                                    errors =
+                                        listOf(
+                                            DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                                        ),
+                                )
+                        }
                     }
 
                     else -> {
@@ -1436,12 +1626,14 @@ class DokumentUnderArbeidService(
                 }
             } else {
                 if (mottaker.navn == null || mottaker.address == null) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = dokumentUnderArbeid.id,
-                        errors = listOf(
-                            DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                    errors +=
+                        DocumentValidationResponse(
+                            dokumentId = dokumentUnderArbeid.id,
+                            errors =
+                                listOf(
+                                    DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                                ),
                         )
-                    )
                 }
             }
         }
@@ -1449,19 +1641,23 @@ class DokumentUnderArbeidService(
         (vedlegg + dokumentUnderArbeid).forEach { document ->
             if (document is DokumentUnderArbeidAsSmartdokument) {
                 if (document.mellomlagretDate != null && document.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = document.id,
-                        errors = listOf(
-                            DocumentValidationResponse.SmartDocumentErrorType.WRONG_DATE
+                    errors +=
+                        DocumentValidationResponse(
+                            dokumentId = document.id,
+                            errors =
+                                listOf(
+                                    DocumentValidationResponse.SmartDocumentErrorType.WRONG_DATE,
+                                ),
                         )
-                    )
                 } else if (document.isPDFGenerationNeeded()) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = document.id,
-                        errors = listOf(
-                            DocumentValidationResponse.SmartDocumentErrorType.DOCUMENT_MODIFIED
+                    errors +=
+                        DocumentValidationResponse(
+                            dokumentId = document.id,
+                            errors =
+                                listOf(
+                                    DocumentValidationResponse.SmartDocumentErrorType.DOCUMENT_MODIFIED,
+                                ),
                         )
-                    )
                 }
 
                 errors += validatePlaceholdersInSingleSmartDocument(document)
@@ -1470,14 +1666,18 @@ class DokumentUnderArbeidService(
 
         if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument &&
             dokumentUnderArbeid.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
-            dokumentUnderArbeid.smartEditorTemplateId in listOf(EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME, GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME)
+            dokumentUnderArbeid.smartEditorTemplateId in
+            listOf(EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME, GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME)
         ) {
-            val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
-                ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support ekspedisjonsbrev to TR.")
+            val trygderettenMetadata =
+                behandling as? BehandlingWithTrygderettenMetadata
+                    ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support ekspedisjonsbrev to TR.")
 
             val trygderettenMetadataErrors = mutableListOf<DocumentValidationResponse.SmartDocumentErrorType>()
 
-            if (dokumentUnderArbeid.smartEditorTemplateId == EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME && trygderettenMetadata.paaanketVedtaksdato == null) {
+            if (dokumentUnderArbeid.smartEditorTemplateId == EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME &&
+                trygderettenMetadata.paaanketVedtaksdato == null
+            ) {
                 trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_SET
             }
 
@@ -1485,10 +1685,11 @@ class DokumentUnderArbeidService(
                 trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_SET
             }
 
-            errors += DocumentValidationResponse(
-                dokumentId = dokumentUnderArbeid.id,
-                errors = trygderettenMetadataErrors,
-            )
+            errors +=
+                DocumentValidationResponse(
+                    dokumentId = dokumentUnderArbeid.id,
+                    errors = trygderettenMetadataErrors,
+                )
         }
 
         return errors.groupBy { it.dokumentId }.map { (key, value) ->
@@ -1498,27 +1699,26 @@ class DokumentUnderArbeidService(
                 errors = errorsPerDocument,
             )
         }
-
     }
 
     private fun documentWillGoToCentralPrint(
         mottaker: Brevmottaker,
-        part: BehandlingDetaljerView.SearchPartViewWithUtsendingskanal
-    ): Boolean {
-        return mottaker.forceCentralPrint ||
-                (!mottaker.localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
-    }
+        part: BehandlingDetaljerView.SearchPartViewWithUtsendingskanal,
+    ): Boolean =
+        mottaker.forceCentralPrint ||
+            (!mottaker.localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
 
     private fun validateDocumentBeforeFerdig(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
         vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         systemContext: Boolean,
     ) {
-        val errors = validateDokumentUnderArbeidAndVedlegg(
-            dokumentUnderArbeid = hovedDokument,
-            vedlegg = vedlegg,
-            systemContext = systemContext,
-        )
+        val errors =
+            validateDokumentUnderArbeidAndVedlegg(
+                dokumentUnderArbeid = hovedDokument,
+                vedlegg = vedlegg,
+                systemContext = systemContext,
+            )
         if (errors.any { it.errors.isNotEmpty() }) {
             logger.error("Error in validateDokumentUnderArbeidAndVedlegg: ${errors.joinToString()}")
             throw SmartDocumentValidationException(
@@ -1529,25 +1729,28 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
-        if (hovedDokument.dokumentType !in listOf(
+        if (hovedDokument.dokumentType !in
+            listOf(
                 DokumentType.NOTAT,
-                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN,
             ) && avsenderMottakerInfoSet.isEmpty()
         ) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
         }
 
-        if (hovedDokument.dokumentType == DokumentType.ANNEN_INNGAAENDE_POST && (hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument).inngaaendeKanal == null) {
+        if (hovedDokument.dokumentType == DokumentType.ANNEN_INNGAAENDE_POST &&
+            (hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument).inngaaendeKanal == null
+        ) {
             throw DokumentValidationException("Trenger spesifisert inngående kanal for ${hovedDokument.dokumentType.navn}.")
         }
     }
 
     fun getInnholdsfortegnelseAsFysiskDokument(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         hoveddokumentId: UUID,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): ResponseEntity<ByteArray> {
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokument =
             getDokumentUnderArbeid(hoveddokumentId) as DokumentUnderArbeidAsHoveddokument
@@ -1559,12 +1762,16 @@ class DokumentUnderArbeidService(
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokument.id)
 
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .map { it.journalpostId }.toSet(),
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = true,
-        )
+        val journalpostList =
+            safFacade.getJournalposter(
+                journalpostIdSet =
+                    vedlegg
+                        .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                        .map { it.journalpostId }
+                        .toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
+            )
         return ResponseEntity(
             innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeid = dokument,
@@ -1575,15 +1782,15 @@ class DokumentUnderArbeidService(
                 contentType = MediaType.APPLICATION_PDF
                 add(
                     "Content-Disposition",
-                    "inline; filename=\"$filename.pdf\""
+                    "inline; filename=\"$filename.pdf\"",
                 )
             },
-            HttpStatus.OK
+            HttpStatus.OK,
         )
     }
 
     fun getFysiskDokumentAsResourceOrUrl(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String,
         variantFormat: DokumentReferanse.Variant.Format,
@@ -1591,107 +1798,119 @@ class DokumentUnderArbeidService(
     ): Triple<String, Any, MediaType?> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
-        val (title, resourceOrLink, mediaType) = if (dokumentUnderArbeid.erFerdigstilt()) {
-            if (dokumentUnderArbeid.dokarkivReferences.isEmpty()) {
-                throw RuntimeException("Dokument is finalized but has no dokarkiv references")
-            }
-
-            val dokarkivReference = dokumentUnderArbeid.dokarkivReferences.first()
-            val fysiskDokument = dokumentService.getFysiskDokument(
-                journalpostId = dokarkivReference.journalpostId,
-                dokumentInfoId = dokarkivReference.dokumentInfoId!!,
-                variantFormat = variantFormat,
-            )
-            Triple(
-                fysiskDokument.title,
-                fysiskDokument.content,
-                fysiskDokument.mediaType
-            )
-        } else {
-            when (dokumentUnderArbeid) {
-                is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    Triple(
-                        dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(
-                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
-                            filename = buildFilename(title = dokumentUnderArbeid.name),
-                            contentDisposition = contentDisposition,
-                        ),
-                        null
-                    )
+        val (title, resourceOrLink, mediaType) =
+            if (dokumentUnderArbeid.erFerdigstilt()) {
+                if (dokumentUnderArbeid.dokarkivReferences.isEmpty()) {
+                    throw RuntimeException("Dokument is finalized but has no dokarkiv references")
                 }
 
-                is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    Triple(
-                        dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(
-                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
-                            filename = buildFilename(title = dokumentUnderArbeid.name),
-                            contentDisposition = contentDisposition,
-                        ),
-                        null
-                    )
-                }
-
-                is DokumentUnderArbeidAsSmartdokument -> {
-                    if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                        Triple(
-                            dokumentUnderArbeid.name,
-                            ByteArrayResource(
-                                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
-                                    dokumentUnderArbeid
-                                ).bytes
-                            ),
-                            MediaType.APPLICATION_PDF
-                        )
-                    } else Triple(
-                        dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(
-                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
-                            filename = buildFilename(title = dokumentUnderArbeid.name),
-                            contentDisposition = contentDisposition,
-                        ),
-                        null
-                    )
-                }
-
-                is JournalfoertDokumentUnderArbeidAsVedlegg -> {
-                    val journalpost = safFacade.getJournalpostAsSaksbehandler(
-                        journalpostId = dokumentUnderArbeid.journalpostId,
-                    )
-
-                    val dokument =
-                        journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
-                            ?: throw RuntimeException("Document not found in Dokarkiv")
-                    if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
-                        throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
-                    }
-
-                    val fysiskDokument = dokumentService.getFysiskDokument(
-                        journalpostId = dokumentUnderArbeid.journalpostId,
-                        dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                val dokarkivReference = dokumentUnderArbeid.dokarkivReferences.first()
+                val fysiskDokument =
+                    dokumentService.getFysiskDokument(
+                        journalpostId = dokarkivReference.journalpostId,
+                        dokumentInfoId = dokarkivReference.dokumentInfoId!!,
                         variantFormat = variantFormat,
                     )
-                    Triple(
-                        fysiskDokument.title,
-                        fysiskDokument.content,
-                        fysiskDokument.mediaType
-                    )
-                }
+                Triple(
+                    first = fysiskDokument.title,
+                    second = fysiskDokument.content,
+                    third = fysiskDokument.mediaType,
+                )
+            } else {
+                when (dokumentUnderArbeid) {
+                    is OpplastetDokumentUnderArbeidAsHoveddokument -> {
+                        Triple(
+                            first = dokumentUnderArbeid.name,
+                            second =
+                                mellomlagerService.getUploadedDocumentAsSignedURL(
+                                    mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                                    filename = buildFilename(title = dokumentUnderArbeid.name),
+                                    contentDisposition = contentDisposition,
+                                ),
+                            third = null,
+                        )
+                    }
 
-                else -> {
-                    error("can't come here")
+                    is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                        Triple(
+                            first = dokumentUnderArbeid.name,
+                            second =
+                                mellomlagerService.getUploadedDocumentAsSignedURL(
+                                    mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                                    filename = buildFilename(title = dokumentUnderArbeid.name),
+                                    contentDisposition = contentDisposition,
+                                ),
+                            third = null,
+                        )
+                    }
+
+                    is DokumentUnderArbeidAsSmartdokument -> {
+                        if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
+                            Triple(
+                                first = dokumentUnderArbeid.name,
+                                second =
+                                    ByteArrayResource(
+                                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
+                                            dokumentUnderArbeid,
+                                        ).bytes,
+                                    ),
+                                third = MediaType.APPLICATION_PDF,
+                            )
+                        } else {
+                            Triple(
+                                first = dokumentUnderArbeid.name,
+                                second =
+                                    mellomlagerService.getUploadedDocumentAsSignedURL(
+                                        mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                                        filename = buildFilename(title = dokumentUnderArbeid.name),
+                                        contentDisposition = contentDisposition,
+                                    ),
+                                third = null,
+                            )
+                        }
+                    }
+
+                    is JournalfoertDokumentUnderArbeidAsVedlegg -> {
+                        val journalpost =
+                            safFacade.getJournalpostAsSaksbehandler(
+                                journalpostId = dokumentUnderArbeid.journalpostId,
+                            )
+
+                        val dokument =
+                            journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                                ?: throw RuntimeException("Document not found in Dokarkiv")
+                        if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
+                            throw NoAccessToDocumentException(
+                                "Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.",
+                            )
+                        }
+
+                        val fysiskDokument =
+                            dokumentService.getFysiskDokument(
+                                journalpostId = dokumentUnderArbeid.journalpostId,
+                                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                                variantFormat = variantFormat,
+                            )
+                        Triple(
+                            first = fysiskDokument.title,
+                            second = fysiskDokument.content,
+                            third = fysiskDokument.mediaType,
+                        )
+                    }
+
+                    else -> {
+                        error("can't come here")
+                    }
                 }
             }
-        }
 
         return Triple(
-            title,
-            resourceOrLink,
-            mediaType
+            first = title,
+            second = resourceOrLink,
+            third = mediaType,
         )
     }
 
@@ -1701,10 +1920,11 @@ class DokumentUnderArbeidService(
     ) {
         val document = getDokumentUnderArbeid(dokumentId)
 
-        //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(
-            behandlingId = document.behandlingId,
-        )
+        // Sjekker tilgang på behandlingsnivå:
+        val behandling =
+            behandlingService.getBehandlingAndCheckReadAccessToSak(
+                behandlingId = document.behandlingId,
+            )
 
         var parentDocumentId: UUID?
         val vedleggList: List<DokumentUnderArbeidAsVedlegg>
@@ -1716,58 +1936,62 @@ class DokumentUnderArbeidService(
             vedleggList = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId).toList()
         }
 
-        //first vedlegg
+        // first vedlegg
         if (vedleggList.isNotEmpty()) {
             val parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = dokumentId)
             vedleggList.forEach { vedlegg ->
-                val duration = measureTime {
-                    documentPolicyService.validateDokumentUnderArbeidAction(
-                        behandling = behandling,
-                        dokumentType = documentPolicyService.getDokumentType(duaId = vedlegg.id),
-                        parentDokumentType = parentDokumentType,
-                        documentRole = vedlegg.creatorRole,
-                        action = DuaAccessPolicy.Action.REMOVE,
-                        duaMarkertFerdig = vedlegg.erMarkertFerdig(),
-                    )
-                }
+                val duration =
+                    measureTime {
+                        documentPolicyService.validateDokumentUnderArbeidAction(
+                            behandling = behandling,
+                            dokumentType = documentPolicyService.getDokumentType(duaId = vedlegg.id),
+                            parentDokumentType = parentDokumentType,
+                            documentRole = vedlegg.creatorRole,
+                            action = DuaAccessPolicy.Action.REMOVE,
+                            duaMarkertFerdig = vedlegg.erMarkertFerdig(),
+                        )
+                    }
                 logger.debug(
                     "Validated remove vedlegg action. Duration: {} ms",
-                    duration.inWholeMilliseconds
+                    duration.inWholeMilliseconds,
                 )
             }
         }
 
-        //then actual document
-        val duration = measureTime {
-            documentPolicyService.validateDokumentUnderArbeidAction(
-                behandling = behandling,
-                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId),
-                documentRole = document.creatorRole,
-                action = DuaAccessPolicy.Action.REMOVE,
-                duaMarkertFerdig = document.erMarkertFerdig(),
-            )
-        }
+        // then actual document
+        val duration =
+            measureTime {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId),
+                    documentRole = document.creatorRole,
+                    action = DuaAccessPolicy.Action.REMOVE,
+                    duaMarkertFerdig = document.erMarkertFerdig(),
+                )
+            }
         logger.debug(
             "Validated remove hoveddokument action. Duration: {} ms",
-            duration.inWholeMilliseconds
+            duration.inWholeMilliseconds,
         )
 
         val documentsToRemove = vedleggList + document
         deleteDocuments(documents = documentsToRemove)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                DocumentsRemovedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    DocumentsRemovedEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = LocalDateTime.now(),
+                        idList = documentsToRemove.map { it.id.toString() },
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = LocalDateTime.now(),
-                    idList = documentsToRemove.map { it.id.toString() },
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_REMOVED,
         )
@@ -1798,7 +2022,6 @@ class DokumentUnderArbeidService(
                     logger.warn("Couldn't delete smartEditor document", e)
                 }
             }
-
         }
 
         dokumentUnderArbeidRepository.deleteAll(documents)
@@ -1807,7 +2030,7 @@ class DokumentUnderArbeidService(
     fun setAsVedlegg(
         newParentId: UUID,
         dokumentId: UUID,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>> {
         if (newParentId == dokumentId) {
             throw DokumentValidationException("Kan ikke gjøre et dokument til vedlegg for seg selv.")
@@ -1825,7 +2048,11 @@ class DokumentUnderArbeidService(
         val currentDocument = getDokumentUnderArbeid(dokumentId)
 
         if (parentDocument.isInngaaende()) {
-            if (!((currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) || (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument))) {
+            if (!(
+                    (currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) ||
+                        (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument)
+                )
+            ) {
                 throw DokumentValidationException("${parentDocument.dokumentType.navn} kan bare ha opplastet dokument som vedlegg.")
             }
         }
@@ -1836,9 +2063,10 @@ class DokumentUnderArbeidService(
         dokumentIdSet += descendants.map { it.id }
         dokumentIdSet += dokumentId
 
-        val processedDokumentUnderArbeidOutput = dokumentIdSet.map { currentDokumentId ->
-            setParentInDokumentUnderArbeidAndFindDuplicates(currentDokumentId, newParentId)
-        }
+        val processedDokumentUnderArbeidOutput =
+            dokumentIdSet.map { currentDokumentId ->
+                setParentInDokumentUnderArbeidAndFindDuplicates(currentDokumentId = currentDokumentId, parentId = newParentId)
+            }
 
         val alteredDocuments = processedDokumentUnderArbeidOutput.mapNotNull { it.first }
         val duplicateJournalfoerteDokumenterUnderArbeid: List<JournalfoertDokumentUnderArbeidAsVedlegg> =
@@ -1863,12 +2091,13 @@ class DokumentUnderArbeidService(
         }
 
         return if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
-            if (journalfoertDokumentUnderArbeidRepository.findByParentIdAndJournalpostIdAndDokumentInfoIdAndIdNot(
-                    parentId = parentId,
-                    journalpostId = dokumentUnderArbeid.journalpostId,
-                    dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
-                    id = currentDokumentId,
-                ).isNotEmpty()
+            if (journalfoertDokumentUnderArbeidRepository
+                    .findByParentIdAndJournalpostIdAndDokumentInfoIdAndIdNot(
+                        parentId = parentId,
+                        journalpostId = dokumentUnderArbeid.journalpostId,
+                        dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                        id = currentDokumentId,
+                    ).isNotEmpty()
             ) {
                 logger.warn("Dette journalførte dokumentet er allerede lagt til som vedlegg på dette dokumentet.")
                 null to dokumentUnderArbeid
@@ -1880,16 +2109,18 @@ class DokumentUnderArbeidService(
             when (dokumentUnderArbeid) {
                 is SmartdokumentUnderArbeidAsHoveddokument -> {
                     smartDokumentUnderArbeidAsHoveddokumentRepository.delete(dokumentUnderArbeid)
-                    dokumentUnderArbeid = smartDokumentUnderArbeidAsVedleggRepository.save(
-                        dokumentUnderArbeid.asVedlegg(parentId = parentId)
-                    )
+                    dokumentUnderArbeid =
+                        smartDokumentUnderArbeidAsVedleggRepository.save(
+                            dokumentUnderArbeid.asVedlegg(parentId = parentId),
+                        )
                 }
 
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
                     opplastetDokumentUnderArbeidAsHoveddokumentRepository.delete(dokumentUnderArbeid)
-                    dokumentUnderArbeid = opplastetDokumentUnderArbeidAsVedleggRepository.save(
-                        dokumentUnderArbeid.asVedlegg(parentId = parentId)
-                    )
+                    dokumentUnderArbeid =
+                        opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                            dokumentUnderArbeid.asVedlegg(parentId = parentId),
+                        )
                 }
 
                 is DokumentUnderArbeidAsVedlegg -> {
@@ -1900,8 +2131,11 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun findDokumenterNotFinished(behandlingId: UUID, checkReadAccess: Boolean = true): List<DokumentUnderArbeid> {
-        //Sjekker tilgang på behandlingsnivå:
+    fun findDokumenterNotFinished(
+        behandlingId: UUID,
+        checkReadAccess: Boolean = true,
+    ): List<DokumentUnderArbeid> {
+        // Sjekker tilgang på behandlingsnivå:
         if (checkReadAccess) {
             behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         }
@@ -1913,13 +2147,13 @@ class DokumentUnderArbeidService(
         behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         return dokumentUnderArbeidRepository.findByBehandlingId(behandlingId).any {
             it is DokumentUnderArbeidAsHoveddokument &&
-                    it.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
-                    it.erMarkertFerdig()
+                it.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+                it.erMarkertFerdig()
         }
     }
 
     fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         return getDokumentViewList(
             dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
@@ -1928,15 +2162,19 @@ class DokumentUnderArbeidService(
     }
 
     fun getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId: UUID): OpplastetDokumentUnderArbeidAsHoveddokument? {
-        //Sjekker tilgang på behandlingsnivå:
+        // Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
-        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNull(
-            behandlingId
-        ).find { it.dokumentType == DokumentType.SVARBREV }
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository
+            .findByBehandlingIdAndMarkertFerdigNotNull(
+                behandlingId,
+            ).find { it.dokumentType == DokumentType.SVARBREV }
     }
 
-    fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
-        //Sjekker tilgang på behandlingsnivå:
+    fun getDokumentUnderArbeidView(
+        dokumentUnderArbeidId: UUID,
+        behandlingId: UUID,
+    ): DokumentView {
+        // Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
         return getDokumentViewList(
@@ -1950,9 +2188,10 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
         behandling: Behandling,
     ): List<DokumentView> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = dokumentUnderArbeidList.partition {
-            it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) =
+            dokumentUnderArbeidList.partition {
+                it !is JournalfoertDokumentUnderArbeidAsVedlegg
+            } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
         val journalpostList =
             if (journalfoerteDokumenterUnderArbeid.isNotEmpty()) {
@@ -1961,26 +2200,31 @@ class DokumentUnderArbeidService(
                     fnr = behandling.sakenGjelder.partId.value,
                     saksbehandlerContext = true,
                 )
-            } else emptyList()
+            } else {
+                emptyList()
+            }
 
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
+        return dokumenterUnderArbeid
+            .sortedByDescending { it.created }
             .map {
-                val smartEditorDocument = if (it is DokumentUnderArbeidAsSmartdokument) {
-                    smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
-                } else null
+                val smartEditorDocument =
+                    if (it is DokumentUnderArbeidAsSmartdokument) {
+                        smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
+                    } else {
+                        null
+                    }
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
                     journalpost = null,
                     smartEditorDocument = smartEditorDocument,
-                    behandling = behandling
+                    behandling = behandling,
                 )
-            }
-            .plus(
+            }.plus(
                 getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
                     dokumentUnderArbeidList = journalfoerteDokumenterUnderArbeid,
                     behandling = behandling,
                     journalpostList = journalpostList,
-                )
+                ),
             )
     }
 
@@ -1991,17 +2235,18 @@ class DokumentUnderArbeidService(
         logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
-        //Denne er alltid sann
+        // Denne er alltid sann
         if (hovedDokument.dokumentEnhetId == null) {
             logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokument.id)
-            //Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
+            // Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
             val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
-            val dokumentEnhetId = kabalDocumentGateway.createKomplettDokumentEnhet(
-                behandling = behandling,
-                hovedDokument = hovedDokument,
-                vedlegg = vedlegg,
-                innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokument.id)
-            )
+            val dokumentEnhetId =
+                kabalDocumentGateway.createKomplettDokumentEnhet(
+                    behandling = behandling,
+                    hovedDokument = hovedDokument,
+                    vedlegg = vedlegg,
+                    innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokument.id),
+                )
             logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
             hovedDokument.dokumentEnhetId = dokumentEnhetId
             logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
@@ -2028,14 +2273,16 @@ class DokumentUnderArbeidService(
             return
         }
 
-        val newMottakDokumenter = journalpostIdSet.filter { journalpostId ->
-            behandling.mottakDokument.none { it.journalpostId == journalpostId }
-        }.map { journalpostId ->
-            MottakDokumentDTO(
-                type = behandling.type.getMottakDokumentType(),
-                journalpostId = journalpostId,
-            )
-        }.toSet()
+        val newMottakDokumenter =
+            journalpostIdSet
+                .filter { journalpostId ->
+                    behandling.mottakDokument.none { it.journalpostId == journalpostId }
+                }.map { journalpostId ->
+                    MottakDokumentDTO(
+                        type = behandling.type.getMottakDokumentType(),
+                        journalpostId = journalpostId,
+                    )
+                }.toSet()
 
         if (newMottakDokumenter.isNotEmpty()) {
             behandling.addMottakDokument(mottakDokumentSet = newMottakDokumenter)
@@ -2064,19 +2311,22 @@ class DokumentUnderArbeidService(
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
-        val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
-            it.joarkReferenceList.map { joarkReference ->
-                joarkReference.journalpostId
-            }
-        }.toSet()
-        //Antageligvis vil dette være en enkelt jpid, legger til logging for verifisering
+        val journalpostIdSet =
+            dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList
+                .flatMap {
+                    it.joarkReferenceList.map { joarkReference ->
+                        joarkReference.journalpostId
+                    }
+                }.toSet()
+        // Antageligvis vil dette være en enkelt jpid, legger til logging for verifisering
         logger.debug("Found ${journalpostIdSet.size} jpids after document completion")
 
-        val journalpostSetFromSaf = safFacade.getJournalposter(
-            journalpostIdSet = journalpostIdSet,
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = false,
-        )
+        val journalpostSetFromSaf =
+            safFacade.getJournalposter(
+                journalpostIdSet = journalpostIdSet,
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = false,
+            )
 
         val journalfoerteVedlegg =
             journalfoertDokumentUnderArbeidRepository.findByParentId(dokumentId = hovedDokument.id)
@@ -2087,35 +2337,40 @@ class DokumentUnderArbeidService(
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.ferdigstilling == null) {
-                //Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.
-                val newDocuments = saksdokumenter.filter { saksdokument ->
-                    journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
-                }
+                // Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.
+                val newDocuments =
+                    saksdokumenter.filter { saksdokument ->
+                        journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
+                    }
 
                 if (newDocuments.isNotEmpty()) {
                     newDocuments.forEach { saksdokument ->
-                        behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                        behandling
+                            .addSaksdokument(saksdokument = saksdokument, saksbehandlerident = saksbehandlerIdent)
                             ?.also { applicationEventPublisher.publishEvent(it) }
                     }
 
                     publishInternalEvent(
-                        data = jacksonObjectMapper.writeValueAsString(
-                            IncludedDocumentsChangedEvent(
-                                actor = Employee(
-                                    navIdent = saksbehandlerIdent,
-                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                        data =
+                            jacksonObjectMapper.writeValueAsString(
+                                IncludedDocumentsChangedEvent(
+                                    actor =
+                                        Employee(
+                                            navIdent = saksbehandlerIdent,
+                                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                        ),
+                                    timestamp = LocalDateTime.now(),
+                                    journalfoertDokumentReferenceSet =
+                                        newDocuments
+                                            .map {
+                                                JournalfoertDokument(
+                                                    journalpostId = it.journalpostId,
+                                                    dokumentInfoId = it.dokumentInfoId,
+                                                )
+                                            }.toSet(),
+                                    traceparent = currentTraceparent(),
                                 ),
-                                timestamp = LocalDateTime.now(),
-                                journalfoertDokumentReferenceSet = newDocuments.map {
-                                    JournalfoertDokument(
-                                        it.journalpostId,
-                                        it.dokumentInfoId
-                                    )
-                                }.toSet(),
-                                traceparent = currentTraceparent(),
-
-                                )
-                        ),
+                            ),
                         behandlingId = behandling.id,
                         type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
                     )
@@ -2129,8 +2384,9 @@ class DokumentUnderArbeidService(
             journalpostIdSet = journalpostIdSet,
         )
 
-        //Legg inn dokarkivReferences på dokumenter som ikke tidligere har vært i arkivet
-        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.filter { it.sourceReference != null }
+        // Legg inn dokarkivReferences på dokumenter som ikke tidligere har vært i arkivet
+        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList
+            .filter { it.sourceReference != null }
             .forEach { sourceReferenceWithJoarkReferences ->
                 val currentDokumentUnderArbeid =
                     dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
@@ -2139,7 +2395,7 @@ class DokumentUnderArbeidService(
                         DokumentUnderArbeidDokarkivReference(
                             journalpostId = joarkReference.journalpostId,
                             dokumentInfoId = joarkReference.dokumentInfoId,
-                        )
+                        ),
                     )
                 }
             }
@@ -2148,14 +2404,14 @@ class DokumentUnderArbeidService(
 
         logger.debug(
             "about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}",
-            hovedDokument.id
+            hovedDokument.id,
         )
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
 
         val allVedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug(
             "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
-            hovedDokument.id
+            hovedDokument.id,
         )
         allVedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
@@ -2167,16 +2423,17 @@ class DokumentUnderArbeidService(
     fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
-        val hoveddokumentPDFResource: Resource = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
-            if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
+        val hoveddokumentPDFResource: Resource =
+            if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
+                if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
+                    ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
+                } else {
+                    mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
+                }
             } else {
+                dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
                 mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
             }
-        } else {
-            dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
-            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
-        }
 
         val vedleggSet = getVedlegg(dokumentUnderArbeidId)
 
@@ -2195,7 +2452,9 @@ class DokumentUnderArbeidService(
                         mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
 
-                    else -> null
+                    else -> {
+                        null
+                    }
                 }
             }
 
@@ -2203,22 +2462,25 @@ class DokumentUnderArbeidService(
 
         val journalfoerteVedlegg = vedleggSet.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
 
-        val journalpostListFromSaf = safFacade.getJournalposter(
-            journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = true,
-        )
-
-        val innholdsfortegnelsePath = if (vedleggSet.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
-            val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                dokumentUnderArbeid = dokumentUnderArbeid,
-                journalpostList = journalpostListFromSaf,
-                vedlegg = vedleggSet,
+        val journalpostListFromSaf =
+            safFacade.getJournalposter(
+                journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
             )
-            Files.write(Files.createTempFile("", ""), innholdsfortegnelsePDFBytes)
-        } else {
-            null
-        }
+
+        val innholdsfortegnelsePath =
+            if (vedleggSet.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
+                val innholdsfortegnelsePDFBytes =
+                    innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                        dokumentUnderArbeid = dokumentUnderArbeid,
+                        journalpostList = journalpostListFromSaf,
+                        vedlegg = vedleggSet,
+                    )
+                Files.write(Files.createTempFile("", ""), innholdsfortegnelsePDFBytes)
+            } else {
+                null
+            }
 
         if (journalfoerteVedlegg.isNotEmpty()) {
             journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
@@ -2227,30 +2489,35 @@ class DokumentUnderArbeidService(
                     journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
                         ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
-                    throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
+                    throw NoAccessToDocumentException(
+                        "Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.",
+                    )
                 }
             }
         }
 
-        //No need for preview if there are too many documents.
-        //Takes a lot of resources, and it's a bad user experience anyway.
-        val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty() && journalfoerteVedlegg.size < 50) {
-            dokumentService.mergeJournalfoerteDocuments(
-                documentsToMerge = journalfoerteVedlegg
-                    .sortedBy { it.sortKey }
-                    .map {
-                        it.journalpostId to it.dokumentInfoId
-                    },
-                preferArkivvariantIfAccess = false,
-                journalposterSupplied = journalpostListFromSaf,
-            ).first
-        } else {
-            null
-        }
+        // No need for preview if there are too many documents.
+        // Takes a lot of resources, and it's a bad user experience anyway.
+        val journalfoertePath =
+            if (journalfoerteVedlegg.isNotEmpty() && journalfoerteVedlegg.size < 50) {
+                dokumentService
+                    .mergeJournalfoerteDocuments(
+                        documentsToMerge =
+                            journalfoerteVedlegg
+                                .sortedBy { it.sortKey }
+                                .map {
+                                    it.journalpostId to it.dokumentInfoId
+                                },
+                        preferArkivvariantIfAccess = false,
+                        journalposterSupplied = journalpostListFromSaf,
+                    ).first
+            } else {
+                null
+            }
 
         val filesToMerge = mutableListOf<Resource>()
 
-        //Add files in correct order
+        // Add files in correct order
         filesToMerge.add(hoveddokumentPDFResource)
 
         if (innholdsfortegnelsePath != null) {
@@ -2293,28 +2560,30 @@ class DokumentUnderArbeidService(
         return pdfDocument
     }
 
-    private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean {
-        return mellomlagretDate == null ||
-                mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
-                smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).version > (mellomlagretVersion ?: -1)
-    }
+    private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean =
+        mellomlagretDate == null ||
+            mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
+            smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).version > (mellomlagretVersion ?: -1)
 
-    private fun Journalpost?.mapToSaksdokumenter(): List<Saksdokument> {
-        return this?.dokumenter?.map {
+    private fun Journalpost?.mapToSaksdokumenter(): List<Saksdokument> =
+        this?.dokumenter?.map {
             Saksdokument(
                 journalpostId = this.journalpostId,
-                dokumentInfoId = it.dokumentInfoId
+                dokumentInfoId = it.dokumentInfoId,
             )
         } ?: emptyList()
-    }
 
-    private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
+    private fun publishInternalEvent(
+        data: String,
+        behandlingId: UUID,
+        type: InternalEventType,
+    ) {
         kafkaInternalEventService.publishInternalBehandlingEvent(
             InternalBehandlingEvent(
                 behandlingId = behandlingId.toString(),
                 type = type,
                 data = data,
-            )
+            ),
         )
     }
 
@@ -2323,69 +2592,78 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
         avsenderEnhetId: String,
     ): DokumentUnderArbeidAsHoveddokument {
-        val bytes = kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrev = svarbrev,
-            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
-            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
-            sakenGjelderName = partSearchService.searchPart(
-                identifikator = behandling.sakenGjelder.partId.value,
-                systemUserContext = false
-            ).name,
-            ytelse = behandling.ytelse,
-            klagerIdentifikator = behandling.klager.partId.value,
-            klagerName = partSearchService.searchPart(
-                identifikator = behandling.klager.partId.value,
-                systemUserContext = false
-            ).name,
-            avsenderEnhetId = avsenderEnhetId,
-        )
+        val bytes =
+            kabalJsonToPdfService.getSvarbrevPDF(
+                svarbrev = svarbrev,
+                mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+                sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+                sakenGjelderName =
+                    partSearchService
+                        .searchPart(
+                            identifikator = behandling.sakenGjelder.partId.value,
+                            systemUserContext = false,
+                        ).name,
+                ytelse = behandling.ytelse,
+                klagerIdentifikator = behandling.klager.partId.value,
+                klagerName =
+                    partSearchService
+                        .searchPart(
+                            identifikator = behandling.klager.partId.value,
+                            systemUserContext = false,
+                        ).name,
+                avsenderEnhetId = avsenderEnhetId,
+            )
 
         val tmpFile = Files.createTempFile(null, null).toFile()
         tmpFile.writeBytes(bytes)
 
-        val documentView = createOpplastetDokumentUnderArbeid(
-            behandlingId = behandling.id,
-            dokumentTypeId = DokumentType.SVARBREV.id,
-            parentId = null,
-            file = tmpFile,
-            filename = svarbrev.title,
-            utfoerendeIdent = tokenUtil.getIdent(),
-            systemContext = false,
-            scanForVirus = false,
-        )
+        val documentView =
+            createOpplastetDokumentUnderArbeid(
+                behandlingId = behandling.id,
+                dokumentTypeId = DokumentType.SVARBREV.id,
+                parentId = null,
+                file = tmpFile,
+                filename = svarbrev.title,
+                utfoerendeIdent = tokenUtil.getIdent(),
+                systemContext = false,
+                scanForVirus = false,
+            )
 
         updateMottakere(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            mottakerInput = MottakerInput(
-                svarbrev.receivers.map {
-                    Mottaker(
-                        id = UUID.randomUUID(),
-                        identifikator = it.identifikator,
-                        handling = HandlingEnum.valueOf(it.handling.name),
-                        overriddenAddress = it.overriddenAddress?.let { address ->
-                            AddressInput(
-                                adresselinje1 = address.adresselinje1,
-                                adresselinje2 = address.adresselinje2,
-                                adresselinje3 = address.adresselinje3,
-                                landkode = address.landkode,
-                                postnummer = address.postnummer,
-                            )
-                        },
-                        navn = it.navn,
-                    )
-                }
-            ),
+            mottakerInput =
+                MottakerInput(
+                    svarbrev.receivers.map {
+                        Mottaker(
+                            id = UUID.randomUUID(),
+                            identifikator = it.identifikator,
+                            handling = HandlingEnum.valueOf(it.handling.name),
+                            overriddenAddress =
+                                it.overriddenAddress?.let { address ->
+                                    AddressInput(
+                                        adresselinje1 = address.adresselinje1,
+                                        adresselinje2 = address.adresselinje2,
+                                        adresselinje3 = address.adresselinje3,
+                                        landkode = address.landkode,
+                                        postnummer = address.postnummer,
+                                    )
+                                },
+                            navn = it.navn,
+                        )
+                    },
+                ),
             utfoerendeIdent = tokenUtil.getIdent(),
             systemContext = false,
         )
 
-        val hovedDokument = finnOgMarkerFerdigHovedDokument(
-            behandlingId = behandling.id,
-            dokumentId = documentView.id,
-            utfoerendeIdent = tokenUtil.getIdent(),
-            systemContext = false,
-        )
+        val hovedDokument =
+            finnOgMarkerFerdigHovedDokument(
+                behandlingId = behandling.id,
+                dokumentId = documentView.id,
+                utfoerendeIdent = tokenUtil.getIdent(),
+                systemContext = false,
+            )
 
         return hovedDokument
     }
@@ -2406,21 +2684,22 @@ class DokumentUnderArbeidService(
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
         val datoMottatt = behandling.mottattKlageinstans.toLocalDate()
 
-        val savedHovedDokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
-            OpplastetDokumentUnderArbeidAsHoveddokument(
-                mellomlagerId = hoveddokument.mellomlagerId,
-                size = hoveddokument.size,
-                name = hoveddokument.name,
-                dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
-                behandlingId = behandling.id,
-                creatorIdent = utfoerendeIdent,
-                creatorRole = behandlingRole,
-                datoMottatt = datoMottatt,
-                journalfoerendeEnhetId = null,
-                inngaaendeKanal = inngaaendeKanal,
-                isMottakDokument = true,
+        val savedHovedDokument =
+            opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
+                OpplastetDokumentUnderArbeidAsHoveddokument(
+                    mellomlagerId = hoveddokument.mellomlagerId,
+                    size = hoveddokument.size,
+                    name = hoveddokument.name,
+                    dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+                    behandlingId = behandling.id,
+                    creatorIdent = utfoerendeIdent,
+                    creatorRole = behandlingRole,
+                    datoMottatt = datoMottatt,
+                    journalfoerendeEnhetId = null,
+                    inngaaendeKanal = inngaaendeKanal,
+                    isMottakDokument = true,
+                ),
             )
-        )
 
         savedHovedDokument.brevmottakere.clear()
         savedHovedDokument.brevmottakere.add(
@@ -2431,7 +2710,7 @@ class DokumentUnderArbeidService(
                 forceCentralPrint = false,
                 address = null,
                 navn = null,
-            )
+            ),
         )
 
         vedlegg.forEach { currentVedlegg ->
@@ -2445,7 +2724,7 @@ class DokumentUnderArbeidService(
                     creatorRole = behandlingRole,
                     parentId = savedHovedDokument.id,
                     sortIndex = currentVedlegg.sortIndex,
-                )
+                ),
             )
         }
 
@@ -2461,50 +2740,56 @@ class DokumentUnderArbeidService(
         forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
         behandling: Behandling,
     ): DokumentUnderArbeidAsHoveddokument {
-        val sakenGjelderName = partSearchService.searchPart(
-            identifikator = behandling.sakenGjelder.partId.value,
-            systemUserContext = false
-        ).name
-
-        val bytes = kabalJsonToPdfService.getForlengetBehandlingstidPDF(
-            title = forlengetBehandlingstidDraft.title!!,
-            sakenGjelderName = sakenGjelderName,
-            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
-            klagerIdentifikator = behandling.klager.partId.value,
-            klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
-                partSearchService.searchPart(
-                    identifikator = behandling.klager.partId.value,
-                    systemUserContext = false
+        val sakenGjelderName =
+            partSearchService
+                .searchPart(
+                    identifikator = behandling.sakenGjelder.partId.value,
+                    systemUserContext = false,
                 ).name
-            } else {
-                sakenGjelderName
-            },
-            ytelse = behandling.ytelse,
-            fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
-            behandlingstidUnits = forlengetBehandlingstidDraft.varsletBehandlingstidUnits,
-            behandlingstidUnitType = forlengetBehandlingstidDraft.varsletBehandlingstidUnitType,
-            behandlingstidDate = forlengetBehandlingstidDraft.varsletFrist,
-            avsenderEnhetId = Enhet.E4291.navn,
-            type = behandling.type,
-            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
-            previousBehandlingstidInfo = forlengetBehandlingstidDraft.previousBehandlingstidInfo,
-            reason = forlengetBehandlingstidDraft.reason,
-            customText = forlengetBehandlingstidDraft.customText,
-        )
+
+        val bytes =
+            kabalJsonToPdfService.getForlengetBehandlingstidPDF(
+                title = forlengetBehandlingstidDraft.title!!,
+                sakenGjelderName = sakenGjelderName,
+                sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+                klagerIdentifikator = behandling.klager.partId.value,
+                klagerName =
+                    if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                        partSearchService
+                            .searchPart(
+                                identifikator = behandling.klager.partId.value,
+                                systemUserContext = false,
+                            ).name
+                    } else {
+                        sakenGjelderName
+                    },
+                ytelse = behandling.ytelse,
+                fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
+                behandlingstidUnits = forlengetBehandlingstidDraft.varsletBehandlingstidUnits,
+                behandlingstidUnitType = forlengetBehandlingstidDraft.varsletBehandlingstidUnitType,
+                behandlingstidDate = forlengetBehandlingstidDraft.varsletFrist,
+                avsenderEnhetId = Enhet.E4291.navn,
+                type = behandling.type,
+                mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+                previousBehandlingstidInfo = forlengetBehandlingstidDraft.previousBehandlingstidInfo,
+                reason = forlengetBehandlingstidDraft.reason,
+                customText = forlengetBehandlingstidDraft.customText,
+            )
 
         val tmpFile = Files.createTempFile(null, null).toFile()
         tmpFile.writeBytes(bytes)
 
-        val documentView = createOpplastetDokumentUnderArbeid(
-            behandlingId = behandling.id,
-            dokumentTypeId = DokumentType.FORLENGET_BEHANDLINGSTIDSBREV.id,
-            parentId = null,
-            file = tmpFile,
-            filename = forlengetBehandlingstidDraft.title,
-            utfoerendeIdent = tokenUtil.getIdent(),
-            systemContext = false,
-            scanForVirus = false,
-        )
+        val documentView =
+            createOpplastetDokumentUnderArbeid(
+                behandlingId = behandling.id,
+                dokumentTypeId = DokumentType.FORLENGET_BEHANDLINGSTIDSBREV.id,
+                parentId = null,
+                file = tmpFile,
+                filename = forlengetBehandlingstidDraft.title,
+                utfoerendeIdent = tokenUtil.getIdent(),
+                systemContext = false,
+                scanForVirus = false,
+            )
 
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
 
@@ -2517,16 +2802,17 @@ class DokumentUnderArbeidService(
                     forceCentralPrint = it.forceCentralPrint,
                     address = it.address,
                     navn = it.navn,
-                )
+                ),
             )
         }
 
-        val hovedDokument = finnOgMarkerFerdigHovedDokument(
-            behandlingId = behandling.id,
-            dokumentId = documentView.id,
-            utfoerendeIdent = tokenUtil.getIdent(),
-            systemContext = false
-        )
+        val hovedDokument =
+            finnOgMarkerFerdigHovedDokument(
+                behandlingId = behandling.id,
+                dokumentId = documentView.id,
+                utfoerendeIdent = tokenUtil.getIdent(),
+                systemContext = false,
+            )
 
         return hovedDokument
     }
@@ -2543,11 +2829,7 @@ class DokumentUnderArbeidService(
         return DokumentUnderArbeidMetadata(
             behandlingId = behandlingId,
             documentId = dokumentId,
-            title = title
+            title = title,
         )
     }
 }
-
-
-
-

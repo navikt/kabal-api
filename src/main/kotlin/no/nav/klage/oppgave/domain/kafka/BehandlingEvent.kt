@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.domain.kafka
 
 import no.nav.klage.kodeverk.Type
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class BehandlingEvent(
     val eventId: UUID,
@@ -42,7 +42,7 @@ data class KlagebehandlingAvsluttetDetaljer(
 )
 
 data class AnkebehandlingOpprettetDetaljer(
-    val mottattKlageinstans: LocalDateTime
+    val mottattKlageinstans: LocalDateTime,
 )
 
 data class AnkeITrygderettenbehandlingOpprettetDetaljer(

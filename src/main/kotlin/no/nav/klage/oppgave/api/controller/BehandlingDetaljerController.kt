@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -23,9 +23,8 @@ import java.util.*
 class BehandlingDetaljerController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val auditLogger: AuditLogger
+    private val auditLogger: AuditLogger,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,23 +32,24 @@ class BehandlingDetaljerController(
 
     @GetMapping("/{behandlingId}/detaljer")
     fun getBehandlingDetaljer(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): BehandlingDetaljerView {
         logBehandlingMethodDetails(
-            ::getBehandlingDetaljer.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getBehandlingDetaljer.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
-        return behandlingService.getBehandlingDetaljerView(behandlingId)
+        return behandlingService
+            .getBehandlingDetaljerView(behandlingId)
             .also {
                 auditLogger.log(
                     AuditLogEvent(
                         navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
                         personFnr = it.sakenGjelder.identifikator,
-                        message = "Hentet behandlingsdetaljer"
-                    )
+                        message = "Hentet behandlingsdetaljer",
+                    ),
                 )
             }
     }

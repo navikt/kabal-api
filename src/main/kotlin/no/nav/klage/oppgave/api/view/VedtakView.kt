@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
-import java.util.*
+import java.util.UUID
 
 data class VedtakView(
     val id: UUID,

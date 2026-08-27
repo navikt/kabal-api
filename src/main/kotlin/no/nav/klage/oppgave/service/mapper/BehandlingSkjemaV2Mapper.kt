@@ -13,75 +13,72 @@ import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-private fun SakenGjelder.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
-    return if (this.erPerson()) {
+private fun SakenGjelder.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon =
+    if (this.erPerson()) {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
-            person = BehandlingSkjemaV2.Person(fnr = this.partId.value)
+            person = BehandlingSkjemaV2.Person(fnr = this.partId.value),
         )
     } else {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
-            organisasjon = BehandlingSkjemaV2.Organisasjon(orgnr = this.partId.value)
+            organisasjon = BehandlingSkjemaV2.Organisasjon(orgnr = this.partId.value),
         )
     }
-}
 
-private fun Tildeling.mapToSkjemaV2(): BehandlingSkjemaV2.TildeltSaksbehandler {
-    return BehandlingSkjemaV2.TildeltSaksbehandler(
+private fun Tildeling.mapToSkjemaV2(): BehandlingSkjemaV2.TildeltSaksbehandler =
+    BehandlingSkjemaV2.TildeltSaksbehandler(
         tidspunkt = this.tidspunkt,
-        saksbehandler = this.saksbehandlerident?.let {
-            BehandlingSkjemaV2.Saksbehandler(
-                ident = it,
-            )
-        },
-        enhet = this.enhet?.let {
-            BehandlingSkjemaV2.Enhet(
-                nr = it,
-            )
-        }
+        saksbehandler =
+            this.saksbehandlerident?.let {
+                BehandlingSkjemaV2.Saksbehandler(
+                    ident = it,
+                )
+            },
+        enhet =
+            this.enhet?.let {
+                BehandlingSkjemaV2.Enhet(
+                    nr = it,
+                )
+            },
     )
-}
 
-private fun MedunderskriverTildeling.mapToSkjemaV2(medunderskriverEnhet: String?): BehandlingSkjemaV2.TildeltSaksbehandler {
-    return BehandlingSkjemaV2.TildeltSaksbehandler(
+private fun MedunderskriverTildeling.mapToSkjemaV2(medunderskriverEnhet: String?): BehandlingSkjemaV2.TildeltSaksbehandler =
+    BehandlingSkjemaV2.TildeltSaksbehandler(
         tidspunkt = this.tidspunkt,
         saksbehandler = this.saksbehandlerident?.let { BehandlingSkjemaV2.Saksbehandler(it) },
-        enhet = medunderskriverEnhet?.let {
-            BehandlingSkjemaV2.Enhet(
-                nr = it,
-            )
-        }
+        enhet =
+            medunderskriverEnhet?.let {
+                BehandlingSkjemaV2.Enhet(
+                    nr = it,
+                )
+            },
     )
-}
 
-private fun Kode.mapToSkjemaV2(): BehandlingSkjemaV2.Kode {
-    return BehandlingSkjemaV2.Kode(
+private fun Kode.mapToSkjemaV2(): BehandlingSkjemaV2.Kode =
+    BehandlingSkjemaV2.Kode(
         id = this.id,
         navn = this.navn,
-        beskrivelse = this.beskrivelse
+        beskrivelse = this.beskrivelse,
     )
-}
 
-private fun Hjemmel.mapToSkjemaV2(): BehandlingSkjemaV2.Kode {
-    return BehandlingSkjemaV2.Kode(
+private fun Hjemmel.mapToSkjemaV2(): BehandlingSkjemaV2.Kode =
+    BehandlingSkjemaV2.Kode(
         id = id,
         navn = lovKilde.beskrivelse + " - " + spesifikasjon,
         beskrivelse = lovKilde.navn + " - " + spesifikasjon,
     )
-}
 
-private fun Registreringshjemmel.mapToSkjemaV2(): BehandlingSkjemaV2.Kode {
-    return BehandlingSkjemaV2.Kode(
+private fun Registreringshjemmel.mapToSkjemaV2(): BehandlingSkjemaV2.Kode =
+    BehandlingSkjemaV2.Kode(
         id = id,
         navn = lovKilde.beskrivelse + " - " + spesifikasjon,
         beskrivelse = lovKilde.navn + " - " + spesifikasjon,
     )
-}
 
 private fun Set<Saksdokument>.mapToSkjemaV2(): List<BehandlingSkjemaV2.Dokument> =
     map {
         BehandlingSkjemaV2.Dokument(
             journalpostId = it.journalpostId,
-            dokumentInfoId = it.dokumentInfoId
+            dokumentInfoId = it.dokumentInfoId,
         )
     }
 
@@ -89,9 +86,9 @@ fun Behandling.mapToSkjemaV2(
     erStrengtFortrolig: Boolean,
     erFortrolig: Boolean,
     erEgenAnsatt: Boolean,
-    medunderskriverEnhet: String?
-): BehandlingSkjemaV2 {
-    return BehandlingSkjemaV2(
+    medunderskriverEnhet: String?,
+): BehandlingSkjemaV2 =
+    BehandlingSkjemaV2(
         id = id.toString(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -110,10 +107,10 @@ fun Behandling.mapToSkjemaV2(
         hjemler = hjemler.map { it.mapToSkjemaV2() },
         saksdokumenter = saksdokumenter.mapToSkjemaV2(),
         vedtak =
-        BehandlingSkjemaV2.Vedtak(
-            utfall = utfall?.mapToSkjemaV2(),
-            hjemler = registreringshjemler.map { it.mapToSkjemaV2() },
-        ),
+            BehandlingSkjemaV2.Vedtak(
+                utfall = utfall?.mapToSkjemaV2(),
+                hjemler = registreringshjemler.map { it.mapToSkjemaV2() },
+            ),
         feilregistrert = feilregistrering?.registered,
         sattPaaVent = sattPaaVent?.from,
         sattPaaVentExpires = sattPaaVent?.to,
@@ -126,7 +123,6 @@ fun Behandling.mapToSkjemaV2(
         erStrengtFortrolig = erStrengtFortrolig,
         erEgenAnsatt = erEgenAnsatt,
     )
-}
 
 data class BehandlingSkjemaV2(
     val id: String,
@@ -147,7 +143,6 @@ data class BehandlingSkjemaV2(
     val medunderskriver: TildeltSaksbehandler?,
     val medunderskriverFlowStateId: String,
     val hjemler: List<Kode>,
-
     val saksdokumenter: List<Dokument>,
     val vedtak: Vedtak?,
     val sattPaaVent: LocalDate?,
@@ -161,7 +156,6 @@ data class BehandlingSkjemaV2(
     val erStrengtFortrolig: Boolean,
     val erEgenAnsatt: Boolean,
 ) {
-
     data class Vedtak(
         val utfall: Kode?,
         val hjemler: List<Kode>,
@@ -175,7 +169,10 @@ data class BehandlingSkjemaV2(
         val orgnr: String,
     )
 
-    data class PersonEllerOrganisasjon(val person: Person? = null, val organisasjon: Organisasjon? = null)
+    data class PersonEllerOrganisasjon(
+        val person: Person? = null,
+        val organisasjon: Organisasjon? = null,
+    )
 
     data class Kode(
         val id: String,

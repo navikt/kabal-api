@@ -22,7 +22,6 @@ class PersonProtectionService(
     private val klageLookupGateway: KlageLookupGateway,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -67,7 +66,7 @@ class PersonProtectionService(
                     fortrolig = person.fortrolig,
                     strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
                     skjermet = person.egenAnsatt,
-                )
+                ),
             )
             logger.debug("Created person protection")
         } else {
@@ -76,40 +75,44 @@ class PersonProtectionService(
     }
 
     private fun reindexAffectedBehandlinger(foedselsnummer: String) {
-        val elapsedMillis = measureTimeMillis {
-            val behandlingerBySakenGjelder = behandlingRepository.findBySakenGjelderPartIdValue(foedselsnummer)
+        val elapsedMillis =
+            measureTimeMillis {
+                val behandlingerBySakenGjelder = behandlingRepository.findBySakenGjelderPartIdValue(foedselsnummer)
 
-            val persongalleriEntries = sakPersongalleriRepository.findByFoedselsnummer(foedselsnummer)
-            val behandlingerByPersongalleri = persongalleriEntries
-                .map { it.fagsystem to it.fagsakId }
-                .distinct()
-                .flatMap { (fagsystem, fagsakId) ->
-                    behandlingRepository.findByFagsystemAndFagsakIdAndFeilregistreringIsNull(
-                        fagsystem = fagsystem,
-                        fagsakId = fagsakId,
+                val persongalleriEntries = sakPersongalleriRepository.findByFoedselsnummer(foedselsnummer)
+                val behandlingerByPersongalleri =
+                    persongalleriEntries
+                        .map { it.fagsystem to it.fagsakId }
+                        .distinct()
+                        .flatMap { (fagsystem, fagsakId) ->
+                            behandlingRepository.findByFagsystemAndFagsakIdAndFeilregistreringIsNull(
+                                fagsystem = fagsystem,
+                                fagsakId = fagsakId,
+                            )
+                        }
+
+                val affectedBehandlinger =
+                    (behandlingerBySakenGjelder + behandlingerByPersongalleri)
+                        .distinctBy { it.id }
+
+                logger.debug("Found {} behandlinger to reindex for person protection change", affectedBehandlinger.size)
+
+                affectedBehandlinger.forEach { behandling ->
+                    applicationEventPublisher.publishEvent(
+                        BehandlingChangedEvent(
+                            behandling = behandling,
+                            changeList =
+                                listOf(
+                                    Change(
+                                        saksbehandlerident = null,
+                                        felt = BehandlingChangedEvent.Felt.PERSON_PROTECTION_CHANGED,
+                                        behandlingId = behandling.id,
+                                    ),
+                                ),
+                        ),
                     )
                 }
-
-            val affectedBehandlinger = (behandlingerBySakenGjelder + behandlingerByPersongalleri)
-                .distinctBy { it.id }
-
-            logger.debug("Found {} behandlinger to reindex for person protection change", affectedBehandlinger.size)
-
-            affectedBehandlinger.forEach { behandling ->
-                applicationEventPublisher.publishEvent(
-                    BehandlingChangedEvent(
-                        behandling = behandling,
-                        changeList = listOf(
-                            Change(
-                                saksbehandlerident = null,
-                                felt = BehandlingChangedEvent.Felt.PERSON_PROTECTION_CHANGED,
-                                behandlingId = behandling.id,
-                            )
-                        )
-                    )
-                )
             }
-        }
         logger.debug("PersonProtectionService.reindexAffectedBehandlinger took {} ms", elapsedMillis)
     }
 }

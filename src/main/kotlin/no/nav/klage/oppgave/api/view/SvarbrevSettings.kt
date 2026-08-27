@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.view
 
 import no.nav.klage.kodeverk.TimeUnitType
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class UpdateSvarbrevSettingsInput(
     val behandlingstidUnitType: TimeUnitType?,

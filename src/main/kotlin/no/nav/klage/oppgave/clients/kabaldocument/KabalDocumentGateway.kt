@@ -7,14 +7,13 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFu
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class KabalDocumentGateway(
     private val kabalDocumentClient: KabalDocumentClient,
-    private val kabalDocumentMapper: KabalDocumentMapper
+    private val kabalDocumentMapper: KabalDocumentMapper,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -25,18 +24,18 @@ class KabalDocumentGateway(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
         vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         innholdsfortegnelse: Innholdsfortegnelse?,
-    ): UUID {
-        return UUID.fromString(
-            kabalDocumentClient.createDokumentEnhetWithDokumentreferanser(
-                kabalDocumentMapper.mapBehandlingToDokumentEnhetWithDokumentreferanser(
-                    behandling = behandling,
-                    hovedDokument = hovedDokument,
-                    vedlegg = vedlegg,
-                    innholdsfortegnelse = innholdsfortegnelse,
-                )
-            ).id
+    ): UUID =
+        UUID.fromString(
+            kabalDocumentClient
+                .createDokumentEnhetWithDokumentreferanser(
+                    kabalDocumentMapper.mapBehandlingToDokumentEnhetWithDokumentreferanser(
+                        behandling = behandling,
+                        hovedDokument = hovedDokument,
+                        vedlegg = vedlegg,
+                        innholdsfortegnelse = innholdsfortegnelse,
+                    ),
+                ).id,
         )
-    }
 
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): DokumentEnhetFullfoerOutput =
         kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId)

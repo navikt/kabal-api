@@ -4,4 +4,3 @@ data class GosysOppgaveSearchInput(
     val fnr: String,
     val ytelseId: String?,
 )
-

@@ -14,19 +14,18 @@ import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class MergedDocumentRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
     @Autowired
     lateinit var mergedDocumentRepository: MergedDocumentRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
@@ -39,42 +38,46 @@ class MergedDocumentRepositoryTest : PostgresIntegrationTestBase() {
         val documentToMergeList = mutableListOf<MergedDocument>()
 
         val idToKeep = UUID.randomUUID()
-        documentToMergeList += MergedDocument(
-            id = idToKeep,
-            title = "title",
-            documentsToMerge = mutableSetOf(
-                DocumentToMerge(
-                    journalpostId = "2",
-                    dokumentInfoId = "2",
-                    index = 0,
-                )
-            ),
-            hash = "a",
-            created = now.minusWeeks(thresholdWeeks),
-        )
+        documentToMergeList +=
+            MergedDocument(
+                id = idToKeep,
+                title = "title",
+                documentsToMerge =
+                    mutableSetOf(
+                        DocumentToMerge(
+                            journalpostId = "2",
+                            dokumentInfoId = "2",
+                            index = 0,
+                        ),
+                    ),
+                hash = "a",
+                created = now.minusWeeks(thresholdWeeks),
+            )
 
-        documentToMergeList += MergedDocument(
-            title = "title 2",
-            documentsToMerge = mutableSetOf(
-                DocumentToMerge(
-                    journalpostId = "3",
-                    dokumentInfoId = "3",
-                    index = 0,
-                ),
-                DocumentToMerge(
-                    journalpostId = "3",
-                    dokumentInfoId = "3",
-                    index = 1,
-                ),
-                DocumentToMerge(
-                    journalpostId = "3",
-                    dokumentInfoId = "3",
-                    index = 2,
-                )
-            ),
-            hash = "b",
-            created = now.minusWeeks(thresholdWeeks).minusMinutes(1),
-        )
+        documentToMergeList +=
+            MergedDocument(
+                title = "title 2",
+                documentsToMerge =
+                    mutableSetOf(
+                        DocumentToMerge(
+                            journalpostId = "3",
+                            dokumentInfoId = "3",
+                            index = 0,
+                        ),
+                        DocumentToMerge(
+                            journalpostId = "3",
+                            dokumentInfoId = "3",
+                            index = 1,
+                        ),
+                        DocumentToMerge(
+                            journalpostId = "3",
+                            dokumentInfoId = "3",
+                            index = 2,
+                        ),
+                    ),
+                hash = "b",
+                created = now.minusWeeks(thresholdWeeks).minusMinutes(1),
+            )
 
         mergedDocumentRepository.saveAll(documentToMergeList)
 
@@ -91,5 +94,4 @@ class MergedDocumentRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(mergedDocumentRepository.findAll()).hasSize(1)
         assertThat(mergedDocumentRepository.findAll().first().id).isEqualTo(idToKeep)
     }
-
 }

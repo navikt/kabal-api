@@ -20,53 +20,56 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class StatistikkTilDVHServiceTest {
-
     private val kafkaEventRepository: KafkaEventRepository = mockk()
 
-    private val statistikkTilDVHService = StatistikkTilDVHService(
-        kafkaEventRepository = kafkaEventRepository
-
-    )
-
+    private val statistikkTilDVHService =
+        StatistikkTilDVHService(
+            kafkaEventRepository = kafkaEventRepository,
+        )
 
     @Test
     fun `shouldSendStats new behandling`() {
-
-        val klagebehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = klagebehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val klagebehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = klagebehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
-        val ankebehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = ankebehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val ankebehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = ankebehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
-        val ankeITrygderettenbehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = ankeITrygderettenbehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val ankeITrygderettenbehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = ankeITrygderettenbehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
         assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingChangedEvent))
         assertTrue(statistikkTilDVHService.shouldSendStats(ankebehandlingChangedEvent))
@@ -75,50 +78,57 @@ class StatistikkTilDVHServiceTest {
 
     @Test
     fun `shouldSendStats existing behandling`() {
-
-        val klagebehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = klagebehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val klagebehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = klagebehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
-        val klagebehandlingHJEEndretEvent = BehandlingChangedEvent(
-            behandling = klagebehandlingHJE,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val klagebehandlingHJEEndretEvent =
+            BehandlingChangedEvent(
+                behandling = klagebehandlingHJE,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
-        val ankebehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = ankebehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val ankebehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = ankebehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
-        val ankeITrygderettenbehandlingChangedEvent = BehandlingChangedEvent(
-            behandling = ankeITrygderettenbehandlingOMP,
-            changeList = listOf(
-                BehandlingChangedEvent.Change(
-                    saksbehandlerident = null,
-                    felt = BehandlingChangedEvent.Felt.AVSLUTTET_TIDSPUNKT,
-                    behandlingId = UUID.randomUUID(),
-                )
+        val ankeITrygderettenbehandlingChangedEvent =
+            BehandlingChangedEvent(
+                behandling = ankeITrygderettenbehandlingOMP,
+                changeList =
+                    listOf(
+                        BehandlingChangedEvent.Change(
+                            saksbehandlerident = null,
+                            felt = BehandlingChangedEvent.Felt.AVSLUTTET_TIDSPUNKT,
+                            behandlingId = UUID.randomUUID(),
+                        ),
+                    ),
             )
-        )
 
         assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingChangedEvent))
         assertFalse(statistikkTilDVHService.shouldSendStats(klagebehandlingHJEEndretEvent))
@@ -126,169 +136,189 @@ class StatistikkTilDVHServiceTest {
         assertFalse(statistikkTilDVHService.shouldSendStats(ankeITrygderettenbehandlingChangedEvent))
     }
 
-    private val klagebehandlingOMP = Klagebehandling(
-        mottattVedtaksinstans = LocalDate.now(),
-        previousSaksbehandlerident = null,
-        avsenderEnhetFoersteinstans = "",
-        kommentarFraFoersteinstans = null,
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.KLAGE,
-        kildeReferanse = "",
-        dvhReferanse = null,
-        fagsystem = Fagsystem.K9,
-        fagsakId = "",
-        mottattKlageinstans = LocalDateTime.now(),
-        frist = LocalDate.now(),
-        tildeling = null,
-        tildelingHistorikk = mutableSetOf(),
-        kakaKvalitetsvurderingId = UUID.randomUUID(),
-        kakaKvalitetsvurderingVersion = 0,
-        saksdokumenter = mutableSetOf(),
-        hjemler = setOf(),
-        sattPaaVent = null,
-        gosysOppgaveId = null,
-        varsletBehandlingstid = null,
-        forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = false,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    private val klagebehandlingOMP =
+        Klagebehandling(
+            mottattVedtaksinstans = LocalDate.now(),
+            previousSaksbehandlerident = null,
+            avsenderEnhetFoersteinstans = "",
+            kommentarFraFoersteinstans = null,
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.KLAGE,
+            kildeReferanse = "",
+            dvhReferanse = null,
+            fagsystem = Fagsystem.K9,
+            fagsakId = "",
+            mottattKlageinstans = LocalDateTime.now(),
+            frist = LocalDate.now(),
+            tildeling = null,
+            tildelingHistorikk = mutableSetOf(),
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            kakaKvalitetsvurderingVersion = 0,
+            saksdokumenter = mutableSetOf(),
+            hjemler = setOf(),
+            sattPaaVent = null,
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 
-    private val klagebehandlingHJE = Klagebehandling(
-        mottattVedtaksinstans = LocalDate.now(),
-        previousSaksbehandlerident = null,
-        avsenderEnhetFoersteinstans = "",
-        kommentarFraFoersteinstans = null,
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.HJE_HJE,
-        type = Type.KLAGE,
-        kildeReferanse = "",
-        dvhReferanse = null,
-        fagsystem = Fagsystem.IT01,
-        fagsakId = "",
-        mottattKlageinstans = LocalDateTime.now(),
-        frist = LocalDate.now(),
-        tildeling = null,
-        tildelingHistorikk = mutableSetOf(),
-        kakaKvalitetsvurderingId = UUID.randomUUID(),
-        kakaKvalitetsvurderingVersion = 0,
-        saksdokumenter = mutableSetOf(),
-        hjemler = setOf(),
-        sattPaaVent = null,
-        gosysOppgaveId = null,
-        varsletBehandlingstid = null,
-        forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = true,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    private val klagebehandlingHJE =
+        Klagebehandling(
+            mottattVedtaksinstans = LocalDate.now(),
+            previousSaksbehandlerident = null,
+            avsenderEnhetFoersteinstans = "",
+            kommentarFraFoersteinstans = null,
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.HJE_HJE,
+            type = Type.KLAGE,
+            kildeReferanse = "",
+            dvhReferanse = null,
+            fagsystem = Fagsystem.IT01,
+            fagsakId = "",
+            mottattKlageinstans = LocalDateTime.now(),
+            frist = LocalDate.now(),
+            tildeling = null,
+            tildelingHistorikk = mutableSetOf(),
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            kakaKvalitetsvurderingVersion = 0,
+            saksdokumenter = mutableSetOf(),
+            hjemler = setOf(),
+            sattPaaVent = null,
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = true,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 
-    private val ankebehandlingOMP = Ankebehandling(
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.ANKE,
-        kildeReferanse = "",
-        dvhReferanse = null,
-        fagsystem = Fagsystem.K9,
-        fagsakId = "",
-        mottattKlageinstans = LocalDateTime.now(),
-        frist = LocalDate.now(),
-        tildeling = null,
-        tildelingHistorikk = mutableSetOf(),
-        kakaKvalitetsvurderingId = UUID.randomUUID(),
-        kakaKvalitetsvurderingVersion = 0,
-        saksdokumenter = mutableSetOf(),
-        hjemler = setOf(),
-        sattPaaVent = null,
-        klageVedtaksDato = null,
-        klageBehandlendeEnhet = "",
-        previousSaksbehandlerident = "C78901",
-        gosysOppgaveId = null,
-        varsletBehandlingstid = null,
-        forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = false,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    private val ankebehandlingOMP =
+        Ankebehandling(
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.ANKE,
+            kildeReferanse = "",
+            dvhReferanse = null,
+            fagsystem = Fagsystem.K9,
+            fagsakId = "",
+            mottattKlageinstans = LocalDateTime.now(),
+            frist = LocalDate.now(),
+            tildeling = null,
+            tildelingHistorikk = mutableSetOf(),
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            kakaKvalitetsvurderingVersion = 0,
+            saksdokumenter = mutableSetOf(),
+            hjemler = setOf(),
+            sattPaaVent = null,
+            klageVedtaksDato = null,
+            klageBehandlendeEnhet = "",
+            previousSaksbehandlerident = "C78901",
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 
-    private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(
-                type = PartIdType.PERSON,
-                value = ""
-            ),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.ANKE_I_TRYGDERETTEN,
-        kildeReferanse = "",
-        dvhReferanse = null,
-        fagsystem = Fagsystem.K9,
-        fagsakId = "",
-        mottattKlageinstans = LocalDateTime.now(),
-        frist = LocalDate.now(),
-        tildeling = null,
-        tildelingHistorikk = mutableSetOf(),
-        saksdokumenter = mutableSetOf(),
-        hjemler = setOf(),
-        sattPaaVent = null,
-        sendtTilTrygderetten = LocalDateTime.now(),
-        kjennelseMottatt = null,
-        previousSaksbehandlerident = "C78901",
-        gosysOppgaveId = null,
-        gosysOppgaveRequired = false,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    private val ankeITrygderettenbehandlingOMP =
+        AnkeITrygderettenbehandling(
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId =
+                        PartId(
+                            type = PartIdType.PERSON,
+                            value = "",
+                        ),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.ANKE_I_TRYGDERETTEN,
+            kildeReferanse = "",
+            dvhReferanse = null,
+            fagsystem = Fagsystem.K9,
+            fagsakId = "",
+            mottattKlageinstans = LocalDateTime.now(),
+            frist = LocalDate.now(),
+            tildeling = null,
+            tildelingHistorikk = mutableSetOf(),
+            saksdokumenter = mutableSetOf(),
+            hjemler = setOf(),
+            sattPaaVent = null,
+            sendtTilTrygderetten = LocalDateTime.now(),
+            kjennelseMottatt = null,
+            previousSaksbehandlerident = "C78901",
+            gosysOppgaveId = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 }

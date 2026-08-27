@@ -7,7 +7,11 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.OversendtKlageV2
+import no.nav.klage.oppgave.api.view.OversendtKlagerLegacy
+import no.nav.klage.oppgave.api.view.OversendtPartId
+import no.nav.klage.oppgave.api.view.OversendtPartIdType
+import no.nav.klage.oppgave.api.view.OversendtSak
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
@@ -16,7 +20,11 @@ import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.util.TokenUtil
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.AutoConfigureDataJpa
 import org.springframework.boot.persistence.autoconfigure.EntityScan
@@ -32,7 +40,6 @@ import java.time.LocalDate
 @AutoConfigureDataJpa
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
-
     @MockkBean(relaxed = true)
     lateinit var dokumentService: DokumentService
 
@@ -66,7 +73,7 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var mottakService: MottakService
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
@@ -76,37 +83,42 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
         val saksbehandler = "Z123456"
         every {
             klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = saksbehandler)
-        } returns SaksbehandlerPersonligInfo(
-            navIdent = saksbehandler,
-            fornavn = "Test",
-            etternavn = "Saksbehandler",
-            sammensattNavn = "Test Saksbehandler",
-            enhet = SaksbehandlerEnhet("4295", "KA Nord")
-        )
+        } returns
+            SaksbehandlerPersonligInfo(
+                navIdent = saksbehandler,
+                fornavn = "Test",
+                etternavn = "Saksbehandler",
+                sammensattNavn = "Test Saksbehandler",
+                enhet = SaksbehandlerEnhet(enhetId = "4295", navn = "KA Nord"),
+            )
 
         every { personService.personExists(any()) } returns true
 
-        val oversendtKlage = OversendtKlageV2(
-            avsenderEnhet = "4455",
-            avsenderSaksbehandlerIdent = saksbehandler,
-            innsendtTilNav = LocalDate.now(),
-            mottattFoersteinstans = LocalDate.now(),
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            klager = OversendtKlagerLegacy(
-                id = OversendtPartId(
-                    type = OversendtPartIdType.PERSON,
-                    verdi = "01043137677"
-                )
-            ),
-            kilde = Fagsystem.K9,
-            kildeReferanse = "abc",
-            fagsak = OversendtSak(
-                fagsakId = "123",
-                fagsystem = Fagsystem.K9
-            ),
-            hindreAutomatiskSvarbrev = null,
-        )
+        val oversendtKlage =
+            OversendtKlageV2(
+                avsenderEnhet = "4455",
+                avsenderSaksbehandlerIdent = saksbehandler,
+                innsendtTilNav = LocalDate.now(),
+                mottattFoersteinstans = LocalDate.now(),
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.KLAGE,
+                klager =
+                    OversendtKlagerLegacy(
+                        id =
+                            OversendtPartId(
+                                type = OversendtPartIdType.PERSON,
+                                verdi = "01043137677",
+                            ),
+                    ),
+                kilde = Fagsystem.K9,
+                kildeReferanse = "abc",
+                fagsak =
+                    OversendtSak(
+                        fagsakId = "123",
+                        fagsystem = Fagsystem.K9,
+                    ),
+                hindreAutomatiskSvarbrev = null,
+            )
 
         mottakService.createMottakForKlageV2(oversendtKlage)
 

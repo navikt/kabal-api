@@ -4,23 +4,31 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.utfallToNewAnkebehandling
+import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.EventType
+import no.nav.klage.oppgave.domain.kafka.KafkaEvent
+import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
+import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
 class StatistikkTilDVHService(
-    private val kafkaEventRepository: KafkaEventRepository
+    private val kafkaEventRepository: KafkaEventRepository,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -34,11 +42,12 @@ class StatistikkTilDVHService(
             val behandling = behandlingChangedEvent.behandling
 
             val eventId = UUID.randomUUID()
-            val statistikkTilDVH = createStatistikkTilDVH(
-                eventId = eventId,
-                behandling = behandling,
-                behandlingState = getBehandlingState(behandlingChangedEvent)
-            )
+            val statistikkTilDVH =
+                createStatistikkTilDVH(
+                    eventId = eventId,
+                    behandling = behandling,
+                    behandlingState = getBehandlingState(behandlingChangedEvent),
+                )
 
             kafkaEventRepository.save(
                 KafkaEvent(
@@ -48,8 +57,8 @@ class StatistikkTilDVHService(
                     kildeReferanse = behandlingChangedEvent.behandling.kildeReferanse,
                     status = UtsendingStatus.IKKE_SENDT,
                     jsonPayload = statistikkTilDVH.toJson(),
-                    type = EventType.STATS_DVH
-                )
+                    type = EventType.STATS_DVH,
+                ),
             )
         }
     }
@@ -57,21 +66,25 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
-        //Added AO01 check, until we fix gosys completion system.
-        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired || behandlingChangedEvent.behandling.fagsystem == Fagsystem.AO01) {
+        // Added AO01 check, until we fix gosys completion system.
+        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired ||
+            behandlingChangedEvent.behandling.fagsystem == Fagsystem.AO01
+        ) {
             false
-        } else behandlingChangedEvent.changeList.any {
-            it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT
-                    || it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                    || it.felt === BehandlingChangedEvent.Felt.FEILREGISTRERING
-                    || it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT
-                    || it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT
-                    || it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
-                    || it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
-                    || it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
-                    || it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
-                    || it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT
-                    || it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET
+        } else {
+            behandlingChangedEvent.changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT ||
+                    it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT ||
+                    it.felt === BehandlingChangedEvent.Felt.FEILREGISTRERING ||
+                    it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET ||
+                    it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET ||
+                    it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET ||
+                    it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET
+            }
         }
     }
 
@@ -84,78 +97,108 @@ class StatistikkTilDVHService(
         return when {
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT ||
-                        it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT ||
-                        it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT ||
-                        it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT
-            } -> BehandlingState.MOTTATT
+                    it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT ||
+                    it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT
+            } -> {
+                BehandlingState.MOTTATT
+            }
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET ||
-                        it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET ||
-                        it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET ||
-                        it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET
-            } -> BehandlingState.OPPRETTET
+                    it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET ||
+                    it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET ||
+                    it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET
+            } -> {
+                BehandlingState.OPPRETTET
+            }
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.FEILREGISTRERING
-            } -> BehandlingState.AVSLUTTET
+            } -> {
+                BehandlingState.AVSLUTTET
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET
-                        && type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
-            } -> BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
+                it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET &&
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+            } -> {
+                BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.NY_ANKEBEHANDLING_KA
-                        && type == Type.ANKE_I_TRYGDERETTEN
-            } -> BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
+                it.felt === BehandlingChangedEvent.Felt.NY_ANKEBEHANDLING_KA &&
+                    type == Type.ANKE_I_TRYGDERETTEN
+            } -> {
+                BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.NY_GJENOPPTAKSBEHANDLING_KA
-                        && type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
-            } -> BehandlingState.NY_GJENOPPTAKSBEHANDLING_I_KA_UTEN_TR
+                it.felt === BehandlingChangedEvent.Felt.NY_GJENOPPTAKSBEHANDLING_KA &&
+                    type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
+            } -> {
+                BehandlingState.NY_GJENOPPTAKSBEHANDLING_I_KA_UTEN_TR
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                        && type == Type.ANKE_I_TRYGDERETTEN
-                        && utfall in utfallToNewAnkebehandling
-            } -> BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
+                    type == Type.ANKE_I_TRYGDERETTEN &&
+                    utfall in utfallToNewAnkebehandling
+            } -> {
+                BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                        && type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
-            } -> BehandlingState.AVSLUTTET
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+            } -> {
+                BehandlingState.AVSLUTTET
+            }
 
-            changeList.any { it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
-
-            changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                        && type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK)
-                        && utfall !in utfallToTrygderetten
-            } -> BehandlingState.AVSLUTTET
+            changeList.any { it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT } -> {
+                BehandlingState.TILDELT_SAKSBEHANDLER
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                        && type !in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK)
-            } -> BehandlingState.AVSLUTTET
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
+                    type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    utfall !in utfallToTrygderetten
+            } -> {
+                BehandlingState.AVSLUTTET
+            }
 
             changeList.any {
-                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                        && type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK)
-                        && utfall in utfallToTrygderetten
-            } -> BehandlingState.SENDT_TIL_TR
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
+                    type !in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK)
+            } -> {
+                BehandlingState.AVSLUTTET
+            }
 
-            else -> BehandlingState.UKJENT.also {
-                logger.warn(
-                    "unknown state for behandling with id {}",
-                    changeList.first().behandlingId
-                )
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
+                    type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    utfall in utfallToTrygderetten
+            } -> {
+                BehandlingState.SENDT_TIL_TR
+            }
+
+            else -> {
+                BehandlingState.UKJENT.also {
+                    logger.warn(
+                        "unknown state for behandling with id {}",
+                        changeList.first().behandlingId,
+                    )
+                }
             }
         }
     }
 
-    private fun getEnhetInCaseOfTR(behandling: Behandling, behandlingState: BehandlingState): String? {
-        return if (behandling.type == Type.ANKE_I_TRYGDERETTEN && behandlingState in listOf(
+    private fun getEnhetInCaseOfTR(
+        behandling: Behandling,
+        behandlingState: BehandlingState,
+    ): String? =
+        if (behandling.type == Type.ANKE_I_TRYGDERETTEN && behandlingState in
+            listOf(
                 BehandlingState.AVSLUTTET,
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
             )
@@ -166,7 +209,8 @@ class StatistikkTilDVHService(
             } else {
                 TR_ENHET
             }
-        } else if (behandling.type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN && behandlingState in listOf(
+        } else if (behandling.type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN && behandlingState in
+            listOf(
                 BehandlingState.AVSLUTTET,
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_GJENOPPTAKSBEHANDLING_I_KA,
             )
@@ -180,48 +224,49 @@ class StatistikkTilDVHService(
         } else {
             null
         }
-    }
 
     private fun createStatistikkTilDVH(
         eventId: UUID,
         behandling: Behandling,
-        behandlingState: BehandlingState
+        behandlingState: BehandlingState,
     ): StatistikkTilDVH {
-        val behandlingId = if (behandling.fagsystem == Fagsystem.IT01) {
-            try {
-                behandling.fagsakId.substring(0, 4) + "-" + behandling.fagsakId.substring(
-                    4,
-                    5
-                ) + "-" + behandling.fagsakId.substring(5)
-            } catch (e: Exception) {
-                logger.error(
-                    "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
-                    e
-                )
-                behandling.fagsakId
+        val behandlingId =
+            if (behandling.fagsystem == Fagsystem.IT01) {
+                try {
+                    behandling.fagsakId.substring(startIndex = 0, endIndex = 4) + "-" +
+                        behandling.fagsakId.substring(
+                            startIndex = 4,
+                            endIndex = 5,
+                        ) + "-" + behandling.fagsakId.substring(5)
+                } catch (e: Exception) {
+                    logger.error(
+                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
+                        e,
+                    )
+                    behandling.fagsakId
+                }
+            } else {
+                behandling.dvhReferanse ?: behandling.kildeReferanse
             }
-        } else {
-            behandling.dvhReferanse ?: behandling.kildeReferanse
-        }
 
         return StatistikkTilDVH(
             eventId = eventId,
             behandlingId = behandlingId,
             behandlingIdKabal = behandling.id.toString(),
-            //Means enhetTildeltDato
+            // Means enhetTildeltDato
             behandlingStartetKA = behandling.tildeling?.tidspunkt?.toLocalDate(),
             ansvarligEnhetKode = getEnhetInCaseOfTR(behandling, behandlingState),
             behandlingStatus = behandlingState,
             behandlingType = getBehandlingTypeName(behandling.type),
-            //Means medunderskriver
+            // Means medunderskriver
             beslutter = behandling.medunderskriver?.saksbehandlerident,
             endringstid = getFunksjoneltEndringstidspunkt(behandling, behandlingState),
             hjemmel = behandling.registreringshjemler.map { it.toSearchableString() },
-            klager = getDVHPart(behandling.klager.partId.type, behandling.klager.partId.value),
+            klager = getDVHPart(type = behandling.klager.partId.type, value = behandling.klager.partId.value),
             opprinneligFagsaksystem = behandling.fagsystem.navn,
             overfoertKA = behandling.mottattKlageinstans.toLocalDate(),
             resultat = getResultat(behandling),
-            sakenGjelder = getDVHPart(behandling.sakenGjelder.partId.type, behandling.sakenGjelder.partId.value),
+            sakenGjelder = getDVHPart(type = behandling.sakenGjelder.partId.type, value = behandling.sakenGjelder.partId.value),
             saksbehandler = behandling.tildeling?.saksbehandlerident,
             saksbehandlerEnhet = behandling.tildeling?.enhet,
             tekniskTid = behandling.modified,
@@ -236,9 +281,11 @@ class StatistikkTilDVHService(
             Type.ANKE_I_TRYGDERETTEN -> {
                 Type.ANKE.name
             }
+
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
                 Type.BEGJAERING_OM_GJENOPPTAK.name
             }
+
             else -> {
                 type.name
             }
@@ -255,14 +302,22 @@ class StatistikkTilDVHService(
 
     private fun getFunksjoneltEndringstidspunkt(
         behandling: Behandling,
-        behandlingState: BehandlingState
-    ): LocalDateTime {
-        return when (behandlingState) {
-            BehandlingState.MOTTATT -> behandling.mottattKlageinstans
+        behandlingState: BehandlingState,
+    ): LocalDateTime =
+        when (behandlingState) {
+            BehandlingState.MOTTATT -> {
+                behandling.mottattKlageinstans
+            }
 
-            BehandlingState.OPPRETTET -> behandling.created
+            BehandlingState.OPPRETTET -> {
+                behandling.created
+            }
 
-            BehandlingState.TILDELT_SAKSBEHANDLER -> behandling.modified //tildelt eller fradelt
+            BehandlingState.TILDELT_SAKSBEHANDLER -> {
+                behandling.modified
+            }
+
+            // tildelt eller fradelt
 
             BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA, BehandlingState.AVSLUTTET_I_TR_OG_NY_GJENOPPTAKSBEHANDLING_I_KA -> {
                 behandling as BehandlingITrygderetten
@@ -300,8 +355,10 @@ class StatistikkTilDVHService(
                 LocalDateTime.now()
             }
 
-            BehandlingState.SENDT_TIL_TR -> behandling.ferdigstilling?.avsluttetAvSaksbehandler
-                ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
+            BehandlingState.SENDT_TIL_TR -> {
+                behandling.ferdigstilling?.avsluttetAvSaksbehandler
+                    ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
+            }
 
             BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA -> {
                 behandling as BehandlingITrygderetten
@@ -312,26 +369,25 @@ class StatistikkTilDVHService(
                 error("BehandlingState not in use. ${behandlingState.name}")
             }
         }
-    }
 
-    private fun Registreringshjemmel.toSearchableString(): String {
-        return "${lovKilde.navn}-${spesifikasjon}"
-    }
+    private fun Registreringshjemmel.toSearchableString(): String = "${lovKilde.navn}-$spesifikasjon"
 }
 
-fun getDVHPart(type: PartIdType, value: String) =
-    when (type) {
-        PartIdType.PERSON -> {
-            StatistikkTilDVH.Part(
-                verdi = value,
-                type = StatistikkTilDVH.PartIdType.PERSON
-            )
-        }
-
-        PartIdType.VIRKSOMHET -> {
-            StatistikkTilDVH.Part(
-                verdi = value,
-                type = StatistikkTilDVH.PartIdType.VIRKSOMHET
-            )
-        }
+fun getDVHPart(
+    type: PartIdType,
+    value: String,
+) = when (type) {
+    PartIdType.PERSON -> {
+        StatistikkTilDVH.Part(
+            verdi = value,
+            type = StatistikkTilDVH.PartIdType.PERSON,
+        )
     }
+
+    PartIdType.VIRKSOMHET -> {
+        StatistikkTilDVH.Part(
+            verdi = value,
+            type = StatistikkTilDVH.PartIdType.VIRKSOMHET,
+        )
+    }
+}

@@ -7,7 +7,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class UploadedDocumentInput(
     val avsender: OversendtPartId,
@@ -24,11 +24,11 @@ data class MellomlagretDocumentInput(
 )
 
 data class GetCompletedBehandlingerInput(
-    val idnummer: String
+    val idnummer: String,
 )
 
 data class GetAnkemuligheterFromInfotrygdSakInput(
-    val infotrygdSakId: String
+    val infotrygdSakId: String,
 )
 
 data class SearchUsedJournalpostIdInput(
@@ -38,7 +38,7 @@ data class SearchUsedJournalpostIdInput(
 data class BehandlingIsDuplicateInput(
     val fagsystemId: String,
     val kildereferanse: String,
-    val typeId: String
+    val typeId: String,
 )
 
 data class GosysOppgaveIsDuplicateInput(
@@ -81,17 +81,17 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val gosysOppgaveId: Long,
     val previousKabalBehandlingId: UUID?,
 )
+
 data class OversendtPartId(
     val type: OversendtPartIdType,
-    val value: String
+    val value: String,
 )
 
-fun OversendtPartId.toPartId(): PartId {
-    return PartId(
+fun OversendtPartId.toPartId(): PartId =
+    PartId(
         type = PartIdType.of(type.name),
-        value = value
+        value = value,
     )
-}
 
 enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 
@@ -147,8 +147,7 @@ data class SvarbrevInput(
     val doNotSendLetter: Boolean = false,
     val reasonNoLetter: String?,
 ) {
-
-    //TODO: Introduce after client adjusts.
+    // TODO: Introduce after client adjusts.
 //    init {
 //        if (doNotSendLetter) {
 //            require(!reasonNoLetter.isNullOrBlank()) {
@@ -176,7 +175,7 @@ data class SvarbrevInput(
         enum class HandlingEnum {
             AUTO,
             LOCAL_PRINT,
-            CENTRAL_PRINT
+            CENTRAL_PRINT,
         }
     }
 }

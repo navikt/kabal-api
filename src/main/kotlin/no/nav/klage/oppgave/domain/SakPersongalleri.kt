@@ -1,9 +1,14 @@
 package no.nav.klage.oppgave.domain
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FagsystemConverter
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(
@@ -12,9 +17,9 @@ import java.util.*
     uniqueConstraints = [
         UniqueConstraint(
             name = "uc_sak_persongalleri",
-            columnNames = ["sak_fagsystem", "sak_fagsak_id", "foedselsnummer"]
-        )
-    ]
+            columnNames = ["sak_fagsystem", "sak_fagsak_id", "foedselsnummer"],
+        ),
+    ],
 )
 class SakPersongalleri(
     @Id
@@ -36,11 +41,7 @@ class SakPersongalleri(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "SakPersongalleri(id=$id, fagsystem=$fagsystem, fagsakId=$fagsakId, foedselsnummer=$foedselsnummer)"
-    }
+    override fun toString(): String = "SakPersongalleri(id=$id, fagsystem=$fagsystem, fagsakId=$fagsakId, foedselsnummer=$foedselsnummer)"
 }

@@ -11,23 +11,25 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class DokarkivClient(
     private val dokarkivWebClient: WebClient,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun updateDocumentTitlesOnBehalfOf(journalpostId: String, input: UpdateDocumentTitlesJournalpostInput) {
+    fun updateDocumentTitlesOnBehalfOf(
+        journalpostId: String,
+        input: UpdateDocumentTitlesJournalpostInput,
+    ) {
         try {
-            dokarkivWebClient.put()
-                .uri("/journalpost/${journalpostId}")
+            dokarkivWebClient
+                .put()
+                .uri("/journalpost/$journalpostId")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}",
+                ).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(input)
                 .retrieve()
                 .bodyToMono(UpdateJournalpostResponse::class.java)
@@ -46,22 +48,22 @@ class DokarkivClient(
         title: String,
     ): AddLogiskVedleggResponse {
         try {
-            val response = dokarkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(
-                    LogiskVedleggPayload(
-                        tittel = title
-                    )
-                )
-                .retrieve()
-                .bodyToMono(AddLogiskVedleggResponse::class.java)
-                .block()
-                ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
+            val response =
+                dokarkivWebClient
+                    .post()
+                    .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}",
+                    ).contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(
+                        LogiskVedleggPayload(
+                            tittel = title,
+                        ),
+                    ).retrieve()
+                    .bodyToMono(AddLogiskVedleggResponse::class.java)
+                    .block()
+                    ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
             logger.debug("Added logisk vedlegg to document $dokumentInfoId successfully.")
             return response
         } catch (e: Exception) {
@@ -75,19 +77,18 @@ class DokarkivClient(
         logiskVedleggId: String,
         title: String,
     ) {
-        dokarkivWebClient.post()
-            .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+        dokarkivWebClient
+            .post()
+            .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg/$logiskVedleggId")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(
                 LogiskVedleggPayload(
                     tittel = title,
-                )
-            )
-            .retrieve()
+                ),
+            ).retrieve()
             .bodyToMono<Void>()
             .block()
         logger.debug("Updated logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
@@ -95,15 +96,15 @@ class DokarkivClient(
 
     fun deleteLogiskVedleggOnBehalfOf(
         dokumentInfoId: String,
-        logiskVedleggId: String
+        logiskVedleggId: String,
     ) {
-        dokarkivWebClient.delete()
-            .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+        dokarkivWebClient
+            .delete()
+            .uri("/dokumentInfo/$dokumentInfoId/logiskVedlegg/$logiskVedleggId")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}",
+            ).retrieve()
             .bodyToMono<Void>()
             .block()
         logger.debug("Deleted logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")

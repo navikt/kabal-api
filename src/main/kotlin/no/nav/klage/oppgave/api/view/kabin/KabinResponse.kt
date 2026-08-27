@@ -2,11 +2,16 @@ package no.nav.klage.oppgave.api.view.kabin
 
 import no.nav.klage.dokument.api.view.HandlingEnum
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.*
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.Address
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.IdType
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.PartStatus
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.PartViewWithUtsendingskanal
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView.Utsendingskanal
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class CompletedBehandling(
     val behandlingId: UUID,
@@ -109,8 +114,8 @@ data class KabinPartView(
     val language: String?,
 )
 
-fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
-    return KabinPartView(
+fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView =
+    KabinPartView(
         identifikator = identifikator,
         type = type,
         name = name,
@@ -120,11 +125,10 @@ fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
         utsendingskanal = utsendingskanal,
         language = language,
     )
-}
 
-fun PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
-    return KabinPartView(
-        identifikator = identifikator!!, //if we come here, we know it is not null
+fun PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView =
+    KabinPartView(
+        identifikator = identifikator!!, // if we come here, we know it is not null
         type = type,
         name = name,
         available = available,
@@ -133,7 +137,6 @@ fun PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
         utsendingskanal = utsendingskanal,
         language = language,
     )
-}
 
 data class BehandlingIsDuplicateResponse(
     val fagsystemId: String,

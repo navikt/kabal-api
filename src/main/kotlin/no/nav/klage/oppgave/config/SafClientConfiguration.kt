@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
-class SafClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-
-    @Value("\${SAF_BASE_URL}")
+class SafClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${SAF_BASE_URL}")
     private lateinit var safUrl: String
 
     @Bean
-    fun safWebClient(): WebClient {
-        return webClientBuilder
+    fun safWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(safUrl)
             .build()
-    }
 }

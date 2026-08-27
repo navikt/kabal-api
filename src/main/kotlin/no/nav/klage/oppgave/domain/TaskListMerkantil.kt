@@ -5,7 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "task_list_merkantil", schema = "klage")
@@ -25,7 +25,7 @@ class TaskListMerkantil(
     @Column(name = "handled_by_name")
     var handledByName: String?,
     @Column(name = "comment")
-    var comment: String?
+    var comment: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,11 +36,8 @@ class TaskListMerkantil(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "TaskListMerkantil(id=$id, behandlingId=$behandlingId, reason=$reason, created=$created, dateHandled=$dateHandled, handledBy=$handledBy, handledByName=$handledByName, comment=$comment)"
-    }
+    override fun toString(): String =
+        "TaskListMerkantil(id=$id, behandlingId=$behandlingId, reason=$reason, created=$created, dateHandled=$dateHandled, handledBy=$handledBy, handledByName=$handledByName, comment=$comment)"
 }

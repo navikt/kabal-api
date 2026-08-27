@@ -1,6 +1,12 @@
 package no.nav.klage.oppgave.domain
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.SequenceGenerator
+import jakarta.persistence.Table
 import no.nav.klage.oppgave.eventlisteners.OurRevisionListener
 import org.hibernate.envers.RevisionEntity
 import org.hibernate.envers.RevisionNumber

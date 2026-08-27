@@ -3,7 +3,7 @@ package no.nav.klage.dokument.api.view
 import no.nav.klage.dokument.exceptions.AddressValidationException
 import tools.jackson.databind.JsonNode
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 data class SmartHovedDokumentInput(
     val content: JsonNode,
@@ -31,18 +31,28 @@ data class JournalfoertDokumentReference(
     val dokumentInfoId: String,
 )
 
-data class OptionalParentDokumentIdInput(val dokumentId: UUID?)
+data class OptionalParentDokumentIdInput(
+    val dokumentId: UUID?,
+)
 
-data class DokumentTitleInput(val title: String)
+data class DokumentTitleInput(
+    val title: String,
+)
 
-data class LanguageInput(val language: DokumentView.Language)
+data class LanguageInput(
+    val language: DokumentView.Language,
+)
 
-data class DokumentTypeInput(val dokumentTypeId: String)
+data class DokumentTypeInput(
+    val dokumentTypeId: String,
+)
 
-data class DatoMottattInput(val datoMottatt: LocalDate)
+data class DatoMottattInput(
+    val datoMottatt: LocalDate,
+)
 
 data class InngaaendeKanalInput(
-    val kanal: InngaaendeKanal
+    val kanal: InngaaendeKanal,
 )
 
 enum class InngaaendeKanal {

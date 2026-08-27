@@ -7,7 +7,11 @@ import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.MeldingEvent
+import no.nav.klage.oppgave.domain.kafka.currentTraceparent
 import no.nav.klage.oppgave.domain.notifications.CreateMeldingNotificationEvent
 import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.exceptions.IllegalOperation
@@ -20,7 +24,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -31,7 +35,6 @@ class MeldingService(
     private val saksbehandlerService: SaksbehandlerService,
     private val meldingMapper: MeldingMapper,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -47,20 +50,29 @@ class MeldingService(
     ): MeldingView {
         val behandling = behandlingRepository.getReferenceById(behandlingId)
 
-        if ((behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) && notify) {
-            throw IllegalOperation("Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
+        if ((
+                behandling.ferdigstilling != null ||
+                    behandling.feilregistrering != null ||
+                    behandling.tildeling?.saksbehandlerident == null
+            ) &&
+            notify
+        ) {
+            throw IllegalOperation(
+                "Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.",
+            )
         }
 
         logger.debug("saving new melding by $innloggetIdent")
 
-        val melding = meldingRepository.save(
-            Melding(
-                text = text,
-                behandlingId = behandlingId,
-                saksbehandlerident = innloggetIdent,
-                notify = notify,
+        val melding =
+            meldingRepository.save(
+                Melding(
+                    text = text,
+                    behandlingId = behandlingId,
+                    saksbehandlerident = innloggetIdent,
+                    notify = notify,
+                ),
             )
-        )
 
         publishInternalEvent(
             melding = melding,
@@ -95,8 +107,12 @@ class MeldingService(
             validateRightsToModifyMelding(melding, innloggetIdent)
 
             val behandling = behandlingRepository.getReferenceById(behandlingId)
-            if (behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) {
-                throw IllegalOperation("Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
+            if (behandling.ferdigstilling != null || behandling.feilregistrering != null ||
+                behandling.tildeling?.saksbehandlerident == null
+            ) {
+                throw IllegalOperation(
+                    "Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.",
+                )
             }
 
             /* No need for this says FE. They will handle it in the UI. They don't want an error message in case of weird retry situations.
@@ -107,7 +123,7 @@ class MeldingService(
             if (melding.notify) {
                 logger.warn("Melding ($meldingId) already has notify=true, skipping setting it again.")
                 return MeldingModified(
-                    modified = melding.modified ?: throw RuntimeException("modified on melding not set")
+                    modified = melding.modified ?: throw RuntimeException("modified on melding not set"),
                 )
             }
 
@@ -144,19 +160,21 @@ class MeldingService(
         }
     }
 
-    fun getMeldingerForBehandling(behandlingId: UUID): List<MeldingView> {
-        return meldingMapper.toMeldingerView(meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId))
-    }
+    fun getMeldingerForBehandling(behandlingId: UUID): List<MeldingView> =
+        meldingMapper.toMeldingerView(meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId))
 
-    private fun validateRightsToModifyMelding(melding: Melding, innloggetIdent: String) {
+    private fun validateRightsToModifyMelding(
+        melding: Melding,
+        innloggetIdent: String,
+    ) {
         if (melding.saksbehandlerident != innloggetIdent) {
             throw MissingTilgangException(
-                "Saksbehandler ($innloggetIdent) is not the author of melding (${melding.id}), and is not allowed to modify it."
+                "Saksbehandler ($innloggetIdent) is not the author of melding (${melding.id}), and is not allowed to modify it.",
             )
         }
     }
 
-    //TODO other types
+    // TODO other types
     private fun publishInternalEvent(
         melding: Melding,
         utfoerendeIdent: String,
@@ -168,17 +186,18 @@ class MeldingService(
             InternalBehandlingEvent(
                 behandlingId = melding.behandlingId.toString(),
                 type = type,
-                data = jacksonObjectMapper.writeValueAsString(
-                    MeldingEvent(
-                        actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
-                        timestamp = timestamp,
-                        id = melding.id.toString(),
-                        text = melding.text,
-                        notify = melding.notify,
-                        traceparent = currentTraceparent(),
-                    )
-                )
-            )
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        MeldingEvent(
+                            actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
+                            timestamp = timestamp,
+                            id = melding.id.toString(),
+                            text = melding.text,
+                            notify = melding.notify,
+                            traceparent = currentTraceparent(),
+                        ),
+                    ),
+            ),
         )
     }
 
@@ -193,21 +212,22 @@ class MeldingService(
     ) {
         kafkaInternalEventService.publishNotificationEvent(
             id = melding.id,
-            jsonNode = jacksonObjectMapper.valueToTree(
-                CreateMeldingNotificationEvent(
-                    type = CreateNotificationEvent.NotificationType.MELDING,
-                    message = melding.text,
-                    recipientNavIdent = tildeltSaksbehandlerIdent,
-                    meldingId = melding.id,
-                    behandlingId = melding.behandlingId,
-                    behandlingType = behandlingType,
-                    actorNavIdent = utfoerendeIdent,
-                    actorNavn = utfoerendeName,
-                    saksnummer = saksnummer,
-                    ytelse = ytelse,
-                    sourceCreatedAt = melding.modified ?: melding.created,
-                )
-            )
+            jsonNode =
+                jacksonObjectMapper.valueToTree(
+                    CreateMeldingNotificationEvent(
+                        type = CreateNotificationEvent.NotificationType.MELDING,
+                        message = melding.text,
+                        recipientNavIdent = tildeltSaksbehandlerIdent,
+                        meldingId = melding.id,
+                        behandlingId = melding.behandlingId,
+                        behandlingType = behandlingType,
+                        actorNavIdent = utfoerendeIdent,
+                        actorNavn = utfoerendeName,
+                        saksnummer = saksnummer,
+                        ytelse = ytelse,
+                        sourceCreatedAt = melding.modified ?: melding.created,
+                    ),
+                ),
         )
     }
 }

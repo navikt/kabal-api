@@ -20,7 +20,6 @@ class SafGraphQlClient(
     private val safWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -48,13 +47,14 @@ class SafGraphQlClient(
             pageCount++
             logger.debug("Fetching page $pageCount with pageSize $pageSize, previousPageRef: $previousPageRef")
 
-            val result = getDokumentoversiktBrukerAsSaksbehandlerInternal(
-                fnr = fnr,
-                tema = tema,
-                pageSize = pageSize,
-                previousPageRef = previousPageRef,
-                systemContext = systemContext,
-            )
+            val result =
+                getDokumentoversiktBrukerAsSaksbehandlerInternal(
+                    fnr = fnr,
+                    tema = tema,
+                    pageSize = pageSize,
+                    previousPageRef = previousPageRef,
+                    systemContext = systemContext,
+                )
 
             journalpostList.addAll(result.journalposter)
             totalAntall = result.sideInfo.totaltAntall
@@ -64,7 +64,7 @@ class SafGraphQlClient(
                 "Page $pageCount fetched: {} journalposter, totaltAntall: {}, finnesNesteSide: {}",
                 result.journalposter.size,
                 totalAntall,
-                result.sideInfo.finnesNesteSide
+                result.sideInfo.finnesNesteSide,
             )
         } while (result.sideInfo.finnesNesteSide)
 
@@ -72,17 +72,18 @@ class SafGraphQlClient(
             "getAllDokumentoversiktBrukerAsSaksbehandlerWithPaging completed: {} journalposter in {} pages, ms: {}",
             journalpostList.size,
             pageCount,
-            System.currentTimeMillis() - start
+            System.currentTimeMillis() - start,
         )
 
         return DokumentoversiktBruker(
             journalposter = journalpostList,
-            sideInfo = SideInfo(
-                sluttpeker = null,
-                finnesNesteSide = false,
-                antall = journalpostList.size,
-                totaltAntall = totalAntall
-            )
+            sideInfo =
+                SideInfo(
+                    sluttpeker = null,
+                    finnesNesteSide = false,
+                    antall = journalpostList.size,
+                    totaltAntall = totalAntall,
+                ),
         )
     }
 
@@ -94,19 +95,20 @@ class SafGraphQlClient(
         systemContext: Boolean = false,
     ): DokumentoversiktBruker {
         val start = System.currentTimeMillis()
-        val token = if (systemContext) {
-            tokenUtil.getAppAccessTokenWithSafScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
-        }
+        val token =
+            if (systemContext) {
+                tokenUtil.getAppAccessTokenWithSafScope()
+            } else {
+                tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+            }
         return runWithTimingAndLogging {
-            safWebClient.post()
+            safWebClient
+                .post()
                 .uri("graphql")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer $token"
-                )
-                .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
+                    "Bearer $token",
+                ).bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -114,17 +116,22 @@ class SafGraphQlClient(
                         functionName = ::getDokumentoversiktBrukerAsSaksbehandlerInternal.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<DokumentoversiktBrukerResponse>()
+                }.bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
-                ?.let { logErrorsFromSaf(it, fnr, pageSize, previousPageRef); it }
-                ?.let { failOnErrors(it); it }
-                ?.data!!.dokumentoversiktBruker.also {
+                ?.let {
+                    logErrorsFromSaf(response = it, fnr = fnr, pageSize = pageSize, previousPageRef = previousPageRef)
+                    it
+                }?.let {
+                    failOnErrors(it)
+                    it
+                }?.data!!
+                .dokumentoversiktBruker
+                .also {
                     logger.debug(
                         "DokumentoversiktBruker: antall: {}, ms: {}, dato/tid: {}",
                         it.sideInfo.totaltAntall,
                         System.currentTimeMillis() - start,
-                        LocalDateTime.now()
+                        LocalDateTime.now(),
                     )
                 }
         }
@@ -134,40 +141,34 @@ class SafGraphQlClient(
     fun getJournalposts(
         journalpostIdSet: Set<String>,
         systemContext: Boolean,
-        skipMissing: Boolean
-    ): List<Journalpost> {
-        return getJournalposts(
+        skipMissing: Boolean,
+    ): List<Journalpost> =
+        getJournalposts(
             journalpostIdSet = journalpostIdSet,
             token = if (systemContext) tokenUtil.getAppAccessTokenWithSafScope() else tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
             skipMissing = skipMissing,
-            journalpostStatusList = listOf(
-                Journalstatus.FERDIGSTILT,
-                Journalstatus.JOURNALFOERT,
-                Journalstatus.EKSPEDERT,
-                Journalstatus.MOTTATT
-            )
+            journalpostStatusList =
+                listOf(
+                    Journalstatus.FERDIGSTILT,
+                    Journalstatus.JOURNALFOERT,
+                    Journalstatus.EKSPEDERT,
+                    Journalstatus.MOTTATT,
+                ),
         )
-    }
 
     @Retryable
-    fun getJournalpostAsSaksbehandler(
-        journalpostId: String,
-    ): Journalpost {
-        return getJournalpostWithToken(
+    fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost =
+        getJournalpostWithToken(
             journalpostId = journalpostId,
-            token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+            token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
         )
-    }
 
     @Retryable
-    fun getJournalpostAsSystembruker(
-        journalpostId: String,
-    ): Journalpost {
-        return getJournalpostWithToken(
+    fun getJournalpostAsSystembruker(journalpostId: String): Journalpost =
+        getJournalpostWithToken(
             journalpostId = journalpostId,
-            token = tokenUtil.getAppAccessTokenWithSafScope()
+            token = tokenUtil.getAppAccessTokenWithSafScope(),
         )
-    }
 
     private fun getJournalposts(
         journalpostIdSet: Set<String>,
@@ -175,17 +176,17 @@ class SafGraphQlClient(
         journalpostStatusList: List<Journalstatus>,
         skipMissing: Boolean,
     ): List<Journalpost> {
-
-        return Flux.fromIterable(journalpostIdSet)
+        return Flux
+            .fromIterable(journalpostIdSet)
             .parallel()
             .runOn(Schedulers.boundedElastic())
             .flatMap { journalpostId ->
                 getJournalpostWithTokenAsMono(
                     journalpostId = journalpostId,
-                    token = token
+                    token = token,
                 )
-            }
-            .ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }.toIterable()
+            }.ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }
+            .toIterable()
             .mapNotNull {
                 if (it.data?.journalpost?.journalstatus !in journalpostStatusList) {
                     return@mapNotNull null
@@ -202,16 +203,16 @@ class SafGraphQlClient(
 
     private fun getJournalpostWithTokenAsMono(
         journalpostId: String,
-        token: String
-    ): Mono<JournalpostResponse> {
-        return try {
-            safWebClient.post()
+        token: String,
+    ): Mono<JournalpostResponse> =
+        try {
+            safWebClient
+                .post()
                 .uri("graphql")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer $token"
-                )
-                .bodyValue(hentJournalpostQuery(journalpostId))
+                    "Bearer $token",
+                ).bodyValue(hentJournalpostQuery(journalpostId))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -219,25 +220,23 @@ class SafGraphQlClient(
                         functionName = "getJournalpostWithTokenAsMono",
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<JournalpostResponse>()
+                }.bodyToMono<JournalpostResponse>()
         } catch (e: Exception) {
             logger.warn("Could not get journalpost with id $journalpostId", e)
             Mono.empty()
         }
-    }
 
     private fun getJournalpostWithToken(
         journalpostId: String,
         token: String,
-    ): Journalpost {
-        return safWebClient.post()
+    ): Journalpost =
+        safWebClient
+            .post()
             .uri("graphql")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer $token"
-            )
-            .bodyValue(hentJournalpostQuery(journalpostId))
+                "Bearer $token",
+            ).bodyValue(hentJournalpostQuery(journalpostId))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -245,15 +244,20 @@ class SafGraphQlClient(
                     functionName = "getJournalpost",
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<JournalpostResponse>()
-            .block()?.data?.journalpost
+            }.bodyToMono<JournalpostResponse>()
+            .block()
+            ?.data
+            ?.journalpost
             ?: throw RuntimeException("Got null from SAF for journalpost with id $journalpostId")
-    }
 
     private fun failOnErrors(response: JournalpostResponse) {
-        if (response.data?.journalpost == null || (response.errors != null && response.errors.map { it.extensions.classification }
-                .contains("ValidationError"))) {
+        if (response.data?.journalpost == null || (
+                response.errors != null &&
+                    response.errors
+                        .map { it.extensions.classification }
+                        .contains("ValidationError")
+            )
+        ) {
             throw RuntimeException("getJournalpost failed")
         }
     }
@@ -268,17 +272,17 @@ class SafGraphQlClient(
         response: DokumentoversiktBrukerResponse,
         fnr: String,
         pageSize: Int,
-        previousPageRef: String?
+        previousPageRef: String?,
     ) {
         if (response.errors != null) {
             logger.error("Error from SAF, see more details in team-logs")
-            teamLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
+            teamLogger.error(
+                "Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}",
+            )
         }
     }
 
-    private fun logErrorsFromSaf(
-        response: JournalpostResponse,
-    ) {
+    private fun logErrorsFromSaf(response: JournalpostResponse) {
         if (response.errors != null) {
             logger.error("Error from SAF, see more details in team-logs")
             teamLogger.error("Error from SAF when making call. Response is $response, error is ${response.errors}")

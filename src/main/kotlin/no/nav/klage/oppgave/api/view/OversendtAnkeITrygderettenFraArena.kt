@@ -12,7 +12,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 @Schema
 data class OversendtAnkeITrygderettenFraArena(
@@ -83,4 +83,3 @@ fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingInput(): Ank
         previousBehandlingId = null,
     )
 }
-

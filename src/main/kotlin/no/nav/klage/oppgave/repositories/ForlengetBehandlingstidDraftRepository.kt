@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.repositories
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface ForlengetBehandlingstidDraftRepository : JpaRepository<ForlengetBehandlingstidDraft, UUID>

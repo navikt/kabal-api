@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
-import java.util.*
+import java.util.UUID
 
 fun getLogger(forClass: Class<*>): Logger = LoggerFactory.getLogger(forClass)
 
@@ -22,26 +22,35 @@ fun logKlagebehandlingMethodDetails(
     methodName: String,
     innloggetIdent: String,
     klagebehandlingId: UUID,
-    logger: Logger
+    logger: Logger,
 ) {
     logger.debug(
         "{} is requested by ident {} for klagebehandlingId {}",
         methodName,
         innloggetIdent,
-        klagebehandlingId
+        klagebehandlingId,
     )
 }
 
-fun logBehandlingMethodDetails(methodName: String, innloggetIdent: String, behandlingId: UUID, logger: Logger) {
+fun logBehandlingMethodDetails(
+    methodName: String,
+    innloggetIdent: String,
+    behandlingId: UUID,
+    logger: Logger,
+) {
     logger.debug(
         "{} is requested by ident {} for behandlingId {}",
         methodName,
         innloggetIdent,
-        behandlingId
+        behandlingId,
     )
 }
 
-fun logMethodDetails(methodName: String, innloggetIdent: String, logger: Logger) {
+fun logMethodDetails(
+    methodName: String,
+    innloggetIdent: String,
+    logger: Logger,
+) {
     logger.debug(
         "{} is requested by ident {}",
         methodName,
@@ -55,7 +64,8 @@ fun logErrorResponse(
     classLogger: Logger,
 ): Mono<WebClientResponseException> {
     val errorString = "Got ${response.statusCode()} when requesting $functionName"
-    return response.createException()
+    return response
+        .createException()
         .doOnNext { ex ->
             classLogger.error("$errorString. See team-logs for more details.")
             getTeamLogger().error("$errorString - response body: '${ex.responseBodyAsString}'")

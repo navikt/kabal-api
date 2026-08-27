@@ -4,7 +4,13 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.DokumentReferanse
+import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
+import no.nav.klage.oppgave.api.view.LogiskVedleggInput
+import no.nav.klage.oppgave.api.view.LogiskVedleggResponse
+import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
+import no.nav.klage.oppgave.api.view.ReferenceToMergedDocumentsResponse
+import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -19,11 +25,21 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -31,9 +47,8 @@ import java.util.*
 @RequestMapping("/journalposter")
 class JournalpostController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val dokumentService: DokumentService
+    private val dokumentService: DokumentService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -41,7 +56,7 @@ class JournalpostController(
 
     @Operation(
         summary = "Oppdaterer filnavn i dokumentarkivet",
-        description = "Oppdaterer filnavn i dokumentarkivet"
+        description = "Oppdaterer filnavn i dokumentarkivet",
     )
     @PutMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/tittel")
     fun updateTitle(
@@ -50,7 +65,7 @@ class JournalpostController(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
         @Parameter(description = "Ny tittel til dokumentet")
-        @RequestBody input: UpdateDocumentTitleView
+        @RequestBody input: UpdateDocumentTitleView,
     ): UpdateDocumentTitleView {
         logMethodDetails(
             methodName = ::updateTitle.name,
@@ -61,7 +76,7 @@ class JournalpostController(
         dokumentService.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
-            title = input.tittel
+            title = input.tittel,
         )
 
         return input
@@ -69,7 +84,7 @@ class JournalpostController(
 
     @Operation(
         summary = "Legger logisk vedlegg til dokument",
-        description = "Legger logisk vedlegg til dokument"
+        description = "Legger logisk vedlegg til dokument",
     )
     @PostMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg")
     @ResponseStatus(HttpStatus.CREATED)
@@ -77,7 +92,7 @@ class JournalpostController(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
         @Parameter(description = "Tittel på nytt logisk vedlegg")
-        @RequestBody input: LogiskVedleggInput
+        @RequestBody input: LogiskVedleggInput,
     ): LogiskVedleggResponse {
         logMethodDetails(
             methodName = ::addLogiskVedlegg.name,
@@ -87,13 +102,13 @@ class JournalpostController(
 
         return dokumentService.addLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
-            title = input.tittel
+            title = input.tittel,
         )
     }
 
     @Operation(
         summary = "Oppdaterer logisk vedlegg",
-        description = "Oppdaterer logisk vedlegg"
+        description = "Oppdaterer logisk vedlegg",
     )
     @PutMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
     fun updateLogiskVedlegg(
@@ -102,7 +117,7 @@ class JournalpostController(
         @Parameter(description = "Id til logisk vedlegg")
         @PathVariable logiskVedleggId: String,
         @Parameter(description = "Ny tittel på logisk vedlegg")
-        @RequestBody input: LogiskVedleggInput
+        @RequestBody input: LogiskVedleggInput,
     ): LogiskVedleggResponse {
         logMethodDetails(
             methodName = ::updateLogiskVedlegg.name,
@@ -113,13 +128,13 @@ class JournalpostController(
         return dokumentService.updateLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
             logiskVedleggId = logiskVedleggId,
-            title = input.tittel
+            title = input.tittel,
         )
     }
 
     @Operation(
         summary = "Sletter logisk vedlegg",
-        description = "Sletter logisk vedlegg"
+        description = "Sletter logisk vedlegg",
     )
     @DeleteMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
     fun deleteLogiskVedlegg(
@@ -142,7 +157,7 @@ class JournalpostController(
 
     @Operation(
         summary = "Henter fil fra dokumentarkivet",
-        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
+        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang",
     )
     @ResponseBody
     @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
@@ -151,7 +166,11 @@ class JournalpostController(
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
-        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
+        @RequestParam(
+            value = "format",
+            required = false,
+            defaultValue = "ARKIV",
+        ) variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
@@ -159,42 +178,46 @@ class JournalpostController(
             logger = logger,
         )
 
-        val fysiskDokument = dokumentService.getFysiskDokument(
-            journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId,
-            variantFormat = variantFormat,
-        )
+        val fysiskDokument =
+            dokumentService.getFysiskDokument(
+                journalpostId = journalpostId,
+                dokumentInfoId = dokumentInfoId,
+                variantFormat = variantFormat,
+            )
 
         val fileExtension = mediaTypeToFileExtension(fysiskDokument.mediaType)
         val filename = fysiskDokument.title.removeSuffix(fileExtension) + fileExtension
 
         val resourceThatWillBeDeleted =
-            getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
-        return ResponseEntity.ok()
-            .headers(HttpHeaders().apply {
-                contentType = fysiskDokument.mediaType
-                add(
-                    HttpHeaders.CONTENT_DISPOSITION,
-                    if (fysiskDokument.mediaType == MediaType.APPLICATION_PDF)
-                        "inline; filename=\"$filename\""
-                    else
-                        "attachment; filename=\"$filename\""
-                )
-            })
-            .contentLength(resourceThatWillBeDeleted.contentLength())
+            getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(resource = fysiskDokument.content, title = fysiskDokument.title))
+        return ResponseEntity
+            .ok()
+            .headers(
+                HttpHeaders().apply {
+                    contentType = fysiskDokument.mediaType
+                    add(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        if (fysiskDokument.mediaType == MediaType.APPLICATION_PDF) {
+                            "inline; filename=\"$filename\""
+                        } else {
+                            "attachment; filename=\"$filename\""
+                        },
+                    )
+                },
+            ).contentLength(resourceThatWillBeDeleted.contentLength())
             .body(resourceThatWillBeDeleted)
     }
 
     @Operation(
         summary = "Henter noe metadata fra dokumentarkivet",
-        description = "Henter noe metadata fra dokumentarkivet gitt at saksbehandler har tilgang"
+        description = "Henter noe metadata fra dokumentarkivet gitt at saksbehandler har tilgang",
     )
     @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}")
     fun getArkivertDokumentMetadata(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
-        @PathVariable dokumentInfoId: String
+        @PathVariable dokumentInfoId: String,
     ): JournalfoertDokumentMetadata {
         logMethodDetails(
             methodName = ::getArkivertDokumentMetadata.name,
@@ -209,7 +232,7 @@ class JournalpostController(
 
     @PostMapping("/mergedocuments")
     fun setDocumentsToMerge(
-        @RequestBody documents: List<JournalfoertDokumentReference>
+        @RequestBody documents: List<JournalfoertDokumentReference>,
     ): ReferenceToMergedDocumentsResponse {
         logMethodDetails(
             methodName = ::setDocumentsToMerge.name,
@@ -227,7 +250,11 @@ class JournalpostController(
     @GetMapping("/mergedocuments/{referenceId}/pdf")
     fun getMergedDocuments(
         @PathVariable referenceId: UUID,
-        @RequestParam(value = "format", required = false, defaultValue = "SLADDET") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.SLADDET,
+        @RequestParam(
+            value = "format",
+            required = false,
+            defaultValue = "SLADDET",
+        ) variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.SLADDET,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getMergedDocuments.name,
@@ -235,34 +262,36 @@ class JournalpostController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(
-            id = referenceId,
-            preferArkivvariantIfAccess = variantFormat == DokumentReferanse.Variant.Format.ARKIV,
-        )
+        val (pathToMergedDocument, title) =
+            dokumentService.mergeJournalfoerteDocuments(
+                id = referenceId,
+                preferArkivvariantIfAccess = variantFormat == DokumentReferanse.Variant.Format.ARKIV,
+            )
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .headers(responseHeaders)
             .contentLength(pathToMergedDocument.toFile().length())
             .body(
                 object : FileSystemResource(pathToMergedDocument) {
-                    override fun getInputStream(): InputStream {
-                        return object : FileInputStream(pathToMergedDocument.toFile()) {
+                    override fun getInputStream(): InputStream =
+                        object : FileInputStream(pathToMergedDocument.toFile()) {
                             override fun close() {
                                 super.close()
-                                //Override to do this after client has downloaded file
+                                // Override to do this after client has downloaded file
                                 Files.delete(file.toPath())
                             }
                         }
-                    }
-                })
+                },
+            )
     }
 
     @GetMapping("/mergedocuments/{referenceId}", "/mergedocuments/{referenceId}/title")
     fun getMergedDocumentsMetadata(
-        @PathVariable referenceId: UUID
+        @PathVariable referenceId: UUID,
     ): MergedDocumentsMetadata {
         logMethodDetails(
             methodName = ::getMergedDocumentsMetadata.name,
@@ -274,12 +303,13 @@ class JournalpostController(
         return MergedDocumentsMetadata(
             mergedDocumentId = mergedDocument.id,
             title = mergedDocument.title,
-            archivedDocuments = mergedDocument.documentsToMerge.map {
-                MergedDocumentsMetadata.JournalfoertDokument(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId,
-                )
-            }
+            archivedDocuments =
+                mergedDocument.documentsToMerge.map {
+                    MergedDocumentsMetadata.JournalfoertDokument(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId,
+                    )
+                },
         )
     }
 }

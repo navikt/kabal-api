@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response
 
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class SmartDocumentResponse(
     val documentId: UUID,

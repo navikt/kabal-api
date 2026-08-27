@@ -2,9 +2,14 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Felt
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.GjenopptaksbehandlingRepository
 import no.nav.klage.oppgave.util.KakaVersionUtil
@@ -22,10 +27,9 @@ class GjenopptaksbehandlingService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,69 +37,87 @@ class GjenopptaksbehandlingService(
 
     fun createGjenopptaksbehandlingFromMottak(mottak: Mottak): Behandling {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
-        val gjenopptaksbehandling = if (mottak.isBasedOnJournalpost) {
-            gjenopptaksbehandlingRepository.save(
-                GjenopptaksbehandlingBasedOnJournalpost(
-                    klager = mottak.klager.copy(),
-                    sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
-                    prosessfullmektig = mottak.prosessfullmektig,
-                    ytelse = mottak.ytelse,
-                    type = mottak.type,
-                    kildeReferanse = mottak.kildeReferanse,
-                    dvhReferanse = mottak.dvhReferanse,
-                    fagsystem = mottak.fagsystem,
-                    fagsakId = mottak.fagsakId,
-                    mottattKlageinstans = mottak.sakMottattKaDato,
-                    tildeling = null,
-                    frist = mottak.generateFrist(),
-                    saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                    hjemler = mottak.hjemler,
-                    previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                    klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = mottak.gosysOppgaveId,
-                    tilbakekreving = false,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
-                    previousBehandlingId = mottak.forrigeBehandlingId,
-                    paaanketVedtaksdato = null,
+        val gjenopptaksbehandling =
+            if (mottak.isBasedOnJournalpost) {
+                gjenopptaksbehandlingRepository.save(
+                    GjenopptaksbehandlingBasedOnJournalpost(
+                        klager = mottak.klager.copy(),
+                        sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                        prosessfullmektig = mottak.prosessfullmektig,
+                        ytelse = mottak.ytelse,
+                        type = mottak.type,
+                        kildeReferanse = mottak.kildeReferanse,
+                        dvhReferanse = mottak.dvhReferanse,
+                        fagsystem = mottak.fagsystem,
+                        fagsakId = mottak.fagsakId,
+                        mottattKlageinstans = mottak.sakMottattKaDato,
+                        tildeling = null,
+                        frist = mottak.generateFrist(),
+                        saksdokumenter =
+                            dokumentService.createSaksdokumenterFromJournalpostIdList(
+                                mottak.mottakDokument.map { it.journalpostId },
+                            ),
+                        kakaKvalitetsvurderingId =
+                            kakaApiGateway
+                                .createKvalitetsvurdering(
+                                    kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                                ).kvalitetsvurderingId,
+                        kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                        hjemler = mottak.hjemler,
+                        previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
+                        klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                        gosysOppgaveId = mottak.gosysOppgaveId,
+                        tilbakekreving = false,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                        initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                        previousBehandlingId = mottak.forrigeBehandlingId,
+                        paaanketVedtaksdato = null,
+                    ),
                 )
-            )
-        } else {
-            gjenopptaksbehandlingRepository.save(
-                GjenopptaksbehandlingBasedOnKabalBehandling(
-                    klager = mottak.klager.copy(),
-                    sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
-                    prosessfullmektig = mottak.prosessfullmektig,
-                    ytelse = mottak.ytelse,
-                    type = mottak.type,
-                    kildeReferanse = mottak.kildeReferanse,
-                    dvhReferanse = mottak.dvhReferanse,
-                    fagsystem = mottak.fagsystem,
-                    fagsakId = mottak.fagsakId,
-                    mottattKlageinstans = mottak.sakMottattKaDato,
-                    tildeling = null,
-                    frist = mottak.generateFrist(),
-                    saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                    hjemler = mottak.hjemler,
-                    previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                    klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = mottak.gosysOppgaveId,
-                    tilbakekreving = false,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
-                    previousBehandlingId = mottak.forrigeBehandlingId,
-                    paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
+            } else {
+                gjenopptaksbehandlingRepository.save(
+                    GjenopptaksbehandlingBasedOnKabalBehandling(
+                        klager = mottak.klager.copy(),
+                        sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                        prosessfullmektig = mottak.prosessfullmektig,
+                        ytelse = mottak.ytelse,
+                        type = mottak.type,
+                        kildeReferanse = mottak.kildeReferanse,
+                        dvhReferanse = mottak.dvhReferanse,
+                        fagsystem = mottak.fagsystem,
+                        fagsakId = mottak.fagsakId,
+                        mottattKlageinstans = mottak.sakMottattKaDato,
+                        tildeling = null,
+                        frist = mottak.generateFrist(),
+                        saksdokumenter =
+                            dokumentService.createSaksdokumenterFromJournalpostIdList(
+                                mottak.mottakDokument.map { it.journalpostId },
+                            ),
+                        kakaKvalitetsvurderingId =
+                            kakaApiGateway
+                                .createKvalitetsvurdering(
+                                    kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                                ).kvalitetsvurderingId,
+                        kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                        hjemler = mottak.hjemler,
+                        previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
+                        klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                        gosysOppgaveId = mottak.gosysOppgaveId,
+                        tilbakekreving = false,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                        initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                        previousBehandlingId = mottak.forrigeBehandlingId,
+                        paaanketVedtaksdato =
+                            behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(
+                                mottak.forrigeBehandlingId,
+                            ),
+                    ),
                 )
-            )
-        }
+            }
 
         gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
@@ -105,37 +127,39 @@ class GjenopptaksbehandlingService(
             behandlingId = gjenopptaksbehandling.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = true,
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = gjenopptaksbehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = systembrukerIdent,
-                        felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = gjenopptaksbehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = gjenopptaksbehandling.id,
+                        ),
+                    ),
+            ),
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = gjenopptaksbehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = systembrukerIdent,
-                        felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = gjenopptaksbehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = gjenopptaksbehandling.id,
+                        ),
+                    ),
+            ),
         )
 
         gjenopptaksbehandling.opprettetSendt = true
@@ -143,108 +167,120 @@ class GjenopptaksbehandlingService(
         return gjenopptaksbehandling
     }
 
-    fun createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling): Gjenopptaksbehandling {
+    fun createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+        gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling,
+    ): Gjenopptaksbehandling {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
-        //Dette er en midlertidig versjon, inntil vi får en direkte lenke til forrige behandling.
+        // Dette er en midlertidig versjon, inntil vi får en direkte lenke til forrige behandling.
         val originalGjenopptaksbehandling =
             gjenopptaksbehandlingRepository.findById(gjenopptakITrygderettenbehandling.previousBehandlingId!!).get()
 
-        val gjenopptaksbehandling = if (originalGjenopptaksbehandling is GjenopptaksbehandlingBasedOnJournalpost) {
-            gjenopptaksbehandlingRepository.save(
-                GjenopptaksbehandlingBasedOnJournalpost(
-                    klager = gjenopptakITrygderettenbehandling.klager.copy(),
-                    sakenGjelder = gjenopptakITrygderettenbehandling.sakenGjelder.copy(),
-                    prosessfullmektig = gjenopptakITrygderettenbehandling.prosessfullmektig,
-                    ytelse = gjenopptakITrygderettenbehandling.ytelse,
-                    type = Type.BEGJAERING_OM_GJENOPPTAK,
-                    kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-                    dvhReferanse = gjenopptakITrygderettenbehandling.dvhReferanse,
-                    fagsystem = gjenopptakITrygderettenbehandling.fagsystem,
-                    fagsakId = gjenopptakITrygderettenbehandling.fagsakId,
-                    mottattKlageinstans = gjenopptakITrygderettenbehandling.mottattKlageinstans,
-                    tildeling = gjenopptakITrygderettenbehandling.tildeling,
-                    //Hva slags frist?
-                    frist = LocalDate.now() + Period.ofWeeks(0),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                    hjemler = gjenopptakITrygderettenbehandling.hjemler,
-                    klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
-                    paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
-                    forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
-                    previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
-                    gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
-                    tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = gjenopptakITrygderettenbehandling.id,
+        val gjenopptaksbehandling =
+            if (originalGjenopptaksbehandling is GjenopptaksbehandlingBasedOnJournalpost) {
+                gjenopptaksbehandlingRepository.save(
+                    GjenopptaksbehandlingBasedOnJournalpost(
+                        klager = gjenopptakITrygderettenbehandling.klager.copy(),
+                        sakenGjelder = gjenopptakITrygderettenbehandling.sakenGjelder.copy(),
+                        prosessfullmektig = gjenopptakITrygderettenbehandling.prosessfullmektig,
+                        ytelse = gjenopptakITrygderettenbehandling.ytelse,
+                        type = Type.BEGJAERING_OM_GJENOPPTAK,
+                        kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
+                        dvhReferanse = gjenopptakITrygderettenbehandling.dvhReferanse,
+                        fagsystem = gjenopptakITrygderettenbehandling.fagsystem,
+                        fagsakId = gjenopptakITrygderettenbehandling.fagsakId,
+                        mottattKlageinstans = gjenopptakITrygderettenbehandling.mottattKlageinstans,
+                        tildeling = gjenopptakITrygderettenbehandling.tildeling,
+                        // Hva slags frist?
+                        frist = LocalDate.now() + Period.ofWeeks(0),
+                        kakaKvalitetsvurderingId =
+                            kakaApiGateway
+                                .createKvalitetsvurdering(
+                                    kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                                ).kvalitetsvurderingId,
+                        kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                        hjemler = gjenopptakITrygderettenbehandling.hjemler,
+                        klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
+                        paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
+                        forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
+                        previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
+                        gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
+                        tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = gjenopptakITrygderettenbehandling.id,
+                    ),
                 )
-            )
-        } else {
-            gjenopptaksbehandlingRepository.save(
-                GjenopptaksbehandlingBasedOnKabalBehandling(
-                    klager = gjenopptakITrygderettenbehandling.klager.copy(),
-                    sakenGjelder = gjenopptakITrygderettenbehandling.sakenGjelder.copy(),
-                    prosessfullmektig = gjenopptakITrygderettenbehandling.prosessfullmektig,
-                    ytelse = gjenopptakITrygderettenbehandling.ytelse,
-                    type = Type.BEGJAERING_OM_GJENOPPTAK,
-                    kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-                    dvhReferanse = gjenopptakITrygderettenbehandling.dvhReferanse,
-                    fagsystem = gjenopptakITrygderettenbehandling.fagsystem,
-                    fagsakId = gjenopptakITrygderettenbehandling.fagsakId,
-                    mottattKlageinstans = gjenopptakITrygderettenbehandling.mottattKlageinstans,
-                    tildeling = gjenopptakITrygderettenbehandling.tildeling,
-                    //Hva slags frist?
-                    frist = LocalDate.now() + Period.ofWeeks(0),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                    hjemler = gjenopptakITrygderettenbehandling.hjemler,
-                    klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
-                    paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
-                    forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
-                    previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
-                    gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
-                    tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = gjenopptakITrygderettenbehandling.id,
+            } else {
+                gjenopptaksbehandlingRepository.save(
+                    GjenopptaksbehandlingBasedOnKabalBehandling(
+                        klager = gjenopptakITrygderettenbehandling.klager.copy(),
+                        sakenGjelder = gjenopptakITrygderettenbehandling.sakenGjelder.copy(),
+                        prosessfullmektig = gjenopptakITrygderettenbehandling.prosessfullmektig,
+                        ytelse = gjenopptakITrygderettenbehandling.ytelse,
+                        type = Type.BEGJAERING_OM_GJENOPPTAK,
+                        kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
+                        dvhReferanse = gjenopptakITrygderettenbehandling.dvhReferanse,
+                        fagsystem = gjenopptakITrygderettenbehandling.fagsystem,
+                        fagsakId = gjenopptakITrygderettenbehandling.fagsakId,
+                        mottattKlageinstans = gjenopptakITrygderettenbehandling.mottattKlageinstans,
+                        tildeling = gjenopptakITrygderettenbehandling.tildeling,
+                        // Hva slags frist?
+                        frist = LocalDate.now() + Period.ofWeeks(0),
+                        kakaKvalitetsvurderingId =
+                            kakaApiGateway
+                                .createKvalitetsvurdering(
+                                    kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                                ).kvalitetsvurderingId,
+                        kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                        hjemler = gjenopptakITrygderettenbehandling.hjemler,
+                        klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
+                        paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
+                        forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
+                        previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
+                        gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
+                        tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = gjenopptakITrygderettenbehandling.id,
+                    ),
                 )
-            )
-        }
+            }
 
         logger.debug(
             "Created gjenopptaksbehandling {} from gjenopptakITrygderettenbehandling {}",
             gjenopptaksbehandling.id,
-            gjenopptakITrygderettenbehandling.id
+            gjenopptakITrygderettenbehandling.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = gjenopptaksbehandling.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = true,
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = gjenopptaksbehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = gjenopptakITrygderettenbehandling.tildeling!!.saksbehandlerident,
-                        felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET_BASERT_PAA_BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = gjenopptaksbehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = gjenopptakITrygderettenbehandling.tildeling!!.saksbehandlerident,
+                            felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET_BASERT_PAA_BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = gjenopptaksbehandling.id,
+                        ),
+                    ),
+            ),
         )
 
-        //TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
+        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
 
         return gjenopptaksbehandling
     }

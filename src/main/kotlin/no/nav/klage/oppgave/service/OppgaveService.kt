@@ -5,7 +5,14 @@ import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.BehandlingerListResponse
+import no.nav.klage.oppgave.api.view.CommonOppgaverQueryParams
+import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
+import no.nav.klage.oppgave.api.view.FerdigstilteOppgaverQueryParams
+import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
+import no.nav.klage.oppgave.api.view.Rekkefoelge
+import no.nav.klage.oppgave.api.view.SearchSaksnummerResponse
+import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Behandling_
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling_
@@ -17,17 +24,15 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
-
+import java.util.UUID
 
 @Service
 class OppgaveService(
     private val behandlingRepository: BehandlingRepository,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val tilgangService: TilgangService
+    private val tilgangService: TilgangService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -40,19 +45,20 @@ class OppgaveService(
             }
 
         specification = addInnloggetSaksbehandler(specification)
-        specification = addTypeSpecifications(queryParams, specification)
-        specification = addYtelseSpecifications(queryParams, specification)
-        specification = addRegistreringshjemmelSpecifications(queryParams, specification)
-        specification = addFerdigstiltFromToSpecifications(queryParams, specification)
-        specification = addFristFromToSpecifications(queryParams, specification)
+        specification = addTypeSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addYtelseSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addRegistreringshjemmelSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addFerdigstiltFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addFristFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
 
-        val data = behandlingRepository.findAll(
-            specification,
-            Sort.by(
-                getSortDirection(queryParams),
-                getSortProperty(queryParams),
-            ),
-        )
+        val data =
+            behandlingRepository.findAll(
+                specification,
+                Sort.by(
+                    getSortDirection(queryParams),
+                    getSortProperty(queryParams),
+                ),
+            )
 
         return BehandlingerListResponse(
             behandlinger = data.map { behandling -> behandling.id },
@@ -67,19 +73,20 @@ class OppgaveService(
             }
 
         specification = addEnhet(specification)
-        specification = addTypeSpecifications(queryParams, specification)
-        specification = addYtelseSpecifications(queryParams, specification)
-        specification = addRegistreringshjemmelSpecifications(queryParams, specification)
-        specification = addFerdigstiltFromToSpecifications(queryParams, specification)
-        specification = addFristFromToSpecifications(queryParams, specification)
+        specification = addTypeSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addYtelseSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addRegistreringshjemmelSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addFerdigstiltFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
+        specification = addFristFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
 
-        val data = behandlingRepository.findAll(
-            specification,
-            Sort.by(
-                getSortDirection(queryParams),
-                getSortProperty(queryParams),
-            ),
-        )
+        val data =
+            behandlingRepository.findAll(
+                specification,
+                Sort.by(
+                    getSortDirection(queryParams),
+                    getSortProperty(queryParams),
+                ),
+            )
 
         return BehandlingerListResponse(
             behandlinger = data.map { behandling -> behandling.id },
@@ -93,35 +100,36 @@ class OppgaveService(
         val avsluttedeBehandlinger = mutableListOf<Pair<UUID, LocalDateTime>>()
         val aapneBehandlinger = mutableListOf<Pair<UUID, LocalDateTime>>()
 
-        //There could be multiple behandlinger for a fagsak b/c fagsakId is not unique.
+        // There could be multiple behandlinger for a fagsak b/c fagsakId is not unique.
         val behandlinger = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
 
         behandlinger.forEach { behandling ->
-            val access = tilgangService.getSaksbehandlerAccessToBehandling(
-                behandling = behandling,
-            )
+            val access =
+                tilgangService.getSaksbehandlerAccessToBehandling(
+                    behandling = behandling,
+                )
 
             if (access.access) {
                 when {
                     behandling.feilregistrering != null -> {
-                        feilregistrerteBehandlinger.add(Pair(behandling.id, behandling.feilregistrering!!.registered))
+                        feilregistrerteBehandlinger.add(Pair(first = behandling.id, second = behandling.feilregistrering!!.registered))
                     }
 
                     behandling.sattPaaVent != null -> {
-                        paaVentBehandlinger.add(Pair(behandling.id, behandling.sattPaaVent!!.to))
+                        paaVentBehandlinger.add(Pair(first = behandling.id, second = behandling.sattPaaVent!!.to))
                     }
 
                     behandling.ferdigstilling != null -> {
                         avsluttedeBehandlinger.add(
                             Pair(
-                                behandling.id,
-                                behandling.ferdigstilling!!.avsluttetAvSaksbehandler
-                            )
+                                first = behandling.id,
+                                second = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                            ),
                         )
                     }
 
                     else -> {
-                        aapneBehandlinger.add(Pair(behandling.id, behandling.created))
+                        aapneBehandlinger.add(Pair(first = behandling.id, second = behandling.created))
                     }
                 }
             }
@@ -136,15 +144,16 @@ class OppgaveService(
     }
 
     private fun getSortDirection(queryParams: CommonOppgaverQueryParams): Sort.Direction {
-        val order = when (queryParams.rekkefoelge) {
-            Rekkefoelge.STIGENDE -> {
-                Sort.Direction.ASC
-            }
+        val order =
+            when (queryParams.rekkefoelge) {
+                Rekkefoelge.STIGENDE -> {
+                    Sort.Direction.ASC
+                }
 
-            Rekkefoelge.SYNKENDE -> {
-                Sort.Direction.DESC
+                Rekkefoelge.SYNKENDE -> {
+                    Sort.Direction.DESC
+                }
             }
-        }
         if (queryParams.sortering == Sortering.ALDER) {
             return if (order == Sort.Direction.ASC) {
                 Sort.Direction.DESC
@@ -173,18 +182,27 @@ class OppgaveService(
                 Behandling_.mottattKlageinstans.name
             }
 
-            Sortering.PAA_VENT_FROM -> TODO()
-            Sortering.PAA_VENT_TO -> TODO()
-            Sortering.RETURNERT_FRA_ROL -> TODO()
+            Sortering.PAA_VENT_FROM -> {
+                TODO()
+            }
+
+            Sortering.PAA_VENT_TO -> {
+                TODO()
+            }
+
+            Sortering.RETURNERT_FRA_ROL -> {
+                TODO()
+            }
         }
 
     private fun addEnhet(specification: Specification<Behandling>) =
         specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
                 root.get(Behandling_.tildeling).get(Tildeling_.enhet),
-                saksbehandlerService.getEnhetForSaksbehandler(
-                    navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-                ).enhetId
+                saksbehandlerService
+                    .getEnhetForSaksbehandler(
+                        navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    ).enhetId,
             )
         }
 
@@ -192,62 +210,64 @@ class OppgaveService(
         specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
                 root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
-                innloggetSaksbehandlerService.getInnloggetIdent()
+                innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
 
     private fun addRegistreringshjemmelSpecifications(
         queryParams: FerdigstilteOppgaverQueryParams,
-        mainSpecification: Specification<Behandling>
+        mainSpecification: Specification<Behandling>,
     ): Specification<Behandling> {
         if (queryParams.registreringshjemler.isEmpty()) return mainSpecification
 
         var hjemmelSpecification: Specification<Behandling>? = null
         queryParams.registreringshjemler.forEach { registreringshjemmelId ->
             val hjemmel = Registreringshjemmel.of(registreringshjemmelId)
-            hjemmelSpecification = if (hjemmelSpecification == null) {
-                Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                    builder.isMember(
-                        hjemmel,
-                        root.get(Behandling_.registreringshjemler)
-                    )
+            hjemmelSpecification =
+                if (hjemmelSpecification == null) {
+                    Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                        builder.isMember(
+                            hjemmel,
+                            root.get(Behandling_.registreringshjemler),
+                        )
+                    }
+                } else {
+                    hjemmelSpecification!!.or { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                        builder.isMember(
+                            hjemmel,
+                            root.get(Behandling_.registreringshjemler),
+                        )
+                    }
                 }
-            } else {
-                hjemmelSpecification!!.or { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                    builder.isMember(
-                        hjemmel,
-                        root.get(Behandling_.registreringshjemler)
-                    )
-                }
-            }
         }
         return mainSpecification.and(hjemmelSpecification!!)
     }
 
     private fun addTypeSpecifications(
         queryParams: CommonOppgaverQueryParams,
-        mainSpecification: Specification<Behandling>
+        mainSpecification: Specification<Behandling>,
     ): Specification<Behandling> {
         var specification = mainSpecification
         if (queryParams.typer.isNotEmpty()) {
             var typeSpecifications: Specification<Behandling>? = null
             queryParams.typer.forEach { typeId ->
                 val type = Type.of(typeId)
-                typeSpecifications = if (typeSpecifications == null) {
-                    Specification { root, _, builder ->
-                        builder.equal(
-                            root.get(Behandling_.type),
-                            type
-                        )
+                typeSpecifications =
+                    if (typeSpecifications == null) {
+                        Specification { root, _, builder ->
+                            builder.equal(
+                                root.get(Behandling_.type),
+                                type,
+                            )
+                        }
+                    } else {
+                        typeSpecifications!!.or { root, _, builder ->
+                            builder.equal(
+                                root.get(Behandling_.type),
+                                type,
+                            )
+                        }
                     }
-                } else {
-                    typeSpecifications!!.or { root, _, builder ->
-                        builder.equal(
-                            root.get(Behandling_.type),
-                            type
-                        )
-                    }
-                }
             }
             if (typeSpecifications != null) {
                 specification = specification.and(typeSpecifications)
@@ -258,28 +278,29 @@ class OppgaveService(
 
     private fun addYtelseSpecifications(
         queryParams: CommonOppgaverQueryParams,
-        mainSpecification: Specification<Behandling>
+        mainSpecification: Specification<Behandling>,
     ): Specification<Behandling> {
         var specification = mainSpecification
         if (queryParams.ytelser.isNotEmpty()) {
             var ytelseSpecifications: Specification<Behandling>? = null
             queryParams.ytelser.forEach { ytelseId ->
                 val ytelse = Ytelse.of(ytelseId)
-                ytelseSpecifications = if (ytelseSpecifications == null) {
-                    Specification<Behandling> { root, _, builder ->
-                        builder.equal(
-                            root.get(Behandling_.ytelse),
-                            ytelse
-                        )
+                ytelseSpecifications =
+                    if (ytelseSpecifications == null) {
+                        Specification<Behandling> { root, _, builder ->
+                            builder.equal(
+                                root.get(Behandling_.ytelse),
+                                ytelse,
+                            )
+                        }
+                    } else {
+                        ytelseSpecifications!!.or { root, _, builder ->
+                            builder.equal(
+                                root.get(Behandling_.ytelse),
+                                ytelse,
+                            )
+                        }
                     }
-                } else {
-                    ytelseSpecifications!!.or { root, _, builder ->
-                        builder.equal(
-                            root.get(Behandling_.ytelse),
-                            ytelse
-                        )
-                    }
-                }
             }
             if (ytelseSpecifications != null) {
                 specification = specification.and(ytelseSpecifications)
@@ -290,7 +311,7 @@ class OppgaveService(
 
     private fun addFerdigstiltFromToSpecifications(
         queryParams: FerdigstilteOppgaverQueryParams,
-        mainSpecification: Specification<Behandling>
+        mainSpecification: Specification<Behandling>,
     ): Specification<Behandling> {
         var specification = mainSpecification
 
@@ -305,7 +326,7 @@ class OppgaveService(
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
                     root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
-                    from.atStartOfDay()
+                    from.atStartOfDay(),
                 )
             }
 
@@ -313,7 +334,7 @@ class OppgaveService(
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.lessThan(
                     root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
-                    to!!.plusDays(1).atStartOfDay()
+                    to!!.plusDays(1).atStartOfDay(),
                 )
             }
 
@@ -322,9 +343,8 @@ class OppgaveService(
 
     private fun addFristFromToSpecifications(
         queryParams: CommonOppgaverQueryParams,
-        mainSpecification: Specification<Behandling>
+        mainSpecification: Specification<Behandling>,
     ): Specification<Behandling> {
-
         if (queryParams.fristFrom == null && queryParams.fristTo == null) {
             return mainSpecification
         }
@@ -332,23 +352,24 @@ class OppgaveService(
         val from = queryParams.fristFrom ?: LocalDate.now().minusDays(3650)
         val to = queryParams.fristTo ?: LocalDate.now().plusDays(3650)
 
-        val betweenDates = Specification { root, _, builder ->
-            builder.greaterThanOrEqualTo(
-                root.get(Behandling_.frist),
-                from
-            )
-        }.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-            builder.lessThanOrEqualTo(
-                root.get(Behandling_.frist),
-                to
-            )
-        }
+        val betweenDates =
+            Specification { root, _, builder ->
+                builder.greaterThanOrEqualTo(
+                    root.get(Behandling_.frist),
+                    from,
+                )
+            }.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                builder.lessThanOrEqualTo(
+                    root.get(Behandling_.frist),
+                    to,
+                )
+            }
 
-        val isNull = Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-            builder.isNull(root.get(Behandling_.frist))
-        }
+        val isNull =
+            Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                builder.isNull(root.get(Behandling_.frist))
+            }
 
         return mainSpecification.and(betweenDates.or(isNull))
     }
-
 }

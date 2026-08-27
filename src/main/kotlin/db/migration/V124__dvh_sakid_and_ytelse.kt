@@ -5,30 +5,30 @@ import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
-
+import java.util.UUID
 
 class V124__dvh_sakid_and_ytelse : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 update klage.kafka_event
                     set json_payload = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select ke.id, ke.json_payload, b.sak_fagsak_id, b.ytelse_id
                     from klage.kafka_event ke,
                          klage.behandling b
                     where ke.type = 'STATS_DVH'
                       and ke.behandling_id = b.id
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val kafkaEventId = rows.getObject(1, UUID::class.java)
                         val jsonPayload = rows.getString(2)
@@ -38,17 +38,17 @@ class V124__dvh_sakid_and_ytelse : BaseJavaMigration() {
                         val statistikkTilDVH =
                             jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
-                        val modifiedVersion = statistikkTilDVH.copy(
-                            opprinneligFagsakId = sakFagsakId,
-                            ytelseType = Ytelse.of(ytelseId).name,
-                        )
+                        val modifiedVersion =
+                            statistikkTilDVH.copy(
+                                opprinneligFagsakId = sakFagsakId,
+                                ytelseType = Ytelse.of(ytelseId).name,
+                            )
 
                         preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
                         preparedStatement.setObject(2, kafkaEventId)
 
                         preparedStatement.executeUpdate()
                     }
-
                 }
         }
     }

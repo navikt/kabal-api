@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.api.controller
 
-
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController
 class PreviewController(
     private val previewService: PreviewService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -36,18 +34,19 @@ class PreviewController(
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getSvarbrevPreview")
 
-        previewService.getSvarbrevPreviewPDF(
-            input = input
-        ).let {
-            val responseHeaders = HttpHeaders()
-            responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
-            return ResponseEntity(
-                it,
-                responseHeaders,
-                HttpStatus.OK
-            )
-        }
+        previewService
+            .getSvarbrevPreviewPDF(
+                input = input,
+            ).let {
+                val responseHeaders = HttpHeaders()
+                responseHeaders.contentType = MediaType.APPLICATION_PDF
+                responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
+                return ResponseEntity(
+                    it,
+                    responseHeaders,
+                    HttpStatus.OK,
+                )
+            }
     }
 
     @ResponseBody
@@ -64,7 +63,7 @@ class PreviewController(
             return ResponseEntity(
                 it,
                 responseHeaders,
-                HttpStatus.OK
+                HttpStatus.OK,
             )
         }
     }

@@ -9,15 +9,29 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.behandling.historikk.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.historikk.FullmektigHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.KlagerHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.MedunderskriverHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.RolHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @DiscriminatorValue("gjenopptak-based-on-journalpost")
@@ -73,64 +87,63 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, Gjenopptaksbehandling(
-    id = id,
-    previousBehandlingId = previousBehandlingId,
-    klager = klager,
-    sakenGjelder = sakenGjelder,
-    prosessfullmektig = prosessfullmektig,
-    ytelse = ytelse,
-    type = type,
-    kildeReferanse = kildeReferanse,
-    mottattKlageinstans = mottattKlageinstans,
-    modified = modified,
-    created = created,
-    tildeling = tildeling,
-    frist = frist,
-    fagsakId = fagsakId,
-    fagsystem = fagsystem,
-    dvhReferanse = dvhReferanse,
-    saksdokumenter = saksdokumenter,
-    hjemler = hjemler,
-    sattPaaVent = sattPaaVent,
-    feilregistrering = feilregistrering,
-    utfall = utfall,
-    extraUtfallSet = extraUtfallSet,
-    registreringshjemler = registreringshjemler,
-    medunderskriver = medunderskriver,
-    medunderskriverFlowState = medunderskriverFlowState,
-    ferdigstilling = ferdigstilling,
-    rolIdent = rolIdent,
-    rolFlowState = rolFlowState,
-    rolReturnedDate = rolReturnedDate,
-    tildelingHistorikk = tildelingHistorikk,
-    medunderskriverHistorikk = medunderskriverHistorikk,
-    rolHistorikk = rolHistorikk,
-    klagerHistorikk = klagerHistorikk,
-    fullmektigHistorikk = fullmektigHistorikk,
-    sattPaaVentHistorikk = sattPaaVentHistorikk,
-    previousSaksbehandlerident = previousSaksbehandlerident,
-    gosysOppgaveId = gosysOppgaveId,
-    gosysOppgaveUpdate = gosysOppgaveUpdate,
-    tilbakekreving = tilbakekreving,
-    ignoreGosysOppgave = ignoreGosysOppgave,
-    klageBehandlendeEnhet = klageBehandlendeEnhet,
-    kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
-    kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
-    varsletBehandlingstid = varsletBehandlingstid,
-    forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
-    klageVedtaksDato = null,
-    paaanketVedtaksdato = paaanketVedtaksdato,
-    forsterketRett = forsterketRett,
-    gosysOppgaveRequired = gosysOppgaveRequired,
-    initiatingSystem = initiatingSystem,
-) {
-
-    override fun toString(): String {
-        return "GjenopptaksbehandlingBasedOnJournalpost(id=$id, " +
-                "modified=$modified, " +
-                "created=$created)"
-    }
+) : Gjenopptaksbehandling(
+        id = id,
+        previousBehandlingId = previousBehandlingId,
+        klager = klager,
+        sakenGjelder = sakenGjelder,
+        prosessfullmektig = prosessfullmektig,
+        ytelse = ytelse,
+        type = type,
+        kildeReferanse = kildeReferanse,
+        mottattKlageinstans = mottattKlageinstans,
+        modified = modified,
+        created = created,
+        tildeling = tildeling,
+        frist = frist,
+        fagsakId = fagsakId,
+        fagsystem = fagsystem,
+        dvhReferanse = dvhReferanse,
+        saksdokumenter = saksdokumenter,
+        hjemler = hjemler,
+        sattPaaVent = sattPaaVent,
+        feilregistrering = feilregistrering,
+        utfall = utfall,
+        extraUtfallSet = extraUtfallSet,
+        registreringshjemler = registreringshjemler,
+        medunderskriver = medunderskriver,
+        medunderskriverFlowState = medunderskriverFlowState,
+        ferdigstilling = ferdigstilling,
+        rolIdent = rolIdent,
+        rolFlowState = rolFlowState,
+        rolReturnedDate = rolReturnedDate,
+        tildelingHistorikk = tildelingHistorikk,
+        medunderskriverHistorikk = medunderskriverHistorikk,
+        rolHistorikk = rolHistorikk,
+        klagerHistorikk = klagerHistorikk,
+        fullmektigHistorikk = fullmektigHistorikk,
+        sattPaaVentHistorikk = sattPaaVentHistorikk,
+        previousSaksbehandlerident = previousSaksbehandlerident,
+        gosysOppgaveId = gosysOppgaveId,
+        gosysOppgaveUpdate = gosysOppgaveUpdate,
+        tilbakekreving = tilbakekreving,
+        ignoreGosysOppgave = ignoreGosysOppgave,
+        klageBehandlendeEnhet = klageBehandlendeEnhet,
+        kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
+        kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
+        varsletBehandlingstid = varsletBehandlingstid,
+        forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
+        klageVedtaksDato = null,
+        paaanketVedtaksdato = paaanketVedtaksdato,
+        forsterketRett = forsterketRett,
+        gosysOppgaveRequired = gosysOppgaveRequired,
+        initiatingSystem = initiatingSystem,
+    ),
+    BehandlingWithVarsletBehandlingstid {
+    override fun toString(): String =
+        "GjenopptaksbehandlingBasedOnJournalpost(id=$id, " +
+            "modified=$modified, " +
+            "created=$created)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -141,7 +154,5 @@ class GjenopptaksbehandlingBasedOnJournalpost(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 }

@@ -4,28 +4,30 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.sql.Timestamp
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
     override fun migrate(context: Context) {
-
-        val preparedInitialStatement = context.connection.prepareStatement(
-            """
+        val preparedInitialStatement =
+            context.connection.prepareStatement(
+                """
                 insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt)
                     values (?, ?, ?)
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt, utfoerende_ident, utfoerende_navn, varslet_frist, varslet_behandlingstid_units, varslet_behandlingstid_unit_type_id)
                     values (?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select b.id,
                      b.created,
                      b.varslet_frist,
@@ -72,9 +74,8 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         --Verification in dev
                         'd32f1462-26f0-4697-93ae-603aaaef3e1d'
     )                     
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val behandlingId = rows.getObject(1, UUID::class.java)
                         val created: Timestamp = rows.getTimestamp(2)
@@ -82,14 +83,14 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         val varsletBehandlingstidUnits = rows.getInt(4)
                         val varsletBehandlingstidTypeId = rows.getString(5)
 
-                        //Null case
+                        // Null case
                         preparedInitialStatement.setObject(1, UUID.randomUUID())
                         preparedInitialStatement.setObject(2, behandlingId)
                         preparedInitialStatement.setObject(3, created)
 
                         preparedInitialStatement.executeUpdate()
 
-                        //First entry
+                        // First entry
                         preparedStatement.setObject(1, UUID.randomUUID())
                         preparedStatement.setObject(2, behandlingId)
                         preparedStatement.setObject(3, LocalDateTime.now())

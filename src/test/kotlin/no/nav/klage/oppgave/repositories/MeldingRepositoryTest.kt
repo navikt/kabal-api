@@ -23,12 +23,11 @@ import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class MeldingRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -38,44 +37,48 @@ class MeldingRepositoryTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var meldingRepository: MeldingRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `add meldinger works`() {
-        val klage = Klagebehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            frist = LocalDate.now(),
-            hjemler = mutableSetOf(
-                Hjemmel.FTRL_8_7
-            ),
-            mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            avsenderEnhetFoersteinstans = "0101",
-            mottattVedtaksinstans = LocalDate.now(),
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            kakaKvalitetsvurderingVersion = 2,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        val klage =
+            Klagebehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.KLAGE,
+                frist = LocalDate.now(),
+                hjemler =
+                    mutableSetOf(
+                        Hjemmel.FTRL_8_7,
+                    ),
+                mottattKlageinstans = LocalDateTime.now(),
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                avsenderEnhetFoersteinstans = "0101",
+                mottattVedtaksinstans = LocalDate.now(),
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
 
         klagebehandlingRepository.save(klage)
 
@@ -88,20 +91,22 @@ class MeldingRepositoryTest : PostgresIntegrationTestBase() {
         val meldingTil1 = "min melding 1"
         val meldingTil2 = "min melding 2"
 
-        val melding1 = Melding(
-            text = meldingTil1,
-            saksbehandlerident = "abc123",
-            created = LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 10)),
-            behandlingId = foundKlagebehandling.id,
-            notify = true,
-        )
-        val melding2 = Melding(
-            text = meldingTil2,
-            saksbehandlerident = "abc456",
-            created = LocalDateTime.of(LocalDate.now(), LocalTime.of(20, 20)),
-            behandlingId = foundKlagebehandling.id,
-            notify = false,
-        )
+        val melding1 =
+            Melding(
+                text = meldingTil1,
+                saksbehandlerident = "abc123",
+                created = LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 10)),
+                behandlingId = foundKlagebehandling.id,
+                notify = true,
+            )
+        val melding2 =
+            Melding(
+                text = meldingTil2,
+                saksbehandlerident = "abc456",
+                created = LocalDateTime.of(LocalDate.now(), LocalTime.of(20, 20)),
+                behandlingId = foundKlagebehandling.id,
+                notify = false,
+            )
 
         meldingRepository.save(melding1)
         meldingRepository.save(melding2)
@@ -111,8 +116,7 @@ class MeldingRepositoryTest : PostgresIntegrationTestBase() {
 
         val meldinger = meldingRepository.findByBehandlingIdOrderByCreatedDesc(foundKlagebehandling.id)
 
-        //latest first
+        // latest first
         assertThat(meldinger.first().text).isEqualTo(meldingTil2)
     }
-
 }

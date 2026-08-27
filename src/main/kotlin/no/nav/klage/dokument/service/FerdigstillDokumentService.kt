@@ -11,7 +11,11 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.DocumentFinishedEvent
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.currentTraceparent
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
@@ -25,7 +29,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
+import java.util.UUID
 
 @Service
 class FerdigstillDokumentService(
@@ -79,60 +83,81 @@ class FerdigstillDokumentService(
 
             logger.debug(
                 "dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done",
-                updatedDokument.id
+                updatedDokument.id,
             )
 
             val behandling =
                 behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId = updatedDokument.behandlingId)
 
-            val dokumentReferanseList = updatedDokument.dokarkivReferences.map {
-                val journalpost = safFacade.getJournalpostAsSystembruker(journalpostId = it.journalpostId)
+            val dokumentReferanseList =
+                updatedDokument.dokarkivReferences.map {
+                    val journalpost = safFacade.getJournalpostAsSystembruker(journalpostId = it.journalpostId)
 
-                dokumentMapper.mapJournalpostToDokumentReferanse(
-                    journalpost = journalpost,
-                    saksdokumenter = behandling.saksdokumenter
-                )
-            }
+                    dokumentMapper.mapJournalpostToDokumentReferanse(
+                        journalpost = journalpost,
+                        saksdokumenter = behandling.saksdokumenter,
+                    )
+                }
 
             publishInternalEvent(
-                data = jacksonObjectMapper.writeValueAsString(
-                    DocumentFinishedEvent(
-                        actor = Employee(
-                            navIdent = updatedDokument.markertFerdigBy!!,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(updatedDokument.markertFerdigBy!!),
-                        ),
-                        timestamp = updatedDokument.ferdigstilt!!,
-                        id = updatedDokument.id.toString(),
-                        journalpostList = dokumentReferanseList.map {
-                            //small hack for now, until we fetch data from SAF on consumer side of event.
-                            it.copy(
-                                kanal = if (hoveddokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) "DPO" else it.kanal,
-                                kanalnavn = if (hoveddokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) "Digital Post Offentlig" else it.kanalnavn,
-                                harTilgangTilArkivvariant = true,
-                                hasAccess = true,
-                                vedlegg = it.vedlegg.map { vedlegg ->
-                                    vedlegg.copy(
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        DocumentFinishedEvent(
+                            actor =
+                                Employee(
+                                    navIdent = updatedDokument.markertFerdigBy!!,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(updatedDokument.markertFerdigBy!!),
+                                ),
+                            timestamp = updatedDokument.ferdigstilt!!,
+                            id = updatedDokument.id.toString(),
+                            journalpostList =
+                                dokumentReferanseList.map {
+                                    // small hack for now, until we fetch data from SAF on consumer side of event.
+                                    it.copy(
+                                        kanal =
+                                            if (hoveddokument.dokumentType ==
+                                                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+                                            ) {
+                                                "DPO"
+                                            } else {
+                                                it.kanal
+                                            },
+                                        kanalnavn =
+                                            if (hoveddokument.dokumentType ==
+                                                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+                                            ) {
+                                                "Digital Post Offentlig"
+                                            } else {
+                                                it.kanalnavn
+                                            },
                                         harTilgangTilArkivvariant = true,
                                         hasAccess = true,
+                                        vedlegg =
+                                            it.vedlegg
+                                                .map { vedlegg ->
+                                                    vedlegg.copy(
+                                                        harTilgangTilArkivvariant = true,
+                                                        hasAccess = true,
+                                                    )
+                                                }.toMutableList(),
                                     )
-                                }.toMutableList()
-                            )
-                        },
-                        traceparent = currentTraceparent(),
-                    )
-                ),
+                                },
+                            traceparent = currentTraceparent(),
+                        ),
+                    ),
                 behandlingId = updatedDokument.behandlingId,
                 type = InternalEventType.DOCUMENT_FINISHED,
             )
             logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
 
             deleteSmartdokumentAndPossibleVedlegg(hoveddokument = updatedDokument)
-
         } catch (e: Exception) {
-            logger.error("Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See team-logs for more details.")
+            logger.error(
+                "Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See team-logs for more details.",
+            )
             teamLogger.error(
                 "Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}",
-                e
+                e,
             )
         }
     }
@@ -145,7 +170,6 @@ class FerdigstillDokumentService(
      * The finalization is considered complete regardless of the outcome of this cleanup.
      */
     private fun deleteSmartdokumentAndPossibleVedlegg(hoveddokument: DokumentUnderArbeidAsHoveddokument) {
-
         fun attemptToDeleteSmartdokument(smartEditorId: UUID) {
             try {
                 logger.debug("Deleting smartdocument with smartEditorId {}", smartEditorId)
@@ -154,13 +178,15 @@ class FerdigstillDokumentService(
                 logger.error("Could not delete smartdocument with smartEditorId $smartEditorId. See team-logs for more details.")
                 teamLogger.error(
                     "Could not delete smartdocument with smartEditorId $smartEditorId",
-                    e
+                    e,
                 )
             }
         }
 
-        val vedleggAsSmartdokument = dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokument.id)
-            .filterIsInstance<SmartdokumentUnderArbeidAsVedlegg>()
+        val vedleggAsSmartdokument =
+            dokumentUnderArbeidCommonService
+                .findVedleggByParentId(hoveddokument.id)
+                .filterIsInstance<SmartdokumentUnderArbeidAsVedlegg>()
 
         vedleggAsSmartdokument.forEach { vedlegg ->
             applicationEventPublisher.publishEvent(SmartDocumentDeletedEvent(vedlegg.id))
@@ -173,13 +199,17 @@ class FerdigstillDokumentService(
         }
     }
 
-    private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
+    private fun publishInternalEvent(
+        data: String,
+        behandlingId: UUID,
+        type: InternalEventType,
+    ) {
         kafkaInternalEventService.publishInternalBehandlingEvent(
             InternalBehandlingEvent(
                 behandlingId = behandlingId.toString(),
                 type = type,
                 data = data,
-            )
+            ),
         )
     }
 }

@@ -3,7 +3,7 @@ package no.nav.klage.dokument.clients.kabaljsontopdf.domain
 import java.time.LocalDate
 
 data class DocumentValidationResponse(
-    val errors: List<DocumentValidationError> = emptyList()
+    val errors: List<DocumentValidationError> = emptyList(),
 ) {
     enum class DocumentValidationError {
         EMPTY_PLACEHOLDER,
@@ -59,7 +59,7 @@ data class SvarbrevRequest(
         KLAGE,
         ANKE,
         OMGJOERINGSKRAV,
-        BEGJAERING_OM_GJENOPPTAK
+        BEGJAERING_OM_GJENOPPTAK,
     }
 }
 

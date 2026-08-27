@@ -2,14 +2,14 @@ package no.nav.klage.oppgave.domain.events
 
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
-import java.util.*
+import java.util.UUID
 
 data class BehandlingChangedEvent(
     val behandling: Behandling,
-    val changeList: List<Change>
+    val changeList: List<Change>,
 ) {
     class Change(
-        val saksbehandlerident: String?, //subjekt?
+        val saksbehandlerident: String?, // subjekt?
         val felt: Felt,
         val behandlingId: UUID,
     ) {
@@ -30,7 +30,7 @@ data class BehandlingChangedEvent(
                         felt.name,
                         fraVerdi,
                         tilVerdi,
-                        behandlingId
+                        behandlingId,
                     )
                     return null
                 } else {

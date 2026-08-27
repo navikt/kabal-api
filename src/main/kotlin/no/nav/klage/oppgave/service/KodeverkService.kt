@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class KodeverkService(
-    private val kodeverkClient: KodeverkClient
+    private val kodeverkClient: KodeverkClient,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -17,16 +17,24 @@ class KodeverkService(
 
     fun getPoststed(postnummer: String): String {
         val postnummerKodeverk = kodeverkClient.getPoststeder()
-        return postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term
+        return postnummerKodeverk.betydninger[postnummer]
+            ?.firstOrNull()
+            ?.beskrivelser
+            ?.get("NO")
+            ?.term
             ?: "Ukjent"
-
     }
 
     fun getPostInfo(): List<PostInfo> {
         val postnummerKodeverk = kodeverkClient.getPoststeder()
         return postnummerKodeverk.betydninger.map {
             PostInfo(
-                poststed = it.value.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent",
+                poststed =
+                    it.value
+                        .firstOrNull()
+                        ?.beskrivelser
+                        ?.get("NO")
+                        ?.term ?: "Ukjent",
                 postnummer = it.key,
             )
         }
@@ -36,7 +44,12 @@ class KodeverkService(
         val landkoderKodeverk = kodeverkClient.getLandkoder()
         return landkoderKodeverk.betydninger.map {
             LandInfo(
-                land = it.value.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent",
+                land =
+                    it.value
+                        .firstOrNull()
+                        ?.beskrivelser
+                        ?.get("NO")
+                        ?.term ?: "Ukjent",
                 landkode = it.key,
             )
         }

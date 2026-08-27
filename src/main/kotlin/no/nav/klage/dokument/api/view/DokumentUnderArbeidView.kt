@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import tools.jackson.databind.JsonNode
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class JournalfoerteDokumenterResponse(
     val addedJournalfoerteDokumenter: List<DokumentView>,
@@ -40,10 +40,10 @@ data class DokumentView(
     val datoMottatt: LocalDate?,
     val language: Language?,
 ) {
-
     enum class Language {
         @JsonProperty("nn")
         NN,
+
         @JsonProperty("nb")
         NB,
     }
@@ -96,5 +96,5 @@ data class NewParent(
 enum class HandlingEnum {
     AUTO,
     LOCAL_PRINT,
-    CENTRAL_PRINT
+    CENTRAL_PRINT,
 }

@@ -13,5 +13,5 @@ data class Feilregistrering(
     val registered: LocalDateTime,
     val reason: String,
     @Convert(converter = FagsystemConverter::class)
-    val fagsystem: Fagsystem
+    val fagsystem: Fagsystem,
 )

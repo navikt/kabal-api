@@ -8,15 +8,14 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
-
+import java.util.UUID
 
 @Entity
 @DiscriminatorValue("opplastetdokument_vedlegg")
 @DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsVedlegg(
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -29,27 +28,27 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     creatorIdent: String,
     creatorRole: BehandlingRole,
     sortIndex: Double? = null,
-
     @Column(name = "size")
     var size: Long?,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime? = created,
-) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
-    id = id,
-    name = name,
-    sortIndex = sortIndex,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    parentId = parentId,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-) {
+) : DokumentUnderArbeidAsVedlegg(
+        id = id,
+        name = name,
+        sortIndex = sortIndex,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        parentId = parentId,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+    ),
+    DokumentUnderArbeidAsMellomlagret {
     init {
         if (name.length > MAX_NAME_LENGTH) {
             throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")

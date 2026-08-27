@@ -1,10 +1,42 @@
 package no.nav.klage.oppgave.config
 
-import no.nav.klage.dokument.exceptions.*
-import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.dokument.exceptions.AddressValidationException
+import no.nav.klage.dokument.exceptions.AttachmentHasVirusException
+import no.nav.klage.dokument.exceptions.AttachmentIsEmptyException
+import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
+import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
+import no.nav.klage.dokument.exceptions.DokumentValidationException
+import no.nav.klage.dokument.exceptions.NoAccessToDocumentException
+import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
+import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
+import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.BehandlingManglerMedunderskriverException
+import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
+import no.nav.klage.oppgave.exceptions.DuplicateGosysOppgaveIdException
+import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
+import no.nav.klage.oppgave.exceptions.EREGOrganizationNotFoundException
+import no.nav.klage.oppgave.exceptions.EnhetNotFoundForSaksbehandlerException
+import no.nav.klage.oppgave.exceptions.FeilregistreringException
+import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
+import no.nav.klage.oppgave.exceptions.GosysOppgaveNotFoundException
+import no.nav.klage.oppgave.exceptions.GroupNotFoundException
+import no.nav.klage.oppgave.exceptions.IllegalOperation
+import no.nav.klage.oppgave.exceptions.IllegalUpdateException
+import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
+import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.UserNotFoundException
+import no.nav.klage.oppgave.exceptions.ValidationException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import org.springframework.http.*
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
+import org.springframework.http.MediaType
+import org.springframework.http.ProblemDetail
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
@@ -13,7 +45,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val ourLogger = getLogger(javaClass.enclosingClass)
@@ -25,7 +56,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         body: Any?,
         headers: HttpHeaders,
         statusCode: HttpStatusCode,
-        request: WebRequest
+        request: WebRequest,
     ): ResponseEntity<Any>? {
         logError(
             httpStatus = HttpStatus.valueOf(statusCode.value()),
@@ -37,205 +68,130 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler
-    fun handleIllegalArgumentException(
-        ex: IllegalArgumentException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalArgumentException(ex: IllegalArgumentException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleSizeLimitExceededException(
-        ex: AttachmentTooLargeException,
-    ): ProblemDetail =
-        create(HttpStatus.PAYLOAD_TOO_LARGE, ex)
+    fun handleSizeLimitExceededException(ex: AttachmentTooLargeException): ProblemDetail =
+        create(httpStatus = HttpStatus.PAYLOAD_TOO_LARGE, ex = ex)
 
     @ExceptionHandler
-    fun handleFeilregistreringException(
-        ex: FeilregistreringException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleFeilregistreringException(ex: FeilregistreringException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleOversendtKlageNotValidException(
-        ex: OversendtKlageNotValidException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleOversendtKlageNotValidException(ex: OversendtKlageNotValidException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleBehandlingNotFound(
-        ex: BehandlingNotFoundException,
-    ): ProblemDetail {
-        return create(HttpStatus.NOT_FOUND, ex)
-    }
+    fun handleBehandlingNotFound(ex: BehandlingNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleMeldingNotFound(
-        ex: MeldingNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleMeldingNotFound(ex: MeldingNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleGosysOppgaveNotFoundException(
-        ex: GosysOppgaveNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleGosysOppgaveNotFoundException(ex: GosysOppgaveNotFoundException): ProblemDetail =
+        create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleGosysOppgaveNotEditableException(
-        ex: GosysOppgaveNotEditableException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleGosysOppgaveNotEditableException(ex: GosysOppgaveNotEditableException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleEREGOrganizationNotFoundException(
-        ex: EREGOrganizationNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleEREGOrganizationNotFoundException(ex: EREGOrganizationNotFoundException): ProblemDetail =
+        create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleValidationException(
-        ex: ValidationException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleValidationException(ex: ValidationException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleBehandlingAvsluttetException(
-        ex: BehandlingAvsluttetException,
-    ): ProblemDetail =
-        create(HttpStatus.FORBIDDEN, ex)
+    fun handleBehandlingAvsluttetException(ex: BehandlingAvsluttetException): ProblemDetail =
+        create(httpStatus = HttpStatus.FORBIDDEN, ex = ex)
 
     @ExceptionHandler
-    fun handlePreviousBehandlingNotFinalizedException(
-        ex: PreviousBehandlingNotFinalizedException,
-    ): ProblemDetail =
-        create(HttpStatus.FORBIDDEN, ex)
+    fun handlePreviousBehandlingNotFinalizedException(ex: PreviousBehandlingNotFinalizedException): ProblemDetail =
+        create(httpStatus = HttpStatus.FORBIDDEN, ex = ex)
 
     @ExceptionHandler
-    fun handleMissingTilgang(ex: MissingTilgangException): ProblemDetail =
-        create(HttpStatus.FORBIDDEN, ex)
+    fun handleMissingTilgang(ex: MissingTilgangException): ProblemDetail = create(httpStatus = HttpStatus.FORBIDDEN, ex = ex)
 
     @ExceptionHandler
-    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> =
-        createProblemForWebClientResponseException(ex)
+    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> = createProblemForWebClientResponseException(ex)
 
     @ExceptionHandler
-    fun handleDuplicateOversendelse(
-        ex: DuplicateOversendelseException,
-    ): ProblemDetail =
-        create(HttpStatus.CONFLICT, ex)
+    fun handleDuplicateOversendelse(ex: DuplicateOversendelseException): ProblemDetail = create(httpStatus = HttpStatus.CONFLICT, ex = ex)
 
     @ExceptionHandler
-    fun handleDuplicateGosysOppgaveIdException(
-        ex: DuplicateGosysOppgaveIdException,
-    ): ProblemDetail =
-        create(HttpStatus.CONFLICT, ex)
+    fun handleDuplicateGosysOppgaveIdException(ex: DuplicateGosysOppgaveIdException): ProblemDetail =
+        create(httpStatus = HttpStatus.CONFLICT, ex = ex)
 
     @ExceptionHandler
-    fun handleBehandlingManglerMedunderskriverException(
-        ex: BehandlingManglerMedunderskriverException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleBehandlingManglerMedunderskriverException(ex: BehandlingManglerMedunderskriverException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleEnhetNotFoundForSaksbehandlerException(
-        ex: EnhetNotFoundForSaksbehandlerException,
-    ): ProblemDetail =
-        create(HttpStatus.INTERNAL_SERVER_ERROR, ex)
+    fun handleEnhetNotFoundForSaksbehandlerException(ex: EnhetNotFoundForSaksbehandlerException): ProblemDetail =
+        create(httpStatus = HttpStatus.INTERNAL_SERVER_ERROR, ex = ex)
 
     @ExceptionHandler
-    fun handleIllegalOperation(
-        ex: IllegalOperation,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalOperation(ex: IllegalOperation): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleSectionedValidationErrorWithDetailsException(
-        ex: SectionedValidationErrorWithDetailsException,
-    ): ProblemDetail =
+    fun handleSectionedValidationErrorWithDetailsException(ex: SectionedValidationErrorWithDetailsException): ProblemDetail =
         createSectionedValidationProblem(ex)
 
     @ExceptionHandler
-    fun handleDokumentValidationException(
-        ex: DokumentValidationException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleDokumentValidationException(ex: DokumentValidationException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleAddressValidationException(
-        ex: AddressValidationException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleAddressValidationException(ex: AddressValidationException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleDocumentDoesNotExistException(
-        ex: DocumentDoesNotExistException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleDocumentDoesNotExistException(ex: DocumentDoesNotExistException): ProblemDetail =
+        create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler(IllegalUpdateException::class)
-    fun handleIllegalUpdateException(
-        ex: IllegalUpdateException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalUpdateException(ex: IllegalUpdateException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleSvarbrevPreviewException(
-        ex: SvarbrevPreviewException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleSvarbrevPreviewException(ex: SvarbrevPreviewException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleIllegalStateException(
-        ex: IllegalStateException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleIllegalStateException(ex: IllegalStateException): ProblemDetail = create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleSmartDocumentValidationException(
-        ex: SmartDocumentValidationException,
-    ): ProblemDetail =
+    fun handleSmartDocumentValidationException(ex: SmartDocumentValidationException): ProblemDetail =
         createSmartDocumentValidationProblem(ex)
 
     @ExceptionHandler
-    fun handleNoAccessToDocumentException(
-        ex: NoAccessToDocumentException,
-    ): ProblemDetail =
-        create(HttpStatus.FORBIDDEN, ex)
+    fun handleNoAccessToDocumentException(ex: NoAccessToDocumentException): ProblemDetail =
+        create(httpStatus = HttpStatus.FORBIDDEN, ex = ex)
 
     @ExceptionHandler
-    fun handleUserNotFoundException(
-        ex: UserNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleUserNotFoundException(ex: UserNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleGroupNotFoundException(
-        ex: GroupNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    fun handleGroupNotFoundException(ex: GroupNotFoundException): ProblemDetail = create(httpStatus = HttpStatus.NOT_FOUND, ex = ex)
 
     @ExceptionHandler
-    fun handleAttachmentIsEmptyException(
-        ex: AttachmentIsEmptyException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleAttachmentIsEmptyException(ex: AttachmentIsEmptyException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     @ExceptionHandler
-    fun handleAttachmentHasVirusException(
-        ex: AttachmentHasVirusException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
+    fun handleAttachmentHasVirusException(ex: AttachmentHasVirusException): ProblemDetail =
+        create(httpStatus = HttpStatus.BAD_REQUEST, ex = ex)
 
     private fun createSmartDocumentValidationProblem(ex: SmartDocumentValidationException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,
             errorMessage = ex.message ?: "smartDocument validation error without description",
-            exception = ex
+            exception = ex,
         )
 
         return ProblemDetail.forStatus(HttpStatus.BAD_REQUEST).apply {
             this.title = ex.message
             this.setProperty("documents", ex.errors)
-            //TODO remove when FE changed
+            // TODO remove when FE changed
             this.setProperty("dokumenter", ex.errors)
         }
     }
@@ -244,7 +200,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),
             errorMessage = ex.statusText,
-            exception = ex
+            exception = ex,
         )
 
         val contentType = ex.headers.contentType
@@ -255,10 +211,11 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
 
         // Fallback: wrap into a ProblemDetail
-        val problemDetail = ProblemDetail.forStatus(ex.statusCode).apply {
-            title = ex.statusText
-            detail = ex.responseBodyAsString
-        }
+        val problemDetail =
+            ProblemDetail.forStatus(ex.statusCode).apply {
+                title = ex.statusText
+                detail = ex.responseBodyAsString
+            }
         return ResponseEntity
             .status(ex.statusCode)
             .contentType(MediaType.APPLICATION_PROBLEM_JSON)
@@ -269,7 +226,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,
             errorMessage = ex.title,
-            exception = ex
+            exception = ex,
         )
 
         return ProblemDetail.forStatus(HttpStatus.BAD_REQUEST).apply {
@@ -278,13 +235,16 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
     }
 
-    private fun create(httpStatus: HttpStatus, ex: Exception): ProblemDetail {
+    private fun create(
+        httpStatus: HttpStatus,
+        ex: Exception,
+    ): ProblemDetail {
         val errorMessage = ex.message ?: "No error message available"
 
         logError(
             httpStatus = httpStatus,
             errorMessage = errorMessage,
-            exception = ex
+            exception = ex,
         )
 
         return ProblemDetail.forStatus(httpStatus).apply {
@@ -292,7 +252,11 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
     }
 
-    private fun logError(httpStatus: HttpStatus, errorMessage: String, exception: Exception) {
+    private fun logError(
+        httpStatus: HttpStatus,
+        errorMessage: String,
+        exception: Exception,
+    ) {
         when {
             httpStatus.is5xxServerError -> {
                 ourLogger.error("Exception thrown to client: ${exception.javaClass.name}. See team-logs for more details.")

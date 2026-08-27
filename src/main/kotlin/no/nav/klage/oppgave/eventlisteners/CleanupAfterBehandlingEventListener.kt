@@ -7,7 +7,12 @@ import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiC
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
+import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
+import no.nav.klage.oppgave.domain.kafka.BehandlingFeilregistrertDetaljer
+import no.nav.klage.oppgave.domain.kafka.EventType
+import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
@@ -24,7 +29,7 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class CleanupAfterBehandlingEventListener(
@@ -37,9 +42,8 @@ class CleanupAfterBehandlingEventListener(
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -59,7 +63,9 @@ class CleanupAfterBehandlingEventListener(
         val behandling = behandlingChangedEvent.behandling
 
         if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT }) {
-            logger.debug("Received behandlingEndretEvent for avsluttetAvSaksbehandler. Deleting meldinger (and belonging notifications) and sattPaaVent.")
+            logger.debug(
+                "Received behandlingEndretEvent for avsluttetAvSaksbehandler. Deleting meldinger (and belonging notifications) and sattPaaVent.",
+            )
 
             if (behandling.sattPaaVent != null) {
                 try {
@@ -75,11 +81,12 @@ class CleanupAfterBehandlingEventListener(
             }
 
             cleanupMessagesAndNotifications(behandling)
-
-        } else if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
+        } else if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.FEILREGISTRERING } &&
+            behandling.feilregistrering != null
+        ) {
             logger.debug(
                 "Cleanup and notifying vedtaksinstans after feilregistrering. Behandling.id: {}",
-                behandling.id
+                behandling.id,
             )
             deleteDokumenterUnderBehandling(behandling)
             deleteFromKaka(behandling)
@@ -88,9 +95,10 @@ class CleanupAfterBehandlingEventListener(
                 logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
                 klankeService.setToFeilregistrertInKabal(
                     sakId = behandling.kildeReferanse,
-                    input = FeilregistrertInKabalInput(
-                        saksbehandlerIdent = behandlingChangedEvent.changeList.first().saksbehandlerident!!,
-                    )
+                    input =
+                        FeilregistrertInKabalInput(
+                            saksbehandlerIdent = behandlingChangedEvent.changeList.first().saksbehandlerident!!,
+                        ),
                 )
                 logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
             }
@@ -106,7 +114,8 @@ class CleanupAfterBehandlingEventListener(
     private fun cleanupMessagesAndNotifications(behandling: Behandling) {
         try {
             meldingRepository.deleteAllById(
-                meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id).map { it.id })
+                meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id).map { it.id },
+            )
         } catch (e: Exception) {
             logger.error("Could not delete meldinger from behandling ${behandling.id}", e)
         }
@@ -119,7 +128,8 @@ class CleanupAfterBehandlingEventListener(
     }
 
     private fun deleteDokumenterUnderBehandling(behandling: Behandling) {
-        dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandling.id, checkReadAccess = false)
+        dokumentUnderArbeidService
+            .findDokumenterNotFinished(behandlingId = behandling.id, checkReadAccess = false)
             .forEach {
                 try {
                     if (!it.erMarkertFerdig()) {
@@ -128,33 +138,35 @@ class CleanupAfterBehandlingEventListener(
                             innloggetIdent = behandling.feilregistrering!!.navIdent,
                         )
                     } else {
-                        //Don't delete since it's marked as finished, and is being sent.
-                        //This will probably only happen during E2E-tests (which will delete the behandling anyway).
+                        // Don't delete since it's marked as finished, and is being sent.
+                        // This will probably only happen during E2E-tests (which will delete the behandling anyway).
                     }
                 } catch (e: Exception) {
-                    //best effort
+                    // best effort
                     logger.warn("Couldn't clean up dokumenter under arbeid", e)
                 }
             }
     }
 
     private fun notifyVedtaksinstansThroughKafka(behandling: Behandling) {
-        val behandlingEvent = BehandlingEvent(
-            eventId = UUID.randomUUID(),
-            kildeReferanse = behandling.kildeReferanse,
-            kilde = behandling.fagsystem.navn,
-            kabalReferanse = behandling.id.toString(),
-            type = BehandlingEventType.BEHANDLING_FEILREGISTRERT,
-            detaljer = BehandlingDetaljer(
-                behandlingFeilregistrert =
-                    BehandlingFeilregistrertDetaljer(
-                        feilregistrert = behandling.feilregistrering!!.registered,
-                        navIdent = behandling.feilregistrering!!.navIdent,
-                        reason = behandling.feilregistrering!!.reason,
-                        type = behandling.type,
-                    )
+        val behandlingEvent =
+            BehandlingEvent(
+                eventId = UUID.randomUUID(),
+                kildeReferanse = behandling.kildeReferanse,
+                kilde = behandling.fagsystem.navn,
+                kabalReferanse = behandling.id.toString(),
+                type = BehandlingEventType.BEHANDLING_FEILREGISTRERT,
+                detaljer =
+                    BehandlingDetaljer(
+                        behandlingFeilregistrert =
+                            BehandlingFeilregistrertDetaljer(
+                                feilregistrert = behandling.feilregistrering!!.registered,
+                                navIdent = behandling.feilregistrering!!.navIdent,
+                                reason = behandling.feilregistrering!!.reason,
+                                type = behandling.type,
+                            ),
+                    ),
             )
-        )
         kafkaEventRepository.save(
             KafkaEvent(
                 id = UUID.randomUUID(),
@@ -162,8 +174,8 @@ class CleanupAfterBehandlingEventListener(
                 kilde = behandling.fagsystem.navn,
                 kildeReferanse = behandling.kildeReferanse,
                 jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-                type = EventType.BEHANDLING_EVENT
-            )
+                type = EventType.BEHANDLING_EVENT,
+            ),
         )
     }
 

@@ -1,6 +1,14 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -8,8 +16,22 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.behandling.historikk.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.historikk.FullmektigHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.KlagerHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.MedunderskriverHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.RolHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
@@ -18,7 +40,7 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 const val KLAGEENHET_PREFIX = "42"
 
@@ -27,13 +49,13 @@ const val KLAGEENHET_PREFIX = "42"
 @DynamicUpdate
 @Audited
 class Klagebehandling(
-    //Brukes ikke i anke
+    // Brukes ikke i anke
     @Column(name = "dato_mottatt_foersteinstans", nullable = false)
     var mottattVedtaksinstans: LocalDate,
-    //Vises i GUI.
+    // Vises i GUI.
     @Column(name = "avsender_enhet_foersteinstans", nullable = false)
     val avsenderEnhetFoersteinstans: String,
-    //Kommer fra innsending
+    // Kommer fra innsending
     @Column(name = "kommentar_fra_foersteinstans")
     val kommentarFraFoersteinstans: String? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
@@ -50,12 +72,11 @@ class Klagebehandling(
         mappedBy = "behandling",
         cascade = [CascadeType.ALL],
         orphanRemoval = true,
-        fetch = FetchType.LAZY
+        fetch = FetchType.LAZY,
     )
     @NotAudited
     override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
-
-    //Common properties between klage/anke
+    // Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
     klager: Klager,
@@ -98,55 +119,57 @@ class Klagebehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, BehandlingWithKvalitetsvurdering, Behandling(
-    id = id,
-    previousBehandlingId = previousBehandlingId,
-    klager = klager,
-    prosessfullmektig = prosessfullmektig,
-    sakenGjelder = sakenGjelder,
-    ytelse = ytelse,
-    type = type,
-    kildeReferanse = kildeReferanse,
-    mottattKlageinstans = mottattKlageinstans,
-    modified = modified,
-    created = created,
-    tildeling = tildeling,
-    frist = frist,
-    fagsakId = fagsakId,
-    fagsystem = fagsystem,
-    dvhReferanse = dvhReferanse,
-    saksdokumenter = saksdokumenter,
-    hjemler = hjemler,
-    sattPaaVent = sattPaaVent,
-    feilregistrering = feilregistrering,
-    utfall = utfall,
-    extraUtfallSet = extraUtfallSet,
-    registreringshjemler = registreringshjemler,
-    medunderskriver = medunderskriver,
-    medunderskriverFlowState = medunderskriverFlowState,
-    ferdigstilling = ferdigstilling,
-    rolIdent = rolIdent,
-    rolFlowState = rolFlowState,
-    rolReturnedDate = rolReturnedDate,
-    tildelingHistorikk = tildelingHistorikk,
-    medunderskriverHistorikk = medunderskriverHistorikk,
-    rolHistorikk = rolHistorikk,
-    klagerHistorikk = klagerHistorikk,
-    fullmektigHistorikk = fullmektigHistorikk,
-    sattPaaVentHistorikk = sattPaaVentHistorikk,
-    previousSaksbehandlerident = previousSaksbehandlerident,
-    gosysOppgaveId = gosysOppgaveId,
-    gosysOppgaveUpdate = gosysOppgaveUpdate,
-    tilbakekreving = tilbakekreving,
-    ignoreGosysOppgave = ignoreGosysOppgave,
-    gosysOppgaveRequired = gosysOppgaveRequired,
-    initiatingSystem = initiatingSystem,
-) {
-    override fun toString(): String {
-        return "Klagebehandling(id=$id, " +
-                "modified=$modified, " +
-                "created=$created)"
-    }
+) : Behandling(
+        id = id,
+        previousBehandlingId = previousBehandlingId,
+        klager = klager,
+        prosessfullmektig = prosessfullmektig,
+        sakenGjelder = sakenGjelder,
+        ytelse = ytelse,
+        type = type,
+        kildeReferanse = kildeReferanse,
+        mottattKlageinstans = mottattKlageinstans,
+        modified = modified,
+        created = created,
+        tildeling = tildeling,
+        frist = frist,
+        fagsakId = fagsakId,
+        fagsystem = fagsystem,
+        dvhReferanse = dvhReferanse,
+        saksdokumenter = saksdokumenter,
+        hjemler = hjemler,
+        sattPaaVent = sattPaaVent,
+        feilregistrering = feilregistrering,
+        utfall = utfall,
+        extraUtfallSet = extraUtfallSet,
+        registreringshjemler = registreringshjemler,
+        medunderskriver = medunderskriver,
+        medunderskriverFlowState = medunderskriverFlowState,
+        ferdigstilling = ferdigstilling,
+        rolIdent = rolIdent,
+        rolFlowState = rolFlowState,
+        rolReturnedDate = rolReturnedDate,
+        tildelingHistorikk = tildelingHistorikk,
+        medunderskriverHistorikk = medunderskriverHistorikk,
+        rolHistorikk = rolHistorikk,
+        klagerHistorikk = klagerHistorikk,
+        fullmektigHistorikk = fullmektigHistorikk,
+        sattPaaVentHistorikk = sattPaaVentHistorikk,
+        previousSaksbehandlerident = previousSaksbehandlerident,
+        gosysOppgaveId = gosysOppgaveId,
+        gosysOppgaveUpdate = gosysOppgaveUpdate,
+        tilbakekreving = tilbakekreving,
+        ignoreGosysOppgave = ignoreGosysOppgave,
+        gosysOppgaveRequired = gosysOppgaveRequired,
+        initiatingSystem = initiatingSystem,
+    ),
+    BehandlingWithVarsletBehandlingstid,
+    BehandlingWithMottakDokument,
+    BehandlingWithKvalitetsvurdering {
+    override fun toString(): String =
+        "Klagebehandling(id=$id, " +
+            "modified=$modified, " +
+            "created=$created)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -157,7 +180,5 @@ class Klagebehandling(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 }

@@ -11,7 +11,7 @@ import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
-import java.util.*
+import java.util.UUID
 
 data class Mottak(
     val type: Type,
@@ -40,17 +40,18 @@ data class Mottak(
     val gosysOppgaveId: Long?,
 ) {
     enum class Sender {
-        FAGSYSTEM, KABIN
+        FAGSYSTEM,
+        KABIN,
     }
 
-    fun generateFrist(): LocalDate {
-        return frist ?: getDefaultFristForType(sakMottattKaDato = sakMottattKaDato, type = type)
-    }
+    fun generateFrist(): LocalDate = frist ?: getDefaultFristForType(sakMottattKaDato = sakMottattKaDato, type = type)
 
-    private fun getDefaultFristForType(sakMottattKaDato: LocalDateTime, type: Type): LocalDate {
-        return when (type) {
+    private fun getDefaultFristForType(
+        sakMottattKaDato: LocalDateTime,
+        type: Type,
+    ): LocalDate =
+        when (type) {
             Type.ANKE -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(0))
             else -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
         }
-    }
 }

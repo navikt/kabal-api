@@ -5,29 +5,29 @@ import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
-
+import java.util.UUID
 
 class V121__dvh_utfall_rename : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 update klage.kafka_event
                     set json_payload = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
                     where ke.type = 'STATS_DVH'
                       and ke.json_payload like '%Stadfestelse%'
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val kafkaEventId = rows.getObject(1, UUID::class.java)
                         val jsonPayload = rows.getString(2)
@@ -36,9 +36,10 @@ class V121__dvh_utfall_rename : BaseJavaMigration() {
                             jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                         if (statistikkTilDVH.resultat == "Stadfestelse") {
-                            val modifiedVersion = statistikkTilDVH.copy(
-                                resultat = Utfall.STADFESTELSE.navn,
-                            )
+                            val modifiedVersion =
+                                statistikkTilDVH.copy(
+                                    resultat = Utfall.STADFESTELSE.navn,
+                                )
 
                             preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
                             preparedStatement.setObject(2, kafkaEventId)

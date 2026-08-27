@@ -22,16 +22,15 @@ class KabalInnstillingerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getPotentialSaksbehandlere(behandling: Behandling): Saksbehandlere {
-        return kabalInnstillingerClient.searchSaksbehandlere(
+    fun getPotentialSaksbehandlere(behandling: Behandling): Saksbehandlere =
+        kabalInnstillingerClient.searchSaksbehandlere(
             SakInput(
                 ytelseId = behandling.ytelse.id,
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
                 fagsystemId = behandling.fagsystem.id,
-            )
+            ),
         )
-    }
 
     fun getPotentialMedunderskrivere(behandling: Behandling): Medunderskrivere {
         if (behandling.tildeling == null) {
@@ -41,42 +40,46 @@ class KabalInnstillingerService(
             MedunderskrivereInput(
                 enhet = behandling.tildeling!!.enhet!!,
                 navIdent = behandling.tildeling!!.saksbehandlerident!!,
-                sak = SakInput(
-                    fnr = behandling.sakenGjelder.partId.value,
-                    sakId = behandling.fagsakId,
-                    fagsystemId = behandling.fagsystem.id,
-                    ytelseId = behandling.ytelse.id,
-                )
-            )
+                sak =
+                    SakInput(
+                        fnr = behandling.sakenGjelder.partId.value,
+                        sakId = behandling.fagsakId,
+                        fagsystemId = behandling.fagsystem.id,
+                        ytelseId = behandling.ytelse.id,
+                    ),
+            ),
         )
     }
 
-    fun getPotentialROL(behandling: Behandling): Saksbehandlere {
-        return kabalInnstillingerClient.searchROL(
+    fun getPotentialROL(behandling: Behandling): Saksbehandlere =
+        kabalInnstillingerClient.searchROL(
             SakInput(
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
                 fagsystemId = behandling.fagsystem.id,
                 ytelseId = behandling.ytelse.id,
-            )
+            ),
         )
-    }
 
-    //TODO: Bør vi ha et cache her? Kan være et problem om leder gir nye tilganger, kanskje et kortere cache?
-    fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> {
-        return kabalInnstillingerClient.getSaksbehandlersTildelteYtelser(navIdent).ytelseIdList.map {
+    // TODO: Bør vi ha et cache her? Kan være et problem om leder gir nye tilganger, kanskje et kortere cache?
+    fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> =
+        kabalInnstillingerClient.getSaksbehandlersTildelteYtelser(navIdent).ytelseIdList.map {
             Ytelse.of(it)
         }
-    }
 
-    fun getTildelteYtelserForEnhet(enhet: String): Set<Ytelse> {
-        return kabalInnstillingerClient.getTildelteYtelserForEnhet(enhet).ytelseIdList.map {
-            Ytelse.of(it)
-        }.toSet()
-    }
+    fun getTildelteYtelserForEnhet(enhet: String): Set<Ytelse> =
+        kabalInnstillingerClient
+            .getTildelteYtelserForEnhet(enhet)
+            .ytelseIdList
+            .map {
+                Ytelse.of(it)
+            }.toSet()
 
     @Cacheable(CacheWithJCacheConfiguration.HJEMLER_FOR_YTELSE_CACHE)
-    fun getRegisteredHjemlerForYtelse(ytelse: Ytelse, includeSE: Boolean): Set<Hjemmel> {
+    fun getRegisteredHjemlerForYtelse(
+        ytelse: Ytelse,
+        includeSE: Boolean,
+    ): Set<Hjemmel> {
         val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse = ytelse, includeSE = includeSE)
         return hjemler.map { Hjemmel.of(it) }.toSet()
     }

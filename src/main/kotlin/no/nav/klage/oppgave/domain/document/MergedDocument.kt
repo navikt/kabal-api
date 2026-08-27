@@ -1,11 +1,18 @@
 package no.nav.klage.oppgave.domain.document
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "merged_document", schema = "klage")
@@ -24,7 +31,6 @@ class MergedDocument(
     @Column(name = "created", nullable = false)
     val created: LocalDateTime = LocalDateTime.now(),
 ) {
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -34,12 +40,8 @@ class MergedDocument(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "MergedDocument(id=$id, title='$title', documentsToMerge=$documentsToMerge, hash='$hash', created=$created)"
-    }
-
+    override fun toString(): String =
+        "MergedDocument(id=$id, title='$title', documentsToMerge=$documentsToMerge, hash='$hash', created=$created)"
 }

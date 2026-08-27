@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.clients.kaka.model.request
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class SaksdataInput(
     val sakenGjelder: String,

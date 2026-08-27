@@ -1,6 +1,11 @@
 package no.nav.klage.oppgave.clients.klanke
 
-import no.nav.klage.oppgave.clients.klagefssproxy.domain.*
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
@@ -15,20 +20,22 @@ class KlankeClient(
     private val klankeWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getSakWithAppAccess(sakId: String, input: GetSakAppAccessInput): SakFromKlanke {
-        return klankeWebClient.post()
+    fun getSakWithAppAccess(
+        sakId: String,
+        input: GetSakAppAccessInput,
+    ): SakFromKlanke =
+        klankeWebClient
+            .post()
             .uri { it.path("/rest/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -36,20 +43,21 @@ class KlankeClient(
                     functionName = ::getSakWithAppAccess.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<SakFromKlanke>()
+            }.bodyToMono<SakFromKlanke>()
             .block()
             ?: throw RuntimeException("Empty result")
-    }
 
-    fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
-        klankeWebClient.post()
+    fun setToHandledInKabal(
+        sakId: String,
+        input: HandledInKabalInput,
+    ) {
+        klankeWebClient
+            .post()
             .uri { it.path("/rest/saker/{sakId}/handledinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlankeScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlankeScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -57,19 +65,21 @@ class KlankeClient(
                     functionName = ::setToHandledInKabal.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToFinishedWithAppAccess(sakId: String, input: SakFinishedInput) {
-        klankeWebClient.post()
+    fun setToFinishedWithAppAccess(
+        sakId: String,
+        input: SakFinishedInput,
+    ) {
+        klankeWebClient
+            .post()
             .uri { it.path("/rest/saker/{sakId}/finished").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -77,19 +87,21 @@ class KlankeClient(
                     functionName = ::setToFinishedWithAppAccess.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToAssigned(sakId: String, input: SakAssignedInput) {
-        klankeWebClient.post()
+    fun setToAssigned(
+        sakId: String,
+        input: SakAssignedInput,
+    ) {
+        klankeWebClient
+            .post()
             .uri { it.path("/rest/saker/{sakId}/assignedinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -97,19 +109,21 @@ class KlankeClient(
                     functionName = ::setToAssigned.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToFeilregistrertInKabal(sakId: String, input: FeilregistrertInKabalInput) {
-        klankeWebClient.post()
+    fun setToFeilregistrertInKabal(
+        sakId: String,
+        input: FeilregistrertInKabalInput,
+    ) {
+        klankeWebClient
+            .post()
             .uri { it.path("/rest/saker/{sakId}/feilregistrertinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlankeScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -117,9 +131,7 @@ class KlankeClient(
                     functionName = ::setToFeilregistrertInKabal.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
-
 }

@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.*
-
+import java.util.UUID
 
 @RestController
 @ProtectedWithClaims(issuer = ISSUER_AAD)
@@ -25,14 +24,10 @@ class SmartEditorAccessController(
     }
 
     @GetMapping
-    fun getWriteAccessForAll(): SmartDocumentsWriteAccessList {
-        return smartDocumentAccessService.getSmartDocumentWriteAccessList()
-    }
+    fun getWriteAccessForAll(): SmartDocumentsWriteAccessList = smartDocumentAccessService.getSmartDocumentWriteAccessList()
 
     @GetMapping("/{documentId}")
     fun getWriteAccess(
         @PathVariable documentId: UUID,
-        ): SmartDocumentWriteAccess {
-        return smartDocumentAccessService.getSmartDocumentWriteAccess(documentId)
-    }
+    ): SmartDocumentWriteAccess = smartDocumentAccessService.getSmartDocumentWriteAccess(documentId)
 }

@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.api.view
 import no.nav.klage.dokument.api.view.AddressInput
 
 data class IdentifikatorInput(
-    val identifikator: String
+    val identifikator: String,
 )
 
 data class SearchPartWithUtsendingskanalInput(

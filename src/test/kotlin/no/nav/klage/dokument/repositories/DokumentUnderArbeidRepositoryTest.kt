@@ -18,12 +18,11 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -36,28 +35,29 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var opplastetDokumentUnderArbeidAsVedleggRepository: OpplastetDokumentUnderArbeidAsVedleggRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `persist opplastet hoveddokument works`() {
         val behandlingId = UUID.randomUUID()
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            markertFerdig = LocalDateTime.now(),
-            size = 1002,
-            name = "Vedtak.pdf",
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
-        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(LocalDateTime.now(), "S123456")
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                markertFerdig = LocalDateTime.now(),
+                size = 1002,
+                name = "Vedtak.pdf",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
+        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = LocalDateTime.now(), saksbehandlerIdent = "S123456")
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(LocalDateTime.now())
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -71,19 +71,20 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
     @Test
     fun `hoveddokument can have vedlegg`() {
         val behandlingId = UUID.randomUUID()
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            size = 1001,
-            name = "Vedtak.pdf",
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = "Vedtak.pdf",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
 
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -100,7 +101,7 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
-            )
+            ),
         )
 
         testEntityManager.flush()
@@ -113,29 +114,31 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
     @Test
     fun `hoveddokument can have brevmottakerinfo`() {
         val behandlingId = UUID.randomUUID()
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            size = 1001,
-            name = "Vedtak.pdf",
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            avsenderMottakerInfoSet = mutableSetOf(
-                Brevmottaker(
-                    technicalPartId = UUID.randomUUID(),
-                    identifikator = "123",
-                    localPrint = false,
-                    forceCentralPrint = false,
-                    address = null,
-                    navn = null,
-                )
-            ),
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = "Vedtak.pdf",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                avsenderMottakerInfoSet =
+                    mutableSetOf(
+                        Brevmottaker(
+                            technicalPartId = UUID.randomUUID(),
+                            identifikator = "123",
+                            localPrint = false,
+                            forceCentralPrint = false,
+                            address = null,
+                            navn = null,
+                        ),
+                    ),
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
         testEntityManager.flush()
@@ -151,7 +154,7 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
-            )
+            ),
         )
 
         testEntityManager.flush()
@@ -165,19 +168,20 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
         val behandlingId = UUID.randomUUID()
         val name = "some name"
 
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            size = 1001,
-            name = "other name",
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = "other name",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
         testEntityManager.flush()
@@ -198,19 +202,20 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
         val behandlingId = UUID.randomUUID()
         val maxLengthName = "a".repeat(DokumentUnderArbeid.MAX_NAME_LENGTH)
 
-        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
-            mellomlagerId = UUID.randomUUID().toString(),
-            mellomlagretDate = LocalDateTime.now(),
-            size = 1001,
-            name = maxLengthName,
-            behandlingId = behandlingId,
-            dokumentType = DokumentType.BREV,
-            creatorIdent = "null",
-            creatorRole = KABAL_SAKSBEHANDLING,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = maxLengthName,
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
         testEntityManager.flush()
@@ -242,5 +247,4 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             )
         }
     }
-
 }

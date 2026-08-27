@@ -4,7 +4,7 @@ import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class BehandlingDetaljerView(
     val id: UUID,
@@ -56,7 +56,6 @@ data class BehandlingDetaljerView(
     val tilbakekreving: Boolean,
     val timesPreviouslyExtended: Int,
 ) {
-
     data class ProtectedFamilyMemberView(
         val statusList: List<PartStatus>,
     )
@@ -120,16 +119,18 @@ data class BehandlingDetaljerView(
             FULLMAKT,
             RESERVERT_I_KRR,
             DELT_ANSVAR,
-
         }
     }
 
     enum class Sex {
-        MANN, KVINNE, UKJENT
+        MANN,
+        KVINNE,
+        UKJENT,
     }
 
     enum class IdType {
-        FNR, ORGNR
+        FNR,
+        ORGNR,
     }
 
     interface IdPart {
@@ -144,7 +145,8 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val address: Address?,
-    ): PartBase, IdPart
+    ) : PartBase,
+        IdPart
 
     data class PartView(
         override val id: UUID,
@@ -155,7 +157,9 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val address: Address?,
-    ): PartBase, IdPart, TechnicalPartId
+    ) : PartBase,
+        IdPart,
+        TechnicalPartId
 
     data class SearchPartViewWithUtsendingskanal(
         override val identifikator: String,
@@ -166,7 +170,8 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
-    ): PartBase, IdPart
+    ) : PartBase,
+        IdPart
 
     data class PartViewWithUtsendingskanal(
         override val id: UUID,
@@ -178,7 +183,9 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
-    ): PartBase, IdPart, TechnicalPartId
+    ) : PartBase,
+        IdPart,
+        TechnicalPartId
 
     data class Address(
         val adresselinje1: String?,
@@ -198,7 +205,8 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val sex: Sex,
         val address: Address?,
-    ): PartBase, IdPart
+    ) : PartBase,
+        IdPart
 
     data class SakenGjelderView(
         override val id: UUID,
@@ -210,7 +218,9 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val sex: Sex,
         val address: Address?,
-    ): PartBase, IdPart, TechnicalPartId
+    ) : PartBase,
+        IdPart,
+        TechnicalPartId
 
     data class SakenGjelderViewWithUtsendingskanal(
         override val id: UUID,
@@ -224,15 +234,19 @@ data class BehandlingDetaljerView(
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
         val protectedFamilyMembers: List<ProtectedFamilyMemberView>,
-    ): PartBase, IdPart, TechnicalPartId
+    ) : PartBase,
+        IdPart,
+        TechnicalPartId
 
-    enum class Utsendingskanal(val navn: String) {
+    enum class Utsendingskanal(
+        val navn: String,
+    ) {
         SENTRAL_UTSKRIFT("Sentral utskrift"),
         SDP("Digital Postkasse Innbygger"),
         NAV_NO("Nav.no"),
         LOKAL_UTSKRIFT("Lokal utskrift"),
         INGEN_DISTRIBUSJON("Ingen distribusjon"),
         TRYGDERETTEN("Trygderetten"),
-        DPVT("Taushetsbelagt digital post til virksomhet")
+        DPVT("Taushetsbelagt digital post til virksomhet"),
     }
 }

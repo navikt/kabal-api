@@ -13,7 +13,7 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class DocumentPolicyService(
@@ -21,7 +21,6 @@ class DocumentPolicyService(
     private val saksbehandlerService: SaksbehandlerService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
 ) {
-
     fun validateDokumentUnderArbeidAction(
         behandling: Behandling,
         dokumentType: DuaAccessPolicy.DokumentType,
@@ -49,26 +48,51 @@ class DocumentPolicyService(
 
         val innloggetSaksbehandler = saksbehandler ?: tokenUtil.getIdent()
 
-        val user = when {
-            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
-            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
-            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
-            isRol ?: saksbehandlerService.isROL(innloggetSaksbehandler) -> DuaAccessPolicy.User.ROL
-            isSaksbehandler ?: saksbehandlerService.isSaksbehandler(innloggetSaksbehandler) -> DuaAccessPolicy.User.SAKSBEHANDLER
-            else -> throw MissingTilgangException("Bruker har ikke tilgang til å håndtere dokumenter. Mangler rolle.")
-        }
+        val user =
+            when {
+                behandling.ferdigstilling == null &&
+                    innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident
+                -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
 
-        val caseStatus = when {
-            behandling.ferdigstilling != null -> DuaAccessPolicy.CaseStatus.FULLFOERT
-            behandling.tildeling == null -> DuaAccessPolicy.CaseStatus.LEDIG
-            behandling.medunderskriverFlowState == FlowState.SENT && behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_RETURNED_FROM_ROL
-            behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.RETURNED_FROM_ROL
-            behandling.medunderskriverFlowState == FlowState.SENT && behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_ROL
-            behandling.medunderskriverFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU
-            behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_ROL
-            behandling.medunderskriverFlowState != FlowState.SENT && behandling.rolFlowState != FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_SAKSBEHANDLER
-            else -> throw DokumentValidationException("Ukjent case status for behandling med id ${behandling.id}")
-        }
+                behandling.ferdigstilling == null &&
+                    innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident
+                -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
+
+                behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
+
+                isRol ?: saksbehandlerService.isROL(innloggetSaksbehandler) -> DuaAccessPolicy.User.ROL
+
+                isSaksbehandler ?: saksbehandlerService.isSaksbehandler(innloggetSaksbehandler) -> DuaAccessPolicy.User.SAKSBEHANDLER
+
+                else -> throw MissingTilgangException("Bruker har ikke tilgang til å håndtere dokumenter. Mangler rolle.")
+            }
+
+        val caseStatus =
+            when {
+                behandling.ferdigstilling != null -> DuaAccessPolicy.CaseStatus.FULLFOERT
+
+                behandling.tildeling == null -> DuaAccessPolicy.CaseStatus.LEDIG
+
+                behandling.medunderskriverFlowState == FlowState.SENT &&
+                    behandling.rolFlowState == FlowState.RETURNED
+                -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_RETURNED_FROM_ROL
+
+                behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.RETURNED_FROM_ROL
+
+                behandling.medunderskriverFlowState == FlowState.SENT &&
+                    behandling.rolFlowState == FlowState.SENT
+                -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_ROL
+
+                behandling.medunderskriverFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU
+
+                behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_ROL
+
+                behandling.medunderskriverFlowState != FlowState.SENT &&
+                    behandling.rolFlowState != FlowState.SENT
+                -> DuaAccessPolicy.CaseStatus.WITH_SAKSBEHANDLER
+
+                else -> throw DokumentValidationException("Ukjent case status for behandling med id ${behandling.id}")
+            }
 
         DuaAccessPolicy.validateDuaAccess(
             user = user,
@@ -76,18 +100,18 @@ class DocumentPolicyService(
             documentType = dokumentType,
             parent = parentDokumentType,
             creator = Creator.valueOf(documentRole.name),
-            action = action
+            action = action,
         )
     }
 
-    fun getParentDokumentType(
-        parentDuaId: UUID?,
-    ): DuaAccessPolicy.Parent {
+    fun getParentDokumentType(parentDuaId: UUID?): DuaAccessPolicy.Parent {
         if (parentDuaId == null) {
             return DuaAccessPolicy.Parent.NONE
         } else {
-            val dua = dokumentUnderArbeidRepository.findById(parentDuaId)
-                .orElseThrow { DokumentValidationException("Finner ikke dokument med id $parentDuaId") }
+            val dua =
+                dokumentUnderArbeidRepository
+                    .findById(parentDuaId)
+                    .orElseThrow { DokumentValidationException("Finner ikke dokument med id $parentDuaId") }
 
             return if (dua is DokumentUnderArbeidAsSmartdokument) {
                 when (dua.smartEditorTemplateId) {
@@ -105,19 +129,23 @@ class DocumentPolicyService(
                 }
             } else {
                 when (dua.getType()) {
-                    DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> throw RuntimeException("Journalført dokument kan ikke være forelder til et annet dokument")
+                    DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> throw RuntimeException(
+                        "Journalført dokument kan ikke være forelder til et annet dokument",
+                    )
+
                     DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.Parent.SMART_DOCUMENT
+
                     DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.Parent.UPLOADED
                 }
             }
         }
     }
 
-    fun getDokumentType(
-        duaId: UUID,
-    ): DuaAccessPolicy.DokumentType {
-        val dua = dokumentUnderArbeidRepository.findById(duaId)
-            .orElseThrow { DokumentValidationException("Finner ikke dokument med id $duaId") }
+    fun getDokumentType(duaId: UUID): DuaAccessPolicy.DokumentType {
+        val dua =
+            dokumentUnderArbeidRepository
+                .findById(duaId)
+                .orElseThrow { DokumentValidationException("Finner ikke dokument med id $duaId") }
 
         return if (dua is DokumentUnderArbeidAsSmartdokument) {
             when (dua.smartEditorTemplateId) {

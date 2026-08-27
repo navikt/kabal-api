@@ -3,7 +3,15 @@ package no.nav.klage.kaptein.service
 import jakarta.persistence.EntityManager
 import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -24,10 +32,9 @@ class KapteinService(
     private val behandlingRepository: BehandlingRepository,
     private val entityManager: EntityManager,
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
-    @Value("\${KAPTEIN_BEHANDLING_TOPIC}")
+    @Value($$"${KAPTEIN_BEHANDLING_TOPIC}")
     private val kapteinBehandlingTopic: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -56,8 +63,8 @@ class KapteinService(
             streamed.forEach { behandling ->
                 val view = behandling.toAnonymousBehandlingView()
                 behandlingYtelseCounter[behandling.ytelse.id] =
-                    behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
-                viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(view.ytelseId, 0) + 1
+                    behandlingYtelseCounter.getOrDefault(key = behandling.ytelse.id, defaultValue = 0) + 1
+                viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(key = view.ytelseId, defaultValue = 0) + 1
                 writer.write(jacksonObjectMapper.writeValueAsString(view) + "\n")
                 entityManager.detach(behandling)
                 if (count++ % 100 == 0) {
@@ -80,7 +87,10 @@ class KapteinService(
         )
     }
 
-    private fun publishToKafkaTopic(key: String, json: String?) {
+    private fun publishToKafkaTopic(
+        key: String,
+        json: String?,
+    ) {
         logger.debug("Sending to Kafka topic: {}", kapteinBehandlingTopic)
         runCatching {
             aivenKafkaTemplate.send(kapteinBehandlingTopic, key, json).get()
@@ -90,20 +100,41 @@ class KapteinService(
         }
     }
 
-    private fun Behandling.toAnonymousBehandlingView(): AnonymousBehandlingView {
-        return when (this) {
-            is Klagebehandling -> mapKlagebehandlingToAnonymousBehandlingView(this)
-            is Ankebehandling -> mapAnkebehandlingToAnonymousBehandlingView(this)
-            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
-            is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
-            is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
-            is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
-            else -> error("Unknown Behandling subtype: ${this::class.java.name}")
-        }
-    }
+    private fun Behandling.toAnonymousBehandlingView(): AnonymousBehandlingView =
+        when (this) {
+            is Klagebehandling -> {
+                mapKlagebehandlingToAnonymousBehandlingView(this)
+            }
 
-    private fun mapOmgjoeringskravbehandlingToAnonymousBehandlingView(behandling: Omgjoeringskravbehandling): AnonymousBehandlingView {
-        return AnonymousBehandlingView(
+            is Ankebehandling -> {
+                mapAnkebehandlingToAnonymousBehandlingView(this)
+            }
+
+            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> {
+                mapBehandlingITrygderettenToAnonymousBehandlingView(
+                    this,
+                )
+            }
+
+            is BehandlingEtterTrygderettenOpphevet -> {
+                mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
+            }
+
+            is Omgjoeringskravbehandling -> {
+                mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
+            }
+
+            is Gjenopptaksbehandling -> {
+                mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
+            }
+
+            else -> {
+                error("Unknown Behandling subtype: ${this::class.java.name}")
+            }
+        }
+
+    private fun mapOmgjoeringskravbehandlingToAnonymousBehandlingView(behandling: Omgjoeringskravbehandling): AnonymousBehandlingView =
+        AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
             mottattVedtaksinstans = null,
@@ -133,10 +164,11 @@ class KapteinService(
             previousRegistreringshjemmelIdList = null,
             initiatingSystem = behandling.initiatingSystem,
         )
-    }
 
-    private fun mapBehandlingEtterTROpphevetToAnonymousBehandlingView(behandling: BehandlingEtterTrygderettenOpphevet): AnonymousBehandlingView {
-        return AnonymousBehandlingView(
+    private fun mapBehandlingEtterTROpphevetToAnonymousBehandlingView(
+        behandling: BehandlingEtterTrygderettenOpphevet,
+    ): AnonymousBehandlingView =
+        AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
             mottattVedtaksinstans = null,
@@ -166,10 +198,9 @@ class KapteinService(
             previousRegistreringshjemmelIdList = null,
             initiatingSystem = behandling.initiatingSystem,
         )
-    }
 
-    private fun mapAnkebehandlingToAnonymousBehandlingView(behandling: Ankebehandling): AnonymousBehandlingView {
-        return AnonymousBehandlingView(
+    private fun mapAnkebehandlingToAnonymousBehandlingView(behandling: Ankebehandling): AnonymousBehandlingView =
+        AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
             mottattVedtaksinstans = null,
@@ -199,10 +230,9 @@ class KapteinService(
             previousRegistreringshjemmelIdList = null,
             initiatingSystem = behandling.initiatingSystem,
         )
-    }
 
-    private fun mapKlagebehandlingToAnonymousBehandlingView(behandling: Klagebehandling): AnonymousBehandlingView {
-        return AnonymousBehandlingView(
+    private fun mapKlagebehandlingToAnonymousBehandlingView(behandling: Klagebehandling): AnonymousBehandlingView =
+        AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = behandling.avsenderEnhetFoersteinstans,
             mottattVedtaksinstans = behandling.mottattVedtaksinstans,
@@ -232,10 +262,9 @@ class KapteinService(
             previousRegistreringshjemmelIdList = null,
             initiatingSystem = behandling.initiatingSystem,
         )
-    }
 
-    private fun mapGjenopptaksbehandlingToAnonymousBehandlingView(behandling: Gjenopptaksbehandling): AnonymousBehandlingView {
-        return AnonymousBehandlingView(
+    private fun mapGjenopptaksbehandlingToAnonymousBehandlingView(behandling: Gjenopptaksbehandling): AnonymousBehandlingView =
+        AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
             mottattVedtaksinstans = null,
@@ -265,7 +294,6 @@ class KapteinService(
             previousRegistreringshjemmelIdList = null,
             initiatingSystem = behandling.initiatingSystem,
         )
-    }
 
     private fun mapBehandlingITrygderettenToAnonymousBehandlingView(behandling: BehandlingITrygderetten): AnonymousBehandlingView {
         behandling as Behandling
@@ -305,21 +333,19 @@ class KapteinService(
         )
     }
 
-    private fun Behandling.mapToVedtakView(): AnonymousBehandlingView.VedtakView {
-        return AnonymousBehandlingView.VedtakView(
+    private fun Behandling.mapToVedtakView(): AnonymousBehandlingView.VedtakView =
+        AnonymousBehandlingView.VedtakView(
             id = id,
             utfallId = utfall?.id,
             hjemmelIdSet = registreringshjemler.map { it.id }.toSet(),
         )
-    }
 
-    private fun Feilregistrering?.toView(): AnonymousBehandlingView.FeilregistreringView? {
-        return this?.let {
+    private fun Feilregistrering?.toView(): AnonymousBehandlingView.FeilregistreringView? =
+        this?.let {
             AnonymousBehandlingView.FeilregistreringView(
                 registered = it.registered,
                 reason = it.reason,
-                fagsystemId = it.fagsystem.id
+                fagsystemId = it.fagsystem.id,
             )
         }
-    }
 }

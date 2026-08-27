@@ -8,21 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class KabalSmartEditorApiClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${KABAL_SMART_EDITOR_API_BASE_URL}")
+    @Value($$"${KABAL_SMART_EDITOR_API_BASE_URL}")
     private lateinit var kabalSmartEditorApiURL: String
 
     @Bean
-    fun kabalSmartEditorApiWebClient(): WebClient {
-        return webClientBuilder
+    fun kabalSmartEditorApiWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(kabalSmartEditorApiURL)
             .build()
-    }
 }

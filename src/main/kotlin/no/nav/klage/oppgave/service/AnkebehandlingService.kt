@@ -29,47 +29,52 @@ class AnkebehandlingService(
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createAnkebehandlingFromMottak(
-        mottak: Mottak,
-    ): Ankebehandling {
+    fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
-        val ankebehandling = ankebehandlingRepository.save(
-            Ankebehandling(
-                klager = mottak.klager.copy(),
-                sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
-                prosessfullmektig = mottak.prosessfullmektig,
-                ytelse = mottak.ytelse,
-                type = mottak.type,
-                kildeReferanse = mottak.kildeReferanse,
-                dvhReferanse = mottak.dvhReferanse,
-                fagsystem = mottak.fagsystem,
-                fagsakId = mottak.fagsakId,
-                mottattKlageinstans = mottak.sakMottattKaDato,
-                tildeling = null,
-                frist = mottak.generateFrist(),
-                saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                hjemler = mottak.hjemler,
-                klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
-                previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                gosysOppgaveId = mottak.gosysOppgaveId,
-                tilbakekreving = false,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
-                previousBehandlingId = mottak.forrigeBehandlingId,
+        val ankebehandling =
+            ankebehandlingRepository.save(
+                Ankebehandling(
+                    klager = mottak.klager.copy(),
+                    sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                    prosessfullmektig = mottak.prosessfullmektig,
+                    ytelse = mottak.ytelse,
+                    type = mottak.type,
+                    kildeReferanse = mottak.kildeReferanse,
+                    dvhReferanse = mottak.dvhReferanse,
+                    fagsystem = mottak.fagsystem,
+                    fagsakId = mottak.fagsakId,
+                    mottattKlageinstans = mottak.sakMottattKaDato,
+                    tildeling = null,
+                    frist = mottak.generateFrist(),
+                    saksdokumenter =
+                        dokumentService.createSaksdokumenterFromJournalpostIdList(
+                            mottak.mottakDokument.map { it.journalpostId },
+                        ),
+                    kakaKvalitetsvurderingId =
+                        kakaApiGateway
+                            .createKvalitetsvurdering(
+                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                            ).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                    hjemler = mottak.hjemler,
+                    klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                    paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
+                    previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
+                    tilbakekreving = false,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                    previousBehandlingId = mottak.forrigeBehandlingId,
+                ),
             )
-        )
 
         ankebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
@@ -79,37 +84,39 @@ class AnkebehandlingService(
             behandlingId = ankebehandling.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = true,
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = ankebehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = systembrukerIdent,
-                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = ankebehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = ankebehandling.id,
+                        ),
+                    ),
+            ),
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = ankebehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = systembrukerIdent,
-                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = ankebehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = ankebehandling.id,
+                        ),
+                    ),
+            ),
         )
 
         ankebehandling.opprettetSendt = true
@@ -118,65 +125,67 @@ class AnkebehandlingService(
     }
 
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
-        val ankebehandling = ankebehandlingRepository.save(
-            Ankebehandling(
-                previousBehandlingId = ankeITrygderettenbehandling.id,
-                klager = ankeITrygderettenbehandling.klager.copy(),
-                sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
-                prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,
-                ytelse = ankeITrygderettenbehandling.ytelse,
-                type = Type.ANKE,
-                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
-                fagsystem = ankeITrygderettenbehandling.fagsystem,
-                fagsakId = ankeITrygderettenbehandling.fagsakId,
-                mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                tildeling = ankeITrygderettenbehandling.tildeling,
-                frist = LocalDate.now() + Period.ofWeeks(0),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = 2,
-                hjemler = ankeITrygderettenbehandling.hjemler,
-                klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
-                paaanketVedtaksdato = ankeITrygderettenbehandling.paaanketVedtaksdato,
-                forsterketRett = ankeITrygderettenbehandling.forsterketRett,
-                previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
-                tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        val ankebehandling =
+            ankebehandlingRepository.save(
+                Ankebehandling(
+                    previousBehandlingId = ankeITrygderettenbehandling.id,
+                    klager = ankeITrygderettenbehandling.klager.copy(),
+                    sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
+                    prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,
+                    ytelse = ankeITrygderettenbehandling.ytelse,
+                    type = Type.ANKE,
+                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
+                    fagsystem = ankeITrygderettenbehandling.fagsystem,
+                    fagsakId = ankeITrygderettenbehandling.fagsakId,
+                    mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
+                    tildeling = ankeITrygderettenbehandling.tildeling,
+                    frist = LocalDate.now() + Period.ofWeeks(0),
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = ankeITrygderettenbehandling.hjemler,
+                    klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
+                    paaanketVedtaksdato = ankeITrygderettenbehandling.paaanketVedtaksdato,
+                    forsterketRett = ankeITrygderettenbehandling.forsterketRett,
+                    previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
+                    gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
+                    tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                ),
             )
-        )
         logger.debug(
             "Created ankebehandling {} from ankeITrygderettenbehandling {}",
             ankebehandling.id,
-            ankeITrygderettenbehandling.id
+            ankeITrygderettenbehandling.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = ankebehandling.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = true,
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = ankebehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
-                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = ankebehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
+                            felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = ankebehandling.id,
+                        ),
+                    ),
+            ),
         )
 
-        //TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
+        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
 
         return ankebehandling
     }

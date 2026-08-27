@@ -15,18 +15,17 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class LostAccessService(
     private val behandlingRepository: BehandlingRepository,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val tilgangService: TilgangService,
     private val schedulerHealthGate: SchedulerHealthGate,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -58,58 +57,31 @@ class LostAccessService(
         val lostAccessNotifications = klageNotificationsApiClient.getLostAccessNotifications()
         logger.debug("Number of lost-access notifications already in the system: ${lostAccessNotifications.size}")
 
-        //Create notifications where sbh have lost access
+        // Create notifications where sbh have lost access
         tildelteBehandlinger.forEach { behandling ->
             val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
             if (lostAccessNotifications.any {
                     it.behandlingId == behandling.id && it.navIdent == tildeltSaksbehandlerIdent
-                }) {
-                //already notified
+                }
+            ) {
+                // already notified
                 return@forEach
             }
 
-            val access = tilgangService.getSaksbehandlerAccessToBehandling(
-                behandling = behandling,
-                navIdent = tildeltSaksbehandlerIdent,
-            )
-
-            if (!access.access) {
-                publishAccessNotificationEvent(
-                    createNotificationEvent = CreateLostAccessNotificationEvent(
-                        type = CreateNotificationEvent.NotificationType.LOST_ACCESS,
-                        message = "Du har mistet tilgang til oppgaven grunnet: ${access.reason}. Be lederen din om å tildele saken til noen andre eller gi deg tilgang.",
-                        recipientNavIdent = tildeltSaksbehandlerIdent,
-                        behandlingId = behandling.id,
-                        behandlingType = behandling.type,
-                        actorNavIdent = systembrukerIdent,
-                        actorNavn = systembrukerIdent,
-                        saksnummer = behandling.fagsakId,
-                        ytelse = behandling.ytelse,
-                        sourceCreatedAt = LocalDateTime.now(),
-                    ),
-                )
-            }
-        }
-
-        //Are some available again?
-        //Create notifications
-        lostAccessNotifications.forEach { lostAccessNotification ->
-            val behandling =
-                tildelteBehandlinger.find { it.id == lostAccessNotification.behandlingId && it.tildeling?.saksbehandlerident == lostAccessNotification.navIdent }
-
-            if (behandling != null) {
-                val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
-
-                val access = tilgangService.getSaksbehandlerAccessToBehandling(
+            val access =
+                tilgangService.getSaksbehandlerAccessToBehandling(
                     behandling = behandling,
                     navIdent = tildeltSaksbehandlerIdent,
                 )
 
-                if (access.access) {
-                    publishAccessNotificationEvent(
-                        createNotificationEvent = CreateGainedAccessNotificationEvent(
-                            type = CreateNotificationEvent.NotificationType.GAINED_ACCESS,
-                            message = "Du har nå tilgang til oppgaven.",
+            if (!access.access) {
+                publishAccessNotificationEvent(
+                    createNotificationEvent =
+                        CreateLostAccessNotificationEvent(
+                            type = CreateNotificationEvent.NotificationType.LOST_ACCESS,
+                            message =
+                                "Du har mistet tilgang til oppgaven grunnet: ${access.reason}. Be lederen din om å tildele saken " +
+                                    "til noen andre eller gi deg tilgang.",
                             recipientNavIdent = tildeltSaksbehandlerIdent,
                             behandlingId = behandling.id,
                             behandlingType = behandling.type,
@@ -118,7 +90,44 @@ class LostAccessService(
                             saksnummer = behandling.fagsakId,
                             ytelse = behandling.ytelse,
                             sourceCreatedAt = LocalDateTime.now(),
-                        )
+                        ),
+                )
+            }
+        }
+
+        // Are some available again?
+        // Create notifications
+        lostAccessNotifications.forEach { lostAccessNotification ->
+            val behandling =
+                tildelteBehandlinger.find {
+                    it.id == lostAccessNotification.behandlingId &&
+                        it.tildeling?.saksbehandlerident == lostAccessNotification.navIdent
+                }
+
+            if (behandling != null) {
+                val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
+
+                val access =
+                    tilgangService.getSaksbehandlerAccessToBehandling(
+                        behandling = behandling,
+                        navIdent = tildeltSaksbehandlerIdent,
+                    )
+
+                if (access.access) {
+                    publishAccessNotificationEvent(
+                        createNotificationEvent =
+                            CreateGainedAccessNotificationEvent(
+                                type = CreateNotificationEvent.NotificationType.GAINED_ACCESS,
+                                message = "Du har nå tilgang til oppgaven.",
+                                recipientNavIdent = tildeltSaksbehandlerIdent,
+                                behandlingId = behandling.id,
+                                behandlingType = behandling.type,
+                                actorNavIdent = systembrukerIdent,
+                                actorNavn = systembrukerIdent,
+                                saksnummer = behandling.fagsakId,
+                                ytelse = behandling.ytelse,
+                                sourceCreatedAt = LocalDateTime.now(),
+                            ),
                     )
                 }
             }
@@ -128,12 +137,10 @@ class LostAccessService(
         logger.debug("Time it took to check and create lost/gained access notifications: ${end - start} millis")
     }
 
-    private fun publishAccessNotificationEvent(
-        createNotificationEvent: CreateNotificationEvent
-    ) {
+    private fun publishAccessNotificationEvent(createNotificationEvent: CreateNotificationEvent) {
         kafkaInternalEventService.publishNotificationEvent(
             id = UUID.randomUUID(),
-            jsonNode = jacksonObjectMapper.valueToTree(createNotificationEvent)
+            jsonNode = jacksonObjectMapper.valueToTree(createNotificationEvent),
         )
     }
 }

@@ -4,7 +4,9 @@ import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
-import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.*
+import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.FEILET
+import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.IKKE_SENDT
+import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.SENDT
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -13,32 +15,32 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class KafkaEventRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
     @Autowired
     lateinit var kafkaEventRepository: KafkaEventRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `store event works`() {
-        val event = KafkaEvent(
-            kildeReferanse = "TEST",
-            kilde = "TEST",
-            behandlingId = UUID.randomUUID(),
-            status = IKKE_SENDT,
-            jsonPayload = "{}",
-            type = EventType.STATS_DVH
-        )
+        val event =
+            KafkaEvent(
+                kildeReferanse = "TEST",
+                kilde = "TEST",
+                behandlingId = UUID.randomUUID(),
+                status = IKKE_SENDT,
+                jsonPayload = "{}",
+                type = EventType.STATS_DVH,
+            )
 
         kafkaEventRepository.save(event)
 
@@ -56,24 +58,25 @@ class KafkaEventRepositoryTest : PostgresIntegrationTestBase() {
                 behandlingId = UUID.randomUUID(),
                 status = IKKE_SENDT,
                 jsonPayload = "{}",
-                type = EventType.STATS_DVH
+                type = EventType.STATS_DVH,
+            ),
+        )
+
+        val oldestKafkaEvent =
+            KafkaEvent(
+                kildeReferanse = "TEST",
+                kilde = "TEST",
+                behandlingId = UUID.randomUUID(),
+                status = FEILET,
+                jsonPayload = "{}",
+                type = EventType.STATS_DVH,
+                created = LocalDateTime.now().minusDays(1),
             )
-        )
-
-        val oldestKafkaEvent = KafkaEvent(
-            kildeReferanse = "TEST",
-            kilde = "TEST",
-            behandlingId = UUID.randomUUID(),
-            status = FEILET,
-            jsonPayload = "{}",
-            type = EventType.STATS_DVH,
-            created = LocalDateTime.now().minusDays(1)
-        )
         kafkaEventRepository.save(
-            oldestKafkaEvent
+            oldestKafkaEvent,
         )
 
-        //Should be ignored b/c wrong type
+        // Should be ignored b/c wrong type
         kafkaEventRepository.save(
             KafkaEvent(
                 kildeReferanse = "TEST",
@@ -81,11 +84,11 @@ class KafkaEventRepositoryTest : PostgresIntegrationTestBase() {
                 behandlingId = UUID.randomUUID(),
                 status = FEILET,
                 jsonPayload = "{}",
-                type = EventType.KLAGE_VEDTAK
-            )
+                type = EventType.KLAGE_VEDTAK,
+            ),
         )
 
-        //Should be ignored b/c status = SENDT
+        // Should be ignored b/c status = SENDT
         kafkaEventRepository.save(
             KafkaEvent(
                 kildeReferanse = "TEST",
@@ -93,18 +96,18 @@ class KafkaEventRepositoryTest : PostgresIntegrationTestBase() {
                 behandlingId = UUID.randomUUID(),
                 status = SENDT,
                 jsonPayload = "{}",
-                type = EventType.STATS_DVH
-            )
+                type = EventType.STATS_DVH,
+            ),
         )
 
         testEntityManager.flush()
 
-        val list = kafkaEventRepository.getAllByStatusInAndTypeOrderByCreated(
-            listOf(IKKE_SENDT, FEILET),
-            EventType.STATS_DVH
-        )
+        val list =
+            kafkaEventRepository.getAllByStatusInAndTypeOrderByCreated(
+                statuses = listOf(IKKE_SENDT, FEILET),
+                type = EventType.STATS_DVH,
+            )
         assertThat(list.size).isEqualTo(2)
         assertThat(list.first()).isEqualTo(oldestKafkaEvent)
     }
-
 }

@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.view
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class GosysOppgaveView(
     val id: Long,
@@ -14,9 +14,9 @@ data class GosysOppgaveView(
     val opprettetTidspunkt: LocalDateTime?,
     val beskrivelse: String?,
     val temaId: String,
-    //Må parses via kodeverk
+    // Må parses via kodeverk
     val gjelder: String?,
-    //Må parses via kodeverk
+    // Må parses via kodeverk
     val oppgavetype: String?,
     val fristFerdigstillelse: LocalDate?,
     val ferdigstiltTidspunkt: LocalDateTime?,
@@ -31,6 +31,6 @@ data class GosysOppgaveView(
         AAPNET,
         UNDER_BEHANDLING,
         FERDIGSTILT,
-        FEILREGISTRERT
+        FEILREGISTRERT,
     }
 }

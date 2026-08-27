@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.domain.behandling.embedded
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Embeddable
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import java.time.LocalDate

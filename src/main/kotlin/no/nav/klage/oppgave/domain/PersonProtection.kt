@@ -4,7 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "person_protection", schema = "klage")
@@ -29,11 +29,8 @@ class PersonProtection(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "PersonProtection(id=$id, foedselsnummer=$foedselsnummer, fortrolig=$fortrolig, strengtFortrolig=$strengtFortrolig, skjermet=$skjermet)"
-    }
+    override fun toString(): String =
+        "PersonProtection(id=$id, foedselsnummer=$foedselsnummer, fortrolig=$fortrolig, strengtFortrolig=$strengtFortrolig, skjermet=$skjermet)"
 }

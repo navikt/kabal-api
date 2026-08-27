@@ -13,37 +13,34 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class SafSelvbetjeningGraphQlClient(
     private val safSelvbetjeningWebClient: WebClient,
-    private val tokenUtil: TokenUtil
+    private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     @Retryable
-    fun getJournalpostById(
-        journalpostId: String,
-    ): GetJournalpostByIdResponse {
-        val response = runWithTimingAndLogging {
-            safSelvbetjeningWebClient.post()
-                .uri("graphql")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafSelvbetjeningScope()}"
-                )
-                .bodyValue(getJournalpostByIdQuery(journalpostId = journalpostId))
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getJournalpostById.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<GetJournalpostByIdResponse>()
-                .block() ?: throw RuntimeException("No connection to safselvbetjening")
-        }
+    fun getJournalpostById(journalpostId: String): GetJournalpostByIdResponse {
+        val response =
+            runWithTimingAndLogging {
+                safSelvbetjeningWebClient
+                    .post()
+                    .uri("graphql")
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getOnBehalfOfTokenWithSafSelvbetjeningScope()}",
+                    ).bodyValue(getJournalpostByIdQuery(journalpostId = journalpostId))
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getJournalpostById.name,
+                            classLogger = logger,
+                        )
+                    }.bodyToMono<GetJournalpostByIdResponse>()
+                    .block() ?: throw RuntimeException("No connection to safselvbetjening")
+            }
 
         return response
     }
@@ -57,5 +54,4 @@ class SafSelvbetjeningGraphQlClient(
             logger.debug("Time it took to call saf: ${end - start} millis")
         }
     }
-
 }

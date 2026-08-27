@@ -19,21 +19,21 @@ class EnsurePersongalleriAndProtectionEventListener(
     private val sakPersongalleriRepository: SakPersongalleriRepository,
     private val klageLookupGateway: KlageLookupGateway,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
         // When to consider event
-        private val BEHANDLING_OPPRETTET_FIELDS = setOf(
-            Felt.KLAGEBEHANDLING_OPPRETTET,
-            Felt.ANKEBEHANDLING_OPPRETTET,
-            Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
-            Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
-            Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
-            Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
-            Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
-        )
+        private val BEHANDLING_OPPRETTET_FIELDS =
+            setOf(
+                Felt.KLAGEBEHANDLING_OPPRETTET,
+                Felt.ANKEBEHANDLING_OPPRETTET,
+                Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
+                Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
+                Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
+            )
     }
 
     @EventListener
@@ -65,21 +65,27 @@ class EnsurePersongalleriAndProtectionEventListener(
     }
 
     private fun populatePersongalleri(behandling: Behandling): List<String> {
-        val existingEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
-            fagsystem = behandling.fagsystem,
-            fagsakId = behandling.fagsakId,
-        )
+        val existingEntries =
+            sakPersongalleriRepository.findByFagsystemAndFagsakId(
+                fagsystem = behandling.fagsystem,
+                fagsakId = behandling.fagsakId,
+            )
 
         if (existingEntries.isNotEmpty()) {
-            logger.debug("Persongalleri already exists for fagsystem {} and fagsakId {}, skipping", behandling.fagsystem, behandling.fagsakId)
+            logger.debug(
+                "Persongalleri already exists for fagsystem {} and fagsakId {}, skipping",
+                behandling.fagsystem,
+                behandling.fagsakId,
+            )
             return emptyList()
         }
 
-        val sak = Sak(
-            sakId = behandling.fagsakId,
-            ytelse = behandling.ytelse,
-            fagsystem = behandling.fagsystem,
-        )
+        val sak =
+            Sak(
+                sakId = behandling.fagsakId,
+                ytelse = behandling.ytelse,
+                fagsystem = behandling.fagsystem,
+            )
 
         val foedselsnummerList = klageLookupGateway.getPersongalleri(sak)
 
@@ -89,7 +95,7 @@ class EnsurePersongalleriAndProtectionEventListener(
                     fagsystem = behandling.fagsystem,
                     fagsakId = behandling.fagsakId,
                     foedselsnummer = foedselsnummer,
-                )
+                ),
             )
         }
 

@@ -1,17 +1,28 @@
 package no.nav.klage.oppgave.api.controller
 
-
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.*
-
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.EnhetView
+import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
+import no.nav.klage.oppgave.api.view.IdentifikatorInput
+import no.nav.klage.oppgave.api.view.SearchPartWithUtsendingskanalInput
+import no.nav.klage.oppgave.api.view.SearchSaksnummerResponse
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.service.EnhetService
+import no.nav.klage.oppgave.service.GosysOppgaveService
+import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.OppgaveService
+import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "kabal-api")
@@ -23,7 +34,6 @@ class SearchController(
     private val oppgaveService: OppgaveService,
     private val enhetService: EnhetService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -34,9 +44,9 @@ class SearchController(
         @RequestBody input: IdentifikatorInput,
     ): BehandlingDetaljerView.SearchPartView {
         logMethodDetails(
-            ::searchPart.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchPart.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return partSearchService.searchPart(input.identifikator)
@@ -47,9 +57,9 @@ class SearchController(
         @RequestBody input: SearchPartWithUtsendingskanalInput,
     ): BehandlingDetaljerView.SearchPartViewWithUtsendingskanal {
         logMethodDetails(
-            ::searchPartWithUtsendingskanal.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchPartWithUtsendingskanal.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return partSearchService.searchPartWithUtsendingskanal(
@@ -57,7 +67,7 @@ class SearchController(
             systemUserContext = false,
             sakenGjelderId = input.sakenGjelderId,
             tema = Ytelse.of(input.ytelseId).toTema(),
-            systemContext = false
+            systemContext = false,
         )
     }
 
@@ -66,9 +76,9 @@ class SearchController(
         @RequestBody input: IdentifikatorInput,
     ): BehandlingDetaljerView.SearchPersonView {
         logMethodDetails(
-            ::searchPerson.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchPerson.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return partSearchService.searchPerson(input.identifikator)
@@ -79,9 +89,9 @@ class SearchController(
         @PathVariable("enhetsnr") enhetsnr: String,
     ): List<GosysOppgaveMappeView> {
         logMethodDetails(
-            ::searchGosysOppgaveMapper.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchGosysOppgaveMapper.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return gosysOppgaveService.getMapperForEnhet(enhetsnr = enhetsnr)
@@ -93,9 +103,9 @@ class SearchController(
         @RequestParam("enhetsnavn", required = false) enhetsnavn: String?,
     ): List<EnhetView> {
         logMethodDetails(
-            ::searchEnheter.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchEnheter.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return enhetService.findEnheter(enhetsnr = enhetsnr, enhetsnavn = enhetsnavn)
@@ -106,9 +116,9 @@ class SearchController(
         @RequestParam("saksnummer", required = true) fagsakId: String,
     ): SearchSaksnummerResponse {
         logMethodDetails(
-            ::searchSaksnummer.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::searchSaksnummer.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return oppgaveService.searchOppgaverByFagsakId(fagsakId = fagsakId)

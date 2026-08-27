@@ -8,34 +8,34 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class V150__dvh_use_codes : BaseJavaMigration() {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 update klage.kafka_event
                     set json_payload = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
                     where ke.type = 'STATS_DVH'
                     order by ke.created
-                """
-            )
-                .use { rows ->
+                """,
+                ).use { rows ->
                     while (rows.next()) {
                         try {
                             val kafkaEventId = rows.getObject(1, UUID::class.java)
@@ -44,12 +44,14 @@ class V150__dvh_use_codes : BaseJavaMigration() {
                             val statistikkTilDVH =
                                 jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
-                            val modifiedVersion = statistikkTilDVH.copy(
-                                resultat = Utfall.entries.find { it.navn == statistikkTilDVH.resultat }?.name
-                                    ?: statistikkTilDVH.resultat,
-                                behandlingType = Type.entries.find { it.navn == statistikkTilDVH.behandlingType }!!.name,
-                                tekniskTid = LocalDateTime.now()
-                            )
+                            val modifiedVersion =
+                                statistikkTilDVH.copy(
+                                    resultat =
+                                        Utfall.entries.find { it.navn == statistikkTilDVH.resultat }?.name
+                                            ?: statistikkTilDVH.resultat,
+                                    behandlingType = Type.entries.find { it.navn == statistikkTilDVH.behandlingType }!!.name,
+                                    tekniskTid = LocalDateTime.now(),
+                                )
 
                             preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
                             preparedStatement.setObject(2, kafkaEventId)
@@ -58,7 +60,7 @@ class V150__dvh_use_codes : BaseJavaMigration() {
                         } catch (e: Exception) {
                             logger.warn(
                                 "Failed to update kafka event with id ${rows.getObject(1, UUID::class.java)}",
-                                e
+                                e,
                             )
                         }
                     }

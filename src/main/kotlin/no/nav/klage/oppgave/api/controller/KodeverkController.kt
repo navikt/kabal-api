@@ -9,15 +9,15 @@ import no.nav.klage.oppgave.service.KodeverkService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 class KodeverkController(
     private val kodeverkService: KodeverkService,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -27,9 +27,9 @@ class KodeverkController(
     @GetMapping("/postinfo")
     fun getPostInfo(): List<PostInfo> {
         logMethodDetails(
-            ::getPostInfo.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getPostInfo.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
         return kodeverkService.getPostInfo()
     }
@@ -37,9 +37,9 @@ class KodeverkController(
     @GetMapping("/landinfo")
     fun getLandInfo(): List<LandInfo> {
         logMethodDetails(
-            ::getLandInfo.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
+            methodName = ::getLandInfo.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
         return kodeverkService.getLandkoder()

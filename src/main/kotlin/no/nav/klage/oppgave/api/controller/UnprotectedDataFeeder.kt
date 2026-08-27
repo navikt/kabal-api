@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 class UnprotectedDataFeeder(
     private val mottakService: MottakService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -26,7 +25,7 @@ class UnprotectedDataFeeder(
     @Unprotected
     @PostMapping("/internal/manualfeed")
     fun sendInnKlageV3(
-        @Valid @RequestBody oversendtKlage: OversendtKlageAnkeV3
+        @Valid @RequestBody oversendtKlage: OversendtKlageAnkeV3,
     ) {
         logger.warn("Data manually fed to Kabal through unprotected endpoint. See team-logs for details.")
         teamLogger.warn("Data $oversendtKlage fed to Kabal through unprotected endpoint")

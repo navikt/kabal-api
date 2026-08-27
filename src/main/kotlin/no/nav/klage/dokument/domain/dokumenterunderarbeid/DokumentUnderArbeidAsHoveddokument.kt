@@ -1,6 +1,12 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.DokumentTypeConverter
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
@@ -13,7 +19,7 @@ import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.AuditJoinTable
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @DynamicUpdate
@@ -32,8 +38,7 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @Column(name = "dokument_type_id", nullable = false)
     @Convert(converter = DokumentTypeConverter::class)
     open var dokumentType: DokumentType,
-
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -46,23 +51,19 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     creatorRole: BehandlingRole,
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeid(
-    id = id,
-    name = name,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-    dokarkivReferences = dokarkivReferences,
-) {
-    fun isInngaaende(): Boolean {
-        return dokumentType.isInngaaende()
-    }
+        id = id,
+        name = name,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+        dokarkivReferences = dokarkivReferences,
+    ) {
+    fun isInngaaende(): Boolean = dokumentType.isInngaaende()
 
-    fun isUtgaaende(): Boolean {
-        return dokumentType.isUtgaaende()
-    }
+    fun isUtgaaende(): Boolean = dokumentType.isUtgaaende()
 }

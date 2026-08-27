@@ -7,10 +7,9 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companio
 import java.time.LocalDateTime
 
 object BehandlingITrygderettenSetters {
-
     fun BehandlingITrygderetten.setSendtTilTrygderetten(
         nyVerdi: LocalDateTime,
-        saksbehandlerident: String
+        saksbehandlerident: String,
     ): BehandlingChangedEvent {
         this as Behandling
         val gammelVerdi = sendtTilTrygderetten
@@ -27,13 +26,13 @@ object BehandlingITrygderettenSetters {
             )
         return BehandlingChangedEvent(
             behandling = this,
-            changeList = listOfNotNull(change)
+            changeList = listOfNotNull(change),
         )
     }
 
     fun BehandlingITrygderetten.setKjennelseMottatt(
         nyVerdi: LocalDateTime?,
-        saksbehandlerident: String
+        saksbehandlerident: String,
     ): BehandlingChangedEvent {
         this as Behandling
         val gammelVerdi = kjennelseMottatt
@@ -50,13 +49,13 @@ object BehandlingITrygderettenSetters {
             )
         return BehandlingChangedEvent(
             behandling = this,
-            changeList = listOfNotNull(change)
+            changeList = listOfNotNull(change),
         )
     }
 
     fun BehandlingITrygderetten.setNyBehandlingEtterTROpphevet(
         nyVerdi: LocalDateTime,
-        saksbehandlerident: String
+        saksbehandlerident: String,
     ): BehandlingChangedEvent {
         this as Behandling
         val gammelVerdi = nyBehandlingEtterTROpphevet
@@ -73,7 +72,7 @@ object BehandlingITrygderettenSetters {
             )
         return BehandlingChangedEvent(
             behandling = this,
-            changeList = listOfNotNull(change)
+            changeList = listOfNotNull(change),
         )
     }
 }

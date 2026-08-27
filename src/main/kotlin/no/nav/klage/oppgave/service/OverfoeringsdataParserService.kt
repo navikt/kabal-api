@@ -7,15 +7,14 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class OverfoeringsdataParserService {
-
     private val newCommentRegex =
         Regex(
-            """\-\-\-\s(\d\d\.\d\d\.\d\d\d\d)\s\d\d\:\d\d\s[^(]*\s\(([^,]*)\,\s(\d{4})\)\s\-\-\-""",
-            setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.MULTILINE)
+            pattern = """\-\-\-\s(\d\d\.\d\d\.\d\d\d\d)\s\d\d\:\d\d\s[^(]*\s\(([^,]*)\,\s(\d{4})\)\s\-\-\-""",
+            options = setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.MULTILINE),
         )
 
     private val enhetOverfoeringRegex =
-        Regex(""".*?fra\senhet\s(\d{4})\stil\s(42\d\d).*?(?=${'$'})""")
+        Regex($$""".*?fra\senhet\s(\d{4})\stil\s(42\d\d).*?(?=$)""")
 
     fun parseBeskrivelse(beskrivelse: String): Overfoeringsdata? {
         val iterator = beskrivelse.lineSequence().iterator()
@@ -25,7 +24,13 @@ class OverfoeringsdataParserService {
         var enhetOverfoertFra: String? = null
         var enhetOverfoertTil: String? = null
 
-        while (iterator.hasNext() && (saksbehandlerWhoMadeTheChange == null || enhetOfsaksbehandlerWhoMadeTheChange == null || enhetOverfoertFra == null || enhetOverfoertTil == null || datoForOverfoering == null)) {
+        while (iterator.hasNext() &&
+            (
+                saksbehandlerWhoMadeTheChange == null || enhetOfsaksbehandlerWhoMadeTheChange == null || enhetOverfoertFra == null ||
+                    enhetOverfoertTil == null ||
+                    datoForOverfoering == null
+            )
+        ) {
             val line = iterator.next()
             if (newCommentRegex.containsMatchIn(line)) {
                 val values = newCommentRegex.find(line)?.groupValues!!
@@ -38,7 +43,10 @@ class OverfoeringsdataParserService {
                 enhetOverfoertTil = values[2]
             }
         }
-        return if (saksbehandlerWhoMadeTheChange == null || enhetOfsaksbehandlerWhoMadeTheChange == null || enhetOverfoertFra == null || enhetOverfoertTil == null || datoForOverfoering == null) {
+        return if (saksbehandlerWhoMadeTheChange == null || enhetOfsaksbehandlerWhoMadeTheChange == null || enhetOverfoertFra == null ||
+            enhetOverfoertTil == null ||
+            datoForOverfoering == null
+        ) {
             parseBeskrivelseAnnenMaate(beskrivelse)
         } else {
             Overfoeringsdata(
@@ -46,35 +54,40 @@ class OverfoeringsdataParserService {
                 enhetOfsaksbehandlerWhoMadeTheChange,
                 datoForOverfoering,
                 enhetOverfoertFra,
-                enhetOverfoertTil
+                enhetOverfoertTil,
             )
         }
     }
 
     private fun parseBeskrivelseAnnenMaate(beskrivelse: String): Overfoeringsdata? =
-        beskrivelse.lineSequence().filter { newCommentRegex.containsMatchIn(it) }.map {
-            val values = newCommentRegex.find(it)?.groupValues!!
-            val datoForOverfoering = LocalDate.parse(values[1], DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-            val saksbehandlerWhoMadeTheChange = values[2]
-            val enhetOfsaksbehandlerWhoMadeTheChange = values[3]
-            Triple(
-                saksbehandlerWhoMadeTheChange,
-                enhetOfsaksbehandlerWhoMadeTheChange,
-                datoForOverfoering
-            )
-        }.zipWithNext().firstOrNull {
-            it.first.second.startsWith(KLAGEENHET_PREFIX) && !it.second.second.startsWith(
-                KLAGEENHET_PREFIX
-            )
-        }?.let {
-            Overfoeringsdata(
-                it.second.first,
-                it.second.second,
-                it.second.third,
-                it.second.second,
-                it.first.second
-            )
-        }
+        beskrivelse
+            .lineSequence()
+            .filter { newCommentRegex.containsMatchIn(it) }
+            .map {
+                val values = newCommentRegex.find(it)?.groupValues!!
+                val datoForOverfoering = LocalDate.parse(values[1], DateTimeFormatter.ofPattern("dd.MM.yyyy"))
+                val saksbehandlerWhoMadeTheChange = values[2]
+                val enhetOfsaksbehandlerWhoMadeTheChange = values[3]
+                Triple(
+                    first = saksbehandlerWhoMadeTheChange,
+                    second = enhetOfsaksbehandlerWhoMadeTheChange,
+                    third = datoForOverfoering,
+                )
+            }.zipWithNext()
+            .firstOrNull {
+                it.first.second.startsWith(KLAGEENHET_PREFIX) &&
+                    !it.second.second.startsWith(
+                        KLAGEENHET_PREFIX,
+                    )
+            }?.let {
+                Overfoeringsdata(
+                    saksbehandlerWhoMadeTheChange = it.second.first,
+                    enhetOfsaksbehandlerWhoMadeTheChange = it.second.second,
+                    datoForOverfoering = it.second.third,
+                    enhetOverfoertFra = it.second.second,
+                    enhetOverfoertTil = it.first.second,
+                )
+            }
 }
 
 data class Overfoeringsdata(
@@ -82,5 +95,5 @@ data class Overfoeringsdata(
     val enhetOfsaksbehandlerWhoMadeTheChange: String,
     val datoForOverfoering: LocalDate,
     val enhetOverfoertFra: String,
-    val enhetOverfoertTil: String
+    val enhetOverfoertTil: String,
 )

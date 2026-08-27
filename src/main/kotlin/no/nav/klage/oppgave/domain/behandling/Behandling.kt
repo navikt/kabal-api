@@ -1,15 +1,58 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.*
-import no.nav.klage.kodeverk.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.CascadeType
+import jakarta.persistence.CollectionTable
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.DiscriminatorColumn
+import jakarta.persistence.ElementCollection
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.Inheritance
+import jakarta.persistence.InheritanceType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.NamedAttributeNode
+import jakarta.persistence.NamedEntityGraph
+import jakarta.persistence.NamedEntityGraphs
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FagsystemConverter
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.FlowStateConverter
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.TypeConverter
+import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.UtfallConverter
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.HjemmelConverter
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.RegistreringshjemmelConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
-import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.behandling.historikk.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.historikk.FullmektigHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.KlagerHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.MedunderskriverHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.RolHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
+import no.nav.klage.oppgave.domain.behandling.historikk.VarsletBehandlingstidHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
@@ -24,7 +67,7 @@ import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import java.util.*
+import java.util.UUID
 
 @Entity
 @DynamicUpdate
@@ -38,13 +81,13 @@ import java.util.*
             NamedAttributeNode("saksdokumenter"),
             NamedAttributeNode("hjemler"),
             NamedAttributeNode("registreringshjemler"),
-        ]
+        ],
     ),
     NamedEntityGraph(
         name = "Behandling.kapteinProperties",
         attributeNodes = [
             NamedAttributeNode("registreringshjemler"),
-        ]
+        ],
     ),
     NamedEntityGraph(
         name = "Behandling.oppgaveProperties",
@@ -52,7 +95,7 @@ import java.util.*
             NamedAttributeNode("hjemler"),
             NamedAttributeNode("registreringshjemler"),
             NamedAttributeNode("varsletBehandlingstidHistorikk"),
-        ]
+        ],
     ),
 )
 @Audited
@@ -69,7 +112,7 @@ abstract class Behandling(
             AttributeOverride(name = "id", column = Column(name = "klager_id", nullable = false)),
             AttributeOverride(name = "partId.type", column = Column(name = "klager_type", nullable = false)),
             AttributeOverride(name = "partId.value", column = Column(name = "klager_value", nullable = false)),
-        ]
+        ],
     )
     open var klager: Klager,
     @Embedded
@@ -78,14 +121,14 @@ abstract class Behandling(
             AttributeOverride(name = "id", column = Column(name = "saken_gjelder_id", nullable = false)),
             AttributeOverride(name = "partId.type", column = Column(name = "saken_gjelder_type", nullable = false)),
             AttributeOverride(name = "partId.value", column = Column(name = "saken_gjelder_value", nullable = false)),
-        ]
+        ],
     )
     open var sakenGjelder: SakenGjelder,
     @Embedded
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "navn", column = Column(name = "prosessfullmektig_navn")),
-        ]
+        ],
     )
     open var prosessfullmektig: Prosessfullmektig?,
     @Column(name = "ytelse_id", nullable = false)
@@ -113,8 +156,8 @@ abstract class Behandling(
         value = [
             AttributeOverride(name = "saksbehandlerident", column = Column(name = "tildelt_saksbehandlerident")),
             AttributeOverride(name = "enhet", column = Column(name = "tildelt_enhet")),
-            AttributeOverride(name = "tidspunkt", column = Column(name = "dato_behandling_tildelt"))
-        ]
+            AttributeOverride(name = "tidspunkt", column = Column(name = "dato_behandling_tildelt")),
+        ],
     )
     open var tildeling: Tildeling? = null,
     @Column(name = "frist")
@@ -126,18 +169,18 @@ abstract class Behandling(
     open val fagsystem: Fagsystem,
     @Column(name = "dvh_referanse")
     open val dvhReferanse: String? = null,
-    //Liste med dokumenter fra Joark. De dokumentene saksbehandler krysser av for havner her. Kopierer fra forrige når ny behandling opprettes.
+    // Liste med dokumenter fra Joark. De dokumentene saksbehandler krysser av for havner her. Kopierer fra forrige når ny behandling opprettes.
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
-    //Dette er søkehjemler, input fra førsteinstans.
+    // Dette er søkehjemler, input fra førsteinstans.
     @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_hjemmel",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)],
     )
     @Convert(converter = HjemmelConverter::class)
     @Column(name = "id", nullable = false)
@@ -149,7 +192,7 @@ abstract class Behandling(
             AttributeOverride(name = "to", column = Column(name = "satt_paa_vent_to")),
             AttributeOverride(name = "reason", column = Column(name = "satt_paa_vent_reason")),
             AttributeOverride(name = "reasonId", column = Column(name = "satt_paa_vent_reason_id")),
-        ]
+        ],
     )
     open var sattPaaVent: SattPaaVent?,
     @Embedded
@@ -159,31 +202,28 @@ abstract class Behandling(
             AttributeOverride(name = "navn", column = Column(name = "feilregistrering_navn")),
             AttributeOverride(name = "registered", column = Column(name = "feilregistrering_registered")),
             AttributeOverride(name = "reason", column = Column(name = "feilregistrering_reason")),
-            AttributeOverride(name = "fagsystem", column = Column(name = "feilregistrering_fagsystem_id"))
-        ]
+            AttributeOverride(name = "fagsystem", column = Column(name = "feilregistrering_fagsystem_id")),
+        ],
     )
     open var feilregistrering: Feilregistrering?,
-
     @Column(name = "utfall_id")
     @Convert(converter = UtfallConverter::class)
     open var utfall: Utfall? = null,
-
     @ElementCollection(targetClass = Utfall::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_extra_utfall",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)],
     )
     @Convert(converter = UtfallConverter::class)
     @Column(name = "id", nullable = false)
     open var extraUtfallSet: Set<Utfall> = setOf(),
-
-    //Overføres til neste behandling.
+    // Overføres til neste behandling.
     @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_registreringshjemmel",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)],
     )
     @Convert(converter = RegistreringshjemmelConverter::class)
     @Column(name = "id", nullable = false)
@@ -192,8 +232,8 @@ abstract class Behandling(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "saksbehandlerident", column = Column(name = "medunderskriverident")),
-            AttributeOverride(name = "tidspunkt", column = Column(name = "dato_sendt_medunderskriver"))
-        ]
+            AttributeOverride(name = "tidspunkt", column = Column(name = "dato_sendt_medunderskriver")),
+        ],
     )
     open var medunderskriver: MedunderskriverTildeling? = null,
     @Column(name = "medunderskriver_flow_state_id")
@@ -211,11 +251,11 @@ abstract class Behandling(
             AttributeOverride(name = "avsluttet", column = Column(name = "dato_behandling_avsluttet")),
             AttributeOverride(
                 name = "avsluttetAvSaksbehandler",
-                column = Column(name = "dato_behandling_avsluttet_av_saksbehandler")
+                column = Column(name = "dato_behandling_avsluttet_av_saksbehandler"),
             ),
             AttributeOverride(name = "navIdent", column = Column(name = "ferdigstilling_nav_ident")),
             AttributeOverride(name = "navn", column = Column(name = "ferdigstilling_navn")),
-        ]
+        ],
     )
     open var ferdigstilling: Ferdigstilling?,
     @Column(name = "rol_ident")
@@ -268,7 +308,7 @@ abstract class Behandling(
     @Column(name = "opprettet_sendt", nullable = false)
     @NotAudited
     var opprettetSendt: Boolean = false,
-    //Only set once, when instance of behandling is created.
+    // Only set once, when instance of behandling is created.
     @Column(name = "gosys_oppgave_required", nullable = false)
     @NotAudited
     val gosysOppgaveRequired: Boolean,
@@ -277,22 +317,28 @@ abstract class Behandling(
     @NotAudited
     val initiatingSystem: InitiatingSystem,
 ) {
-
     enum class InitiatingSystem {
-        FAGSYSTEM, KABIN, KABAL
+        FAGSYSTEM,
+        KABIN,
+        KABAL,
     }
 
     enum class Status {
-        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, SATT_PAA_VENT, FULLFOERT, UKJENT, FEILREGISTRERT
+        IKKE_TILDELT,
+        TILDELT,
+        MEDUNDERSKRIVER_VALGT,
+        SENDT_TIL_MEDUNDERSKRIVER,
+        RETURNERT_TIL_SAKSBEHANDLER,
+        AVSLUTTET_AV_SAKSBEHANDLER,
+        SATT_PAA_VENT,
+        FULLFOERT,
+        UKJENT,
+        FEILREGISTRERT,
     }
 
-    fun shouldBeSentToTrygderetten(): Boolean {
-        return utfall in utfallToTrygderetten
-    }
+    fun shouldBeSentToTrygderetten(): Boolean = utfall in utfallToTrygderetten
 
-    fun isFerdigstiltOrFeilregistrert(): Boolean {
-        return ferdigstilling != null || feilregistrering != null
-    }
+    fun isFerdigstiltOrFeilregistrert(): Boolean = ferdigstilling != null || feilregistrering != null
 
     fun getRoleInBehandling(innloggetIdent: String): BehandlingRole {
         if (isFerdigstiltOrFeilregistrert()) {
@@ -305,41 +351,45 @@ abstract class Behandling(
             BehandlingRole.KABAL_SAKSBEHANDLING
         } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
             BehandlingRole.KABAL_MEDUNDERSKRIVER
-        } else BehandlingRole.NONE
+        } else {
+            BehandlingRole.NONE
+        }
     }
 
-    fun shouldUpdateInfotrygd(): Boolean {
-        return fagsystem == Fagsystem.IT01 && type !in listOf(
-            Type.OMGJOERINGSKRAV,
-            Type.BEGJAERING_OM_GJENOPPTAK,
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
-        )
-    }
+    fun shouldUpdateInfotrygd(): Boolean =
+        fagsystem == Fagsystem.IT01 && type !in
+            listOf(
+                Type.OMGJOERINGSKRAV,
+                Type.BEGJAERING_OM_GJENOPPTAK,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+            )
 
-    fun getTimesPreviouslyExtended(): Int {
-        return varsletBehandlingstidHistorikk.count {
+    fun getTimesPreviouslyExtended(): Int =
+        varsletBehandlingstidHistorikk.count {
             it.varsletBehandlingstid?.varselType == VarsletBehandlingstid.VarselType.FORLENGET
         }
-    }
 
-    fun getTechnicalIdFromPart(identifikator: String?): UUID {
-        return when (identifikator) {
-            sakenGjelder.partId.value ->
+    fun getTechnicalIdFromPart(identifikator: String?): UUID =
+        when (identifikator) {
+            sakenGjelder.partId.value -> {
                 sakenGjelder.id
+            }
 
-            klager.partId.value ->
+            klager.partId.value -> {
                 klager.id
+            }
 
-            prosessfullmektig?.partId?.value ->
+            prosessfullmektig?.partId?.value -> {
                 prosessfullmektig!!.id
+            }
 
-            else ->
+            else -> {
                 UUID.randomUUID()
+            }
         }
-    }
 
-    open fun shouldBeCompletedInKA(): Boolean {
-        return when (this) {
+    open fun shouldBeCompletedInKA(): Boolean =
+        when (this) {
             is Klagebehandling -> false
             is AnkeITrygderettenbehandling -> false
             is Ankebehandling -> false
@@ -349,22 +399,20 @@ abstract class Behandling(
             is Omgjoeringskravbehandling -> shouldBeCompletedInKA()
             else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
-    }
 
-    fun getAgeStartDate(): LocalDateTime {
-        return when (this) {
+    fun getAgeStartDate(): LocalDateTime =
+        when (this) {
             is BehandlingITrygderetten -> this.sendtTilTrygderetten
             else -> mottattKlageinstans
         }
-    }
 
     fun toAgeInDays(): Int {
         val startDate = getAgeStartDate()
         return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
     }
 
-    fun createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {
-        return AnkeITrygderettenbehandlingInput(
+    fun createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput =
+        AnkeITrygderettenbehandlingInput(
             klager = klager,
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
@@ -389,10 +437,9 @@ abstract class Behandling(
             initiatingSystem = InitiatingSystem.KABAL,
             previousBehandlingId = id,
         )
-    }
 
-    fun createGjenopptakITrygderettenbehandlingInput(): GjenopptakITrygderettenbehandlingInput {
-        return GjenopptakITrygderettenbehandlingInput(
+    fun createGjenopptakITrygderettenbehandlingInput(): GjenopptakITrygderettenbehandlingInput =
+        GjenopptakITrygderettenbehandlingInput(
             klager = klager,
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
@@ -416,7 +463,6 @@ abstract class Behandling(
             gosysOppgaveRequired = gosysOppgaveRequired,
             previousBehandlingId = id,
         )
-    }
 }
 
 enum class BehandlingRole {
@@ -424,26 +470,28 @@ enum class BehandlingRole {
     KABAL_ROL,
     KABAL_MEDUNDERSKRIVER,
     NONE,
-    ;
 }
 
-val utfallToNewAnkebehandling = setOf(
-    Utfall.HENVIST
-)
+val utfallToNewAnkebehandling =
+    setOf(
+        Utfall.HENVIST,
+    )
 
-val utfallITrygderettenOpphevetEllerHenvist = setOf(
-    Utfall.OPPHEVET,
-    Utfall.GJENOPPTATT_OPPHEVET,
-    Utfall.HENVIST,
-)
+val utfallITrygderettenOpphevetEllerHenvist =
+    setOf(
+        Utfall.OPPHEVET,
+        Utfall.GJENOPPTATT_OPPHEVET,
+        Utfall.HENVIST,
+    )
 
-val utfallToTrygderetten = setOf(
-    Utfall.DELVIS_MEDHOLD,
-    Utfall.INNSTILLING_AVVIST,
-    Utfall.INNSTILLING_STADFESTELSE,
-    Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
-    Utfall.INNSTILLING_GJENOPPTAS_IKKE,
-)
+val utfallToTrygderetten =
+    setOf(
+        Utfall.DELVIS_MEDHOLD,
+        Utfall.INNSTILLING_AVVIST,
+        Utfall.INNSTILLING_STADFESTELSE,
+        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
+        Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+    )
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
 val noKvalitetsvurderingNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
@@ -466,7 +514,7 @@ interface BehandlingWithMottakDokument {
                     type = mottakDokumentDTO.type,
                     journalpostId = mottakDokumentDTO.journalpostId,
                     behandling = this as Behandling,
-                )
+                ),
             )
         }
     }

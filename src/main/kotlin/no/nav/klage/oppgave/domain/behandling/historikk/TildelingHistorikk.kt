@@ -1,10 +1,14 @@
 package no.nav.klage.oppgave.domain.behandling.historikk
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.FradelingReason
 import no.nav.klage.kodeverk.FradelingReasonConverter
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "tildelinghistorikk", schema = "klage")
@@ -36,11 +40,8 @@ class TildelingHistorikk(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
-    }
+    override fun toString(): String =
+        "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
 }

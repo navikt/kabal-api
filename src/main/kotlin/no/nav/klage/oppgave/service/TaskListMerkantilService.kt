@@ -7,7 +7,7 @@ import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class TaskListMerkantilService(
@@ -16,9 +16,11 @@ class TaskListMerkantilService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingRepository: BehandlingRepository,
 ) {
-
     @Transactional
-    fun createTaskForMerkantil(behandlingId: UUID, reason: String) {
+    fun createTaskForMerkantil(
+        behandlingId: UUID,
+        reason: String,
+    ) {
         taskListMerkantilRepository.save(
             TaskListMerkantil(
                 behandlingId = behandlingId,
@@ -27,21 +29,27 @@ class TaskListMerkantilService(
                 handledBy = null,
                 handledByName = null,
                 comment = null,
-            )
+            ),
         )
     }
 
     @Transactional
-    fun setCommentAndMarkTaskAsCompleted(taskId: UUID, inputComment: String): TaskListMerkantilView {
-        val task = taskListMerkantilRepository.findById(taskId)
-            .orElseThrow { IllegalArgumentException("Task with id $taskId not found") }
+    fun setCommentAndMarkTaskAsCompleted(
+        taskId: UUID,
+        inputComment: String,
+    ): TaskListMerkantilView {
+        val task =
+            taskListMerkantilRepository
+                .findById(taskId)
+                .orElseThrow { IllegalArgumentException("Task with id $taskId not found") }
         if (task.dateHandled != null) {
             throw IllegalStateException("Task with id $taskId is already handled")
         }
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        val innloggetName = saksbehandlerService.getNameForIdentDefaultIfNull(
-            navIdent = innloggetIdent
-        )
+        val innloggetName =
+            saksbehandlerService.getNameForIdentDefaultIfNull(
+                navIdent = innloggetIdent,
+            )
 
         task.dateHandled = LocalDateTime.now()
         task.handledBy = innloggetIdent
@@ -51,13 +59,14 @@ class TaskListMerkantilService(
         return task.toTaskListMerkantilView()
     }
 
-    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
+    fun getTaskListMerkantil(): List<TaskListMerkantilView> =
+        taskListMerkantilRepository
+            .findAll()
+            .sortedByDescending { it.created }
             .map { it.toTaskListMerkantilView() }
-    }
 
-    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
-        return TaskListMerkantilView(
+    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView =
+        TaskListMerkantilView(
             id = id,
             behandlingId = behandlingId,
             reason = reason,
@@ -66,7 +75,6 @@ class TaskListMerkantilService(
             handledBy = handledBy,
             handledByName = handledByName,
             comment = comment,
-            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
+            typeId = behandlingRepository.findByIdEager(behandlingId).type.id,
         )
-    }
 }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 object GjenopptakITrygderettenbehandlingSetters {
     fun GjenopptakITrygderettenbehandling.setNyGjenopptaksbehandlingKA(
         nyVerdi: LocalDateTime,
-        saksbehandlerident: String
+        saksbehandlerident: String,
     ): BehandlingChangedEvent {
         val gammelVerdi = nyGjenopptaksbehandlingKA
         val tidspunkt = LocalDateTime.now()
@@ -24,7 +24,7 @@ object GjenopptakITrygderettenbehandlingSetters {
             )
         return BehandlingChangedEvent(
             behandling = this,
-            changeList = listOfNotNull(change)
+            changeList = listOfNotNull(change),
         )
     }
 }

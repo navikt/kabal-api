@@ -1,52 +1,98 @@
 package no.nav.klage.oppgave.exceptions
 
-class DuplicateOversendelseException(msg: String) : RuntimeException(msg)
+class DuplicateOversendelseException(
+    msg: String,
+) : RuntimeException(msg)
 
-class DuplicateGosysOppgaveIdException(msg: String) : RuntimeException(msg)
+class DuplicateGosysOppgaveIdException(
+    msg: String,
+) : RuntimeException(msg)
 
-class JournalpostNotFoundException(msg: String) : ValidationException(msg)
+class JournalpostNotFoundException(
+    msg: String,
+) : ValidationException(msg)
 
-class IllegalUpdateException(msg: String) : RuntimeException(msg)
+class IllegalUpdateException(
+    msg: String,
+) : RuntimeException(msg)
 
-class BehandlingNotFoundException(msg: String) : RuntimeException(msg)
+class BehandlingNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class MeldingNotFoundException(msg: String) : RuntimeException(msg)
+class MeldingNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class GosysOppgaveNotFoundException(msg: String) : RuntimeException(msg)
+class GosysOppgaveNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class GosysOppgaveNotEditableException(msg: String) : RuntimeException(msg)
+class GosysOppgaveNotEditableException(
+    msg: String,
+) : RuntimeException(msg)
 
-open class ValidationException(msg: String) : RuntimeException(msg)
+open class ValidationException(
+    msg: String,
+) : RuntimeException(msg)
 
-class MissingTilgangException(msg: String) : RuntimeException(msg)
+class MissingTilgangException(
+    msg: String,
+) : RuntimeException(msg)
 
-class MissingDUARuleException(msg: String) : RuntimeException(msg)
+class MissingDUARuleException(
+    msg: String,
+) : RuntimeException(msg)
 
-class OversendtKlageNotValidException(msg: String) : RuntimeException(msg)
+class OversendtKlageNotValidException(
+    msg: String,
+) : RuntimeException(msg)
 
-class BehandlingAvsluttetException(msg: String) : RuntimeException(msg)
+class BehandlingAvsluttetException(
+    msg: String,
+) : RuntimeException(msg)
 
-class PreviousBehandlingNotFinalizedException(msg: String) : RuntimeException(msg)
+class PreviousBehandlingNotFinalizedException(
+    msg: String,
+) : RuntimeException(msg)
 
-class BehandlingManglerMedunderskriverException(msg: String) : RuntimeException(msg)
+class BehandlingManglerMedunderskriverException(
+    msg: String,
+) : RuntimeException(msg)
 
-class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)
+class EnhetNotFoundForSaksbehandlerException(
+    msg: String,
+) : RuntimeException(msg)
 
-class IllegalOperation(msg: String) : RuntimeException(msg)
+class IllegalOperation(
+    msg: String,
+) : RuntimeException(msg)
 
-class FeilregistreringException(msg: String) : RuntimeException(msg)
+class FeilregistreringException(
+    msg: String,
+) : RuntimeException(msg)
 
-class EREGOrganizationNotFoundException(msg: String) : RuntimeException(msg)
+class EREGOrganizationNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class KodeverkNotFoundException(msg: String) : RuntimeException(msg)
+class KodeverkNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class AttachmentCouldNotBeConvertedException(override val message: String = "FILE_COULD_NOT_BE_CONVERTED") : RuntimeException()
+class AttachmentCouldNotBeConvertedException(
+    override val message: String = "FILE_COULD_NOT_BE_CONVERTED",
+) : RuntimeException()
 
 class GosysOppgaveClientException : RuntimeException {
     constructor(message: String?) : super(message)
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
-class UserNotFoundException(msg: String) : RuntimeException(msg)
+class UserNotFoundException(
+    msg: String,
+) : RuntimeException(msg)
 
-class GroupNotFoundException(msg: String) : RuntimeException(msg)
+class GroupNotFoundException(
+    msg: String,
+) : RuntimeException(msg)

@@ -1,14 +1,17 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
-
+import java.util.UUID
 
 @Entity
 @DiscriminatorValue("smartdokument")
@@ -30,8 +33,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     override var language: Language,
     @Column(name = "mellomlagret_version")
     override var mellomlagretVersion: Int?,
-
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -47,31 +49,33 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     avsenderMottakerInfoSet: MutableSet<Brevmottaker> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
-) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsHoveddokument(
-    id = id,
-    name = name,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-    dokumentType = dokumentType,
-    dokumentEnhetId = dokumentEnhetId,
-    dokarkivReferences = dokarkivReferences,
-    journalfoerendeEnhetId = journalfoerendeEnhetId,
-    brevmottakere = avsenderMottakerInfoSet,
-) {
+) : DokumentUnderArbeidAsHoveddokument(
+        id = id,
+        name = name,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+        dokumentType = dokumentType,
+        dokumentEnhetId = dokumentEnhetId,
+        dokarkivReferences = dokarkivReferences,
+        journalfoerendeEnhetId = journalfoerendeEnhetId,
+        brevmottakere = avsenderMottakerInfoSet,
+    ),
+    DokumentUnderArbeidAsMellomlagret,
+    DokumentUnderArbeidAsSmartdokument {
     init {
         if (name.length > MAX_NAME_LENGTH) {
             throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
         }
     }
 
-    fun asVedlegg(parentId: UUID): SmartdokumentUnderArbeidAsVedlegg {
-        return SmartdokumentUnderArbeidAsVedlegg(
+    fun asVedlegg(parentId: UUID): SmartdokumentUnderArbeidAsVedlegg =
+        SmartdokumentUnderArbeidAsVedlegg(
             size = size,
             smartEditorId = smartEditorId,
             smartEditorTemplateId = smartEditorTemplateId,
@@ -91,5 +95,4 @@ class SmartdokumentUnderArbeidAsHoveddokument(
             language = language,
             mellomlagretVersion = mellomlagretVersion,
         )
-    }
 }

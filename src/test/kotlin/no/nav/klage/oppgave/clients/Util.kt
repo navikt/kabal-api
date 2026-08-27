@@ -7,14 +7,17 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 fun createShortCircuitWebClient(jsonResponse: String): WebClient {
-    val clientResponse: ClientResponse = ClientResponse
-        .create(HttpStatus.OK)
-        .header("Content-Type", "application/json")
-        .body(jsonResponse).build()
+    val clientResponse: ClientResponse =
+        ClientResponse
+            .create(HttpStatus.OK)
+            .header("Content-Type", "application/json")
+            .body(jsonResponse)
+            .build()
 
-    val shortCircuitingExchangeFunction = ExchangeFunction {
-        Mono.just(clientResponse)
-    }
+    val shortCircuitingExchangeFunction =
+        ExchangeFunction {
+            Mono.just(clientResponse)
+        }
 
     return WebClient.builder().exchangeFunction(shortCircuitingExchangeFunction).build()
 }

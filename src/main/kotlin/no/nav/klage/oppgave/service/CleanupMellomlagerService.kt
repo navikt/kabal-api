@@ -22,7 +22,6 @@ class CleanupMellomlagerService(
     private val smartdokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
     private val schedulerHealthGate: SchedulerHealthGate,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -36,10 +35,19 @@ class CleanupMellomlagerService(
         val oneWeekAgo = LocalDateTime.now().minusWeeks(1)
         logger.debug("cleanupFinalizedDUAs, getting candidates finalized before {}.", oneWeekAgo)
 
-        val candidates = opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
-                opplastetDokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
-                smartdokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
-                smartdokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo)
+        val candidates =
+            opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(
+                ferdigstiltBefore = oneWeekAgo,
+            ) +
+                opplastetDokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(
+                    ferdigstiltBefore = oneWeekAgo,
+                ) +
+                smartdokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(
+                    ferdigstiltBefore = oneWeekAgo,
+                ) +
+                smartdokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(
+                    ferdigstiltBefore = oneWeekAgo,
+                )
 
         logger.debug("cleanupFinalizedDUAs, found {} candidates.", candidates.size)
 

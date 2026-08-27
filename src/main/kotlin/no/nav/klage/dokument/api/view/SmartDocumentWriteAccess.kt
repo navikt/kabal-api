@@ -1,6 +1,6 @@
 package no.nav.klage.dokument.api.view
 
-import java.util.*
+import java.util.UUID
 
 data class SmartDocumentsWriteAccessList(
     val smartDocumentWriteAccessList: List<SmartDocumentWriteAccess>,

@@ -6,5 +6,5 @@ import no.nav.klage.oppgave.exceptions.ValidationSection
 data class ValidationPassedResponse(
     val title: String = "Validation success",
     val status: Int = 200,
-    val sections: List<ValidationSection> = emptyList()
+    val sections: List<ValidationSection> = emptyList(),
 )

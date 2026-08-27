@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.view
 
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class OppgaveView(
     val id: String,
@@ -28,7 +28,6 @@ data class OppgaveView(
     val varsletFrist: LocalDate?,
     val timesPreviouslyExtended: Int,
 ) {
-
     data class SattPaaVent(
         val from: LocalDate,
         val to: LocalDate,
@@ -65,7 +64,8 @@ data class MineFerdigstilteOppgaverQueryParams(
     override val ferdigstiltTo: LocalDate?,
     override val fristFrom: LocalDate?,
     override val fristTo: LocalDate?,
-) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
+) : CommonOppgaverQueryParams,
+    FerdigstilteOppgaverQueryParams
 
 data class EnhetensFerdigstilteOppgaverQueryParams(
     override var typer: List<String> = emptyList(),
@@ -79,14 +79,22 @@ data class EnhetensFerdigstilteOppgaverQueryParams(
     override val fristFrom: LocalDate?,
     override val fristTo: LocalDate?,
     var tildelteSaksbehandlere: List<String> = emptyList(),
-) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
+) : CommonOppgaverQueryParams,
+    FerdigstilteOppgaverQueryParams
 
 enum class Rekkefoelge {
-    STIGENDE, SYNKENDE
+    STIGENDE,
+    SYNKENDE,
 }
 
 enum class Sortering {
-    FRIST, MOTTATT, ALDER, PAA_VENT_FROM, PAA_VENT_TO, AVSLUTTET_AV_SAKSBEHANDLER, RETURNERT_FRA_ROL
+    FRIST,
+    MOTTATT,
+    ALDER,
+    PAA_VENT_FROM,
+    PAA_VENT_TO,
+    AVSLUTTET_AV_SAKSBEHANDLER,
+    RETURNERT_FRA_ROL,
 }
 
 data class BehandlingerListResponse(

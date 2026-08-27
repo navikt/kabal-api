@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.config
 
-
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.cache.annotation.EnableCaching
@@ -14,10 +13,10 @@ import javax.cache.expiry.Duration
 
 @EnableCaching
 @Configuration
-class CacheWithJCacheConfiguration(private val environment: Environment) : JCacheManagerCustomizer {
-
+class CacheWithJCacheConfiguration(
+    private val environment: Environment,
+) : JCacheManagerCustomizer {
     companion object {
-
         const val ENHET_CACHE = "enhet"
         const val ENHETER_CACHE = "enheter"
         const val POSTSTEDER_CACHE = "poststeder"
@@ -31,7 +30,6 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val GOSYSOPPGAVE_OPPGAVETYPE_CACHE = "gosysoppgave-oppgavetype"
         const val GOSYSOPPGAVE_ENHETSMAPPER_CACHE = "gosysoppgave-enhetmapper"
         const val GOSYSOPPGAVE_ENHETSMAPPE_CACHE = "gosysoppgave-enhetmappe"
-
 
         val cacheKeys =
             listOf(
@@ -56,7 +54,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
 
     override fun customize(cacheManager: CacheManager) {
         cacheKeys.forEach { cacheName ->
-            //Always cache for a long time.
+            // Always cache for a long time.
             if (cacheName in listOf(ENHET_CACHE, ENHETER_CACHE)) {
                 cacheManager.createCache(cacheName, cacheConfiguration(Duration(TimeUnit.HOURS, 8L)))
             } else {
@@ -77,5 +75,4 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         } else {
             Duration(TimeUnit.MINUTES, 10L)
         }
-
 }

@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 internal class SafJournalpostTest {
-
     @MockK
     lateinit var tokenUtilMock: TokenUtil
 
@@ -32,7 +31,7 @@ internal class SafJournalpostTest {
         assertThat(journalpostResponse.journalpostId).isEqualTo("123")
     }
 
-    //TODO: Sjekk om denne påvirker det vi gjør
+    // TODO: Sjekk om denne påvirker det vi gjør
 //    @Test
 //    fun `tom response fra saf er ogsaa gyldig`() {
 //        val dokumentoversiktBrukerResponse = getJournalpost(journalpostIkkeFunnetResponse())
@@ -45,20 +44,23 @@ internal class SafJournalpostTest {
     }
 
     private fun getJournalpost(jsonResponse: String): Journalpost {
-        val safClient = SafGraphQlClient(
-            createShortCircuitWebClient(jsonResponse),
-            tokenUtilMock,
-        )
+        val safClient =
+            SafGraphQlClient(
+                safWebClient = createShortCircuitWebClient(jsonResponse),
+                tokenUtil = tokenUtilMock,
+            )
 
-        return safClient.getJournalposts(
-            journalpostIdSet = setOf("whatever"),
-            systemContext = true,
-            skipMissing = false
-        ).first()
+        return safClient
+            .getJournalposts(
+                journalpostIdSet = setOf("whatever"),
+                systemContext = true,
+                skipMissing = false,
+            ).first()
     }
 
     @Language("json")
-    fun journalpostResponse() = """
+    fun journalpostResponse() =
+        """
     {
       "data": {
         "journalpost": {
@@ -138,7 +140,8 @@ internal class SafJournalpostTest {
     """
 
     @Language("json")
-    fun journalpostValidationErrorResponse() = """
+    fun journalpostValidationErrorResponse() =
+        """
     {
       "errors": [
         {
@@ -156,5 +159,4 @@ internal class SafJournalpostTest {
       ]
     }
     """
-
 }

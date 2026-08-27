@@ -1,8 +1,13 @@
 package no.nav.klage.oppgave.domain.kafka
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "kafka_event", schema = "klage")
@@ -26,9 +31,8 @@ class KafkaEvent(
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    val type: EventType
+    val type: EventType,
 ) {
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -40,8 +44,6 @@ class KafkaEvent(
 
     override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "KafkaEvent(id=$id, behandlingId=$behandlingId, kildeReferanse='$kildeReferanse', kilde='$kilde', status=$status, jsonPayload='$jsonPayload', errorMessage=$errorMessage, created=$created, type=$type)"
-    }
-
+    override fun toString(): String =
+        "KafkaEvent(id=$id, behandlingId=$behandlingId, kildeReferanse='$kildeReferanse', kilde='$kilde', status=$status, jsonPayload='$jsonPayload', errorMessage=$errorMessage, created=$created, type=$type)"
 }
