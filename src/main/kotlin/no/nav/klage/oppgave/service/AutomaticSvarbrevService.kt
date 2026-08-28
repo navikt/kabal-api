@@ -182,7 +182,6 @@ class AutomaticSvarbrevService(
 
             if (!automaticSvarbrevEvent.documentIsMarkedAsFinished) {
                 dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
-                    behandlingId = behandling.id,
                     dokumentId = dokumentUnderArbeid.id,
                     utfoerendeIdent = systembrukerIdent,
                     systemContext = true,

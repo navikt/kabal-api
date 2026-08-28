@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.view.AvsenderInput
 import no.nav.klage.dokument.api.view.DatoMottattInput
+import no.nav.klage.dokument.api.view.DocumentCompleted
 import no.nav.klage.dokument.api.view.DocumentModified
 import no.nav.klage.dokument.api.view.DocumentValidationResponse
 import no.nav.klage.dokument.api.view.DokumentTitleInput
@@ -310,18 +311,12 @@ class DokumentUnderArbeidController(
     fun idempotentOpprettOgFerdigstillDokumentEnhetFraHovedDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
-    ): DocumentModified {
+    ): DocumentCompleted {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
-        return DocumentModified(
-            modified =
-                dokumentUnderArbeidService
-                    .finnOgMarkerFerdigHovedDokument(
-                        behandlingId = behandlingId,
-                        dokumentId = dokumentId,
-                        utfoerendeIdent = ident,
-                        systemContext = false,
-                    ).modified,
+        return dokumentUnderArbeidService.ferdigstillHoveddokument(
+            dokumentId = dokumentId,
+            utfoerendeIdent = ident,
         )
     }
 
