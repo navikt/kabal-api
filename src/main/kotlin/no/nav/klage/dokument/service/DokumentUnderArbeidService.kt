@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.AddressInput
 import no.nav.klage.dokument.api.view.AvsenderInput
+import no.nav.klage.dokument.api.view.DocumentCompleted
 import no.nav.klage.dokument.api.view.DocumentValidationResponse
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.DokumentViewWithList
@@ -1383,8 +1384,24 @@ class DokumentUnderArbeidService(
         )
     }
 
+    fun ferdigstillHoveddokument(
+        dokumentId: UUID,
+        utfoerendeIdent: String,
+    ): DocumentCompleted {
+        val completedDocument =
+            finnOgMarkerFerdigHovedDokument(
+                dokumentId = dokumentId,
+                utfoerendeIdent = utfoerendeIdent,
+                systemContext = false,
+            )
+
+        return DocumentCompleted(
+            modified = completedDocument.modified,
+            isMarkertAvsluttet = completedDocument.markertFerdig != null,
+        )
+    }
+
     fun finnOgMarkerFerdigHovedDokument(
-        behandlingId: UUID,
         dokumentId: UUID,
         utfoerendeIdent: String,
         systemContext: Boolean,
@@ -2659,7 +2676,6 @@ class DokumentUnderArbeidService(
 
         val hovedDokument =
             finnOgMarkerFerdigHovedDokument(
-                behandlingId = behandling.id,
                 dokumentId = documentView.id,
                 utfoerendeIdent = tokenUtil.getIdent(),
                 systemContext = false,
@@ -2729,7 +2745,6 @@ class DokumentUnderArbeidService(
         }
 
         return finnOgMarkerFerdigHovedDokument(
-            behandlingId = behandling.id,
             dokumentId = savedHovedDokument.id,
             utfoerendeIdent = utfoerendeIdent,
             systemContext = false,
@@ -2808,7 +2823,6 @@ class DokumentUnderArbeidService(
 
         val hovedDokument =
             finnOgMarkerFerdigHovedDokument(
-                behandlingId = behandling.id,
                 dokumentId = documentView.id,
                 utfoerendeIdent = tokenUtil.getIdent(),
                 systemContext = false,

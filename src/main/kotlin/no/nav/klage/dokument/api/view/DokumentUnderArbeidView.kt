@@ -82,6 +82,11 @@ data class DocumentModified(
     val modified: LocalDateTime,
 )
 
+data class DocumentCompleted(
+    val modified: LocalDateTime,
+    val isMarkertAvsluttet: Boolean,
+)
+
 data class SmartDocumentModified(
     val modified: LocalDateTime,
     val version: Int,
