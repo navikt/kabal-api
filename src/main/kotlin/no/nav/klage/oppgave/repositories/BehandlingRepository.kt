@@ -101,7 +101,7 @@ interface BehandlingRepository :
             ),
         excludedTypes: List<Type> =
             listOf(
-                Type.ANKE_I_TRYGDERETTEN,
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
             ),
     ): List<Behandling>
@@ -112,7 +112,7 @@ interface BehandlingRepository :
             SELECT b
             FROM Behandling b
             WHERE b.ferdigstilling.avsluttet IS NOT null
-            AND b.sakenGjelder.partId.value = :partIdValue            
+            AND b.sakenGjelder.partId.value = :partIdValue
             AND b.type IN :includedTypes
         """,
     )
@@ -120,7 +120,7 @@ interface BehandlingRepository :
         partIdValue: String,
         includedTypes: List<Type> =
             listOf(
-                Type.ANKE_I_TRYGDERETTEN,
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
             ),
     ): List<Behandling>
@@ -130,7 +130,7 @@ interface BehandlingRepository :
         """
             SELECT b
             FROM Behandling b
-            WHERE b.ferdigstilling.avsluttet IS NOT null            
+            WHERE b.ferdigstilling.avsluttet IS NOT null
             AND b.fagsystem NOT IN :excludedFagsystems
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
@@ -147,7 +147,7 @@ interface BehandlingRepository :
             ),
         excludedTypes: List<Type> =
             listOf(
-                Type.ANKE_I_TRYGDERETTEN,
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
             ),
     ): List<Behandling>
 
@@ -156,9 +156,9 @@ interface BehandlingRepository :
         """
             SELECT b
             FROM Behandling b
-            WHERE b.ferdigstilling.avsluttet IS NOT null            
+            WHERE b.ferdigstilling.avsluttet IS NOT null
             AND b.fagsystem = :infotrygdFagsystem
-            AND b.sakenGjelder.partId.value = :partIdValue            
+            AND b.sakenGjelder.partId.value = :partIdValue
             AND b.type IN :includedTypes
             AND b.ytelse IN :ytelseList
         """,

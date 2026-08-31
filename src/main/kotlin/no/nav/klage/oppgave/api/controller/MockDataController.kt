@@ -19,7 +19,7 @@ import no.nav.klage.oppgave.api.view.OversendtProsessfullmektigLegacy
 import no.nav.klage.oppgave.api.view.OversendtSak
 import no.nav.klage.oppgave.api.view.OversendtType
 import no.nav.klage.oppgave.clients.saf.SafFacade
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
@@ -114,11 +114,11 @@ class MockDataController(
                 hindreAutomatiskSvarbrev = null,
                 kommentar =
                     """
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
-                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-                    
-                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-                    
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+                    Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
                     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
                     """.trimIndent(),
             ),
@@ -200,13 +200,13 @@ class MockDataController(
     @PostMapping("/randomanke")
     fun sendInnRandomAnke(
         @RequestBody(required = false) input: MockInput? = null,
-    ): MockDataResponse = createKlanke(type = Type.ANKE, mockInput = input)
+    ): MockDataResponse = createKlanke(type = Type.ANKE_FOER_2027, mockInput = input)
 
     @Unprotected
     @PostMapping("/randomankeitrygderetten")
     fun sendInnRandomAnkeITrygderetten(
         @RequestBody(required = false) input: MockInput? = null,
-    ): MockDataResponse = createKlanke(type = Type.ANKE_I_TRYGDERETTEN, mockInput = input)
+    ): MockDataResponse = createKlanke(type = Type.ANKE_I_TRYGDERETTEN_FOER_2027, mockInput = input)
 
     data class MockDataResponse(
         val id: UUID,
@@ -314,7 +314,7 @@ class MockDataController(
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling =
             when (type) {
-                Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
+                Type.KLAGE, Type.ANKE_FOER_2027, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
                     mottakFacade.createMottakForKlageAnkeV4(
                         OversendtKlageAnkeV4(
                             ytelse = ytelse,
@@ -338,7 +338,7 @@ class MockDataController(
                     )
                 }
 
-                Type.ANKE_I_TRYGDERETTEN -> {
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
                     val kakaVersion = kakaVersionUtil.getKakaVersion()
                     val registreringsHjemmelSet =
                         when (kakaVersion) {
@@ -375,7 +375,7 @@ class MockDataController(
                         }
 
                     val input =
-                        AnkeITrygderettenbehandlingInput(
+                        AnkeITrygderettenbehandlingFoer2027Input(
                             klager = klagePart,
                             sakenGjelder = sakenGjelderPart,
                             prosessfullmektig = null,
@@ -409,6 +409,10 @@ class MockDataController(
                 }
 
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                    TODO()
+                }
+
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
                     TODO()
                 }
             }

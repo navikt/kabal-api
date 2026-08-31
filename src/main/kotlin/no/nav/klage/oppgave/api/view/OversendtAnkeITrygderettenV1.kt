@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
@@ -72,16 +72,16 @@ data class OversendtAnkeITrygderettenV1(
     val utfall: ExternalUtfall,
 )
 
-fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(
+fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingFoer2027Input(
     inputDocuments: MutableSet<Saksdokument>,
-): AnkeITrygderettenbehandlingInput {
+): AnkeITrygderettenbehandlingFoer2027Input {
     val (sakenGjelderPart, klagePart, _) = getParts(sakenGjelder, klager)
-    return AnkeITrygderettenbehandlingInput(
+    return AnkeITrygderettenbehandlingFoer2027Input(
         klager = klagePart,
         sakenGjelder = sakenGjelderPart,
         prosessfullmektig = null,
         ytelse = ytelse,
-        type = Type.ANKE_I_TRYGDERETTEN,
+        type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
         kildeReferanse = kildeReferanse,
         dvhReferanse = dvhReferanse,
         fagsystem = fagsak.fagsystem,

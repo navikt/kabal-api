@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.kafka.AnkebehandlingOpprettetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
@@ -40,7 +40,7 @@ class CreateBehandlingFromMottak(
                 )
             }
 
-            Type.ANKE -> {
+            Type.ANKE_FOER_2027 -> {
                 val ankebehandling =
                     ankebehandlingService.createAnkebehandlingFromMottak(
                         mottak = mottak,
@@ -59,7 +59,7 @@ class CreateBehandlingFromMottak(
                 )
             }
 
-            Type.ANKE_I_TRYGDERETTEN -> {
+            Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
                 TODO()
             }
 
@@ -76,10 +76,14 @@ class CreateBehandlingFromMottak(
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
                 TODO()
             }
+
+            Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
+                TODO()
+            }
         }
     }
 
-    private fun publishKafkaEvent(ankebehandling: Ankebehandling) {
+    private fun publishKafkaEvent(ankebehandling: AnkebehandlingFoer2027) {
         // Publiser Kafka-event, infomelding om opprettelse
         val behandlingEvent =
             BehandlingEvent(

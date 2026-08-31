@@ -6,7 +6,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
@@ -53,16 +53,16 @@ data class OversendtAnkeITrygderettenFraArena(
     val gosysOppgaveId: Long,
 )
 
-fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {
+fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input {
     val partId = PartId(type = PartIdType.PERSON, value = sakenGjelder)
     val partUuid = UUID.randomUUID()
 
-    return AnkeITrygderettenbehandlingInput(
+    return AnkeITrygderettenbehandlingFoer2027Input(
         klager = Klager(id = partUuid, partId = partId),
         sakenGjelder = SakenGjelder(id = partUuid, partId = partId),
         prosessfullmektig = null,
         ytelse = Ytelse.of(ytelseId),
-        type = Type.ANKE_I_TRYGDERETTEN,
+        type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
         kildeReferanse = fagsakId,
         dvhReferanse = null,
         fagsystem = Fagsystem.AO01,

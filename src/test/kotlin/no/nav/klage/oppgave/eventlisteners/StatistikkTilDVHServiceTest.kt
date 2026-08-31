@@ -5,8 +5,8 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
@@ -233,7 +233,7 @@ class StatistikkTilDVHServiceTest {
         )
 
     private val ankebehandlingOMP =
-        Ankebehandling(
+        AnkebehandlingFoer2027(
             klager =
                 Klager(
                     id = UUID.randomUUID(),
@@ -254,7 +254,7 @@ class StatistikkTilDVHServiceTest {
                 ),
             prosessfullmektig = null,
             ytelse = Ytelse.OMS_OMP,
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             kildeReferanse = "",
             dvhReferanse = null,
             fagsystem = Fagsystem.K9,
@@ -280,7 +280,7 @@ class StatistikkTilDVHServiceTest {
         )
 
     private val ankeITrygderettenbehandlingOMP =
-        AnkeITrygderettenbehandling(
+        AnkeITrygderettenbehandlingFoer2027(
             klager =
                 Klager(
                     id = UUID.randomUUID(),
@@ -301,7 +301,7 @@ class StatistikkTilDVHServiceTest {
                 ),
             prosessfullmektig = null,
             ytelse = Ytelse.OMS_OMP,
-            type = Type.ANKE_I_TRYGDERETTEN,
+            type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
             kildeReferanse = "",
             dvhReferanse = null,
             fagsystem = Fagsystem.K9,

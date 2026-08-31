@@ -3,11 +3,14 @@ package no.nav.klage.kaptein.service
 import jakarta.persistence.EntityManager
 import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -106,11 +109,11 @@ class KapteinService(
                 mapKlagebehandlingToAnonymousBehandlingView(this)
             }
 
-            is Ankebehandling -> {
+            is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
                 mapAnkebehandlingToAnonymousBehandlingView(this)
             }
 
-            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> {
+            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027, is GjenopptakITrygderettenbehandling -> {
                 mapBehandlingITrygderettenToAnonymousBehandlingView(
                     this,
                 )
@@ -199,7 +202,10 @@ class KapteinService(
             initiatingSystem = behandling.initiatingSystem,
         )
 
-    private fun mapAnkebehandlingToAnonymousBehandlingView(behandling: Ankebehandling): AnonymousBehandlingView =
+    private fun <T> mapAnkebehandlingToAnonymousBehandlingView(
+        behandling: T,
+    ): AnonymousBehandlingView
+        where T : Behandling, T : BehandlingWithVarsletBehandlingstid =
         AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,

@@ -4,7 +4,8 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
@@ -117,14 +118,14 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
             } -> {
                 BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
             }
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_ANKEBEHANDLING_KA &&
-                    type == Type.ANKE_I_TRYGDERETTEN
+                    type == Type.ANKE_I_TRYGDERETTEN_FOER_2027
             } -> {
                 BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
             }
@@ -138,7 +139,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type == Type.ANKE_I_TRYGDERETTEN &&
+                    type == Type.ANKE_I_TRYGDERETTEN_FOER_2027 &&
                     utfall in utfallToNewAnkebehandling
             } -> {
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
@@ -146,7 +147,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
             } -> {
                 BehandlingState.AVSLUTTET
             }
@@ -157,7 +158,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK) &&
                     utfall !in utfallToTrygderetten
             } -> {
                 BehandlingState.AVSLUTTET
@@ -165,14 +166,14 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type !in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK)
+                    type !in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK)
             } -> {
                 BehandlingState.AVSLUTTET
             }
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK) &&
                     utfall in utfallToTrygderetten
             } -> {
                 BehandlingState.SENDT_TIL_TR
@@ -193,13 +194,13 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState,
     ): String? =
-        if (behandling.type == Type.ANKE_I_TRYGDERETTEN && behandlingState in
+        if (behandling.type == Type.ANKE_I_TRYGDERETTEN_FOER_2027 && behandlingState in
             listOf(
                 BehandlingState.AVSLUTTET,
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
             )
         ) {
-            behandling as AnkeITrygderettenbehandling
+            behandling as AnkeITrygderettenbehandlingFoer2027
             if (behandling.nyAnkebehandlingKA != null) {
                 behandling.tildeling!!.enhet
             } else {
@@ -274,8 +275,8 @@ class StatistikkTilDVHService(
 
     private fun getBehandlingTypeName(type: Type): String =
         when (type) {
-            Type.ANKE_I_TRYGDERETTEN -> {
-                Type.ANKE.name
+            Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                Type.ANKE_FOER_2027.name
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
@@ -328,7 +329,13 @@ class StatistikkTilDVHService(
             BehandlingState.AVSLUTTET -> {
                 if (behandling.feilregistrering != null) {
                     behandling.feilregistrering!!.registered
-                } else if (behandling is AnkeITrygderettenbehandling) {
+                } else if (behandling is AnkeITrygderettenbehandlingFoer2027) {
+                    if (behandling.utfall != null) {
+                        behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+                    } else {
+                        behandling.nyAnkebehandlingKA ?: throw RuntimeException("nyAnkebehandlingKA mangler")
+                    }
+                } else if (behandling is AnkeITrygderettenbehandlingEtter2027) {
                     if (behandling.utfall != null) {
                         behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
                     } else {

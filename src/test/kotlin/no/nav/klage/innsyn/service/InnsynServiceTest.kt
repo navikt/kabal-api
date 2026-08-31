@@ -7,8 +7,8 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
@@ -100,7 +100,7 @@ internal class InnsynServiceTest {
             )
 
         val ankebehandling =
-            Ankebehandling(
+            AnkebehandlingFoer2027(
                 kakaKvalitetsvurderingId = null,
                 kakaKvalitetsvurderingVersion = 0,
                 klager =
@@ -149,7 +149,7 @@ internal class InnsynServiceTest {
             )
 
         val ankeITRBehandling =
-            AnkeITrygderettenbehandling(
+            AnkeITrygderettenbehandlingFoer2027(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
@@ -196,7 +196,7 @@ internal class InnsynServiceTest {
             )
 
         val ankebehandling2KA =
-            Ankebehandling(
+            AnkebehandlingFoer2027(
                 kakaKvalitetsvurderingId = null,
                 kakaKvalitetsvurderingVersion = 0,
                 klager =

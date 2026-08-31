@@ -8,8 +8,8 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
@@ -106,7 +106,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        val stored = behandlingRepository.findById(ankebehandling.id).get() as Ankebehandling
+        val stored = behandlingRepository.findById(ankebehandling.id).get() as AnkebehandlingFoer2027
         assertThat(stored.paaanketVedtaksdato).isEqualTo(PAAANKET_VEDTAKSDATO)
         assertThat(stored.forsterketRett).isTrue()
     }
@@ -233,7 +233,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             )
 
         private fun getAnkebehandling() =
-            Ankebehandling(
+            AnkebehandlingFoer2027(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
@@ -246,7 +246,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     ),
                 prosessfullmektig = null,
                 ytelse = Ytelse.OMS_OMP,
-                type = Type.ANKE,
+                type = Type.ANKE_FOER_2027,
                 frist = LocalDate.now(),
                 hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
                 mottattKlageinstans = LocalDateTime.now(),
@@ -336,7 +336,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             )
 
         private fun getAnkeITrygderettenbehandling() =
-            AnkeITrygderettenbehandling(
+            AnkeITrygderettenbehandlingFoer2027(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
@@ -349,7 +349,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     ),
                 prosessfullmektig = null,
                 ytelse = Ytelse.OMS_OMP,
-                type = Type.ANKE_I_TRYGDERETTEN,
+                type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                 frist = LocalDate.now(),
                 hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
                 mottattKlageinstans = LocalDateTime.now(),

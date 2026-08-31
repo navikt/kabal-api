@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
@@ -8,12 +8,12 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Repository
-interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
-    fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
+interface AnkebehandlingEtter2027Repository : JpaRepository<AnkebehandlingEtter2027, UUID> {
+    fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<AnkebehandlingEtter2027>
 
     @Query(
         """
-        FROM Ankebehandling 
+        FROM AnkebehandlingEtter2027 
         WHERE sakenGjelder.partId.value = :sakenGjelder 
         AND ferdigstilling.avsluttet IS NOT NULL 
         AND feilregistrering IS NULL 
@@ -26,5 +26,5 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
         sakenGjelder: String,
         kildeReferanse: String,
         dateLimit: LocalDateTime,
-    ): List<Ankebehandling>
+    ): List<AnkebehandlingEtter2027>
 }

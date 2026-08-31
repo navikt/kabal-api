@@ -29,7 +29,8 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -168,7 +169,7 @@ class MottakService(
         if (isBehandlingDuplicate(
                 fagsystem = input.fagsak.fagsystem,
                 kildeReferanse = input.kildeReferanse,
-                type = Type.ANKE_I_TRYGDERETTEN,
+                type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
             )
         ) {
             val message =
@@ -208,7 +209,7 @@ class MottakService(
                     oversendtKlageAnke.toMottak()
                 }
 
-                Type.ANKE -> {
+                Type.ANKE_FOER_2027 -> {
                     val previousHandledKlage =
                         klagebehandlingRepository.findByKildeReferanseAndYtelseAndFeilregistreringIsNull(
                             kildeReferanse = oversendtKlageAnke.kildeReferanse,
@@ -234,7 +235,7 @@ class MottakService(
                     }
                 }
 
-                Type.ANKE_I_TRYGDERETTEN -> {
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
                     TODO()
                 }
 
@@ -251,6 +252,10 @@ class MottakService(
                 }
 
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                    TODO()
+                }
+
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
                     TODO()
                 }
             }
@@ -414,7 +419,7 @@ class MottakService(
             .map { behandling ->
                 when (behandling) {
                     is Klagebehandling -> behandling.mottakDokument
-                    is Ankebehandling -> behandling.mottakDokument
+                    is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> behandling.mottakDokument
                     is Omgjoeringskravbehandling -> behandling.mottakDokument
                     is Gjenopptaksbehandling -> behandling.mottakDokument
                     else -> emptyList()
@@ -567,7 +572,7 @@ class MottakService(
         validateIncomingDocumentSource(
             journalpostId = ankeJournalpostId,
             uploadedDocument = uploadedDocument,
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
         )
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -887,7 +892,7 @@ class MottakService(
                     MottakDokumentDTO(
                         type =
                             when (type) {
-                                Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
+                                Type.ANKE_FOER_2027 -> MottakDokumentType.BRUKERS_ANKE
                                 Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
                                 Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
                                 else -> error("Ugyldig type $type")
@@ -1059,7 +1064,7 @@ class MottakService(
             }
 
         return Mottak(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),

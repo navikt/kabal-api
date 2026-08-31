@@ -391,8 +391,8 @@ abstract class Behandling(
     open fun shouldBeCompletedInKA(): Boolean =
         when (this) {
             is Klagebehandling -> false
-            is AnkeITrygderettenbehandling -> false
-            is Ankebehandling -> false
+            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> false
+            is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> false
             is BehandlingEtterTrygderettenOpphevet -> false
             is GjenopptakITrygderettenbehandling -> shouldBeCompletedInKA()
             is Gjenopptaksbehandling -> shouldBeCompletedInKA()
@@ -411,13 +411,13 @@ abstract class Behandling(
         return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
     }
 
-    fun createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput =
-        AnkeITrygderettenbehandlingInput(
+    fun createAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input =
+        AnkeITrygderettenbehandlingFoer2027Input(
             klager = klager,
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
             ytelse = ytelse,
-            type = Type.ANKE_I_TRYGDERETTEN,
+            type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
             kildeReferanse = kildeReferanse,
             dvhReferanse = dvhReferanse,
             fagsystem = fagsystem,
@@ -529,6 +529,10 @@ interface BehandlingITrygderetten {
 interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingId: UUID?
     var kakaKvalitetsvurderingVersion: Int
+}
+
+interface BehandlingWithKlageBehandlendeEnhet {
+    val klageBehandlendeEnhet: String
 }
 
 interface BehandlingWithTrygderettenMetadata {

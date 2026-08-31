@@ -20,11 +20,15 @@ import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKlageBehandlendeEnhet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
@@ -77,14 +81,14 @@ class BehandlingMapper(
                 )
             }
 
-            is Ankebehandling -> {
+            is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
                 mapAnkebehandlingToBehandlingDetaljerView(
                     ankebehandling = behandling,
                     person = person,
                 )
             }
 
-            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> {
+            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027, is GjenopptakITrygderettenbehandling -> {
                 mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(
                     behandling = behandling,
                     person = person,
@@ -351,10 +355,14 @@ class BehandlingMapper(
             returnedFromROLDate = null,
         )
 
-    fun mapAnkebehandlingToBehandlingDetaljerView(
-        ankebehandling: Ankebehandling,
+    fun <T> mapAnkebehandlingToBehandlingDetaljerView(
+        ankebehandling: T,
         person: Person,
-    ): BehandlingDetaljerView {
+    ): BehandlingDetaljerView where T : Behandling,
+                                    T : BehandlingWithVarsletBehandlingstid,
+                                    T : BehandlingWithKvalitetsvurdering,
+                                    T : BehandlingWithTrygderettenMetadata,
+                                    T : BehandlingWithKlageBehandlendeEnhet {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
