@@ -8,7 +8,7 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFraArena
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV4
@@ -178,7 +178,7 @@ class MottakService(
         }
     }
 
-    fun validateAnkeITrygderettenFraArena(input: OversendtAnkeITrygderettenFraArena) {
+    fun validateAnkeITrygderettenFromArena(input: OversendtAnkeITrygderettenFromArena) {
         validatePartId(
             PartId(
                 type = PartIdType.PERSON,

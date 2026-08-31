@@ -490,6 +490,7 @@ class GosysOppgaveService(
     fun getGosysOppgaveList(
         fnr: String,
         tema: Tema?,
+        onlyIncludeAapenKategori: Boolean,
     ): List<GosysOppgaveView> {
         val aktoerId = personService.getAktoerIdFromIdent(ident = fnr)
 
@@ -509,6 +510,7 @@ class GosysOppgaveService(
             gosysOppgaveClient.fetchGosysOppgaveForAktoerIdAndTema(
                 aktoerId = aktoerId,
                 temaList = temaList,
+                onlyIncludeAapenKategori = onlyIncludeAapenKategori,
             )
 
         return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
@@ -517,11 +519,13 @@ class GosysOppgaveService(
     fun getGosysOppgaveListForController(
         fnr: String,
         ytelse: Ytelse?,
+        onlyIncludeAapenKategori: Boolean,
     ): List<GosysOppgaveView> =
         if (klageLookupGateway.getAccess(brukerId = fnr).access) {
             getGosysOppgaveList(
                 fnr = fnr,
                 tema = ytelse?.toTema(),
+                onlyIncludeAapenKategori = onlyIncludeAapenKategori,
             )
         } else {
             throw MissingTilgangException("Du har ikke tilgang til angitt bruker.")

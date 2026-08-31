@@ -49,6 +49,7 @@ class GosysOppgaveController(
             .getGosysOppgaveListForController(
                 fnr = input.fnr,
                 ytelse = input.ytelseId?.let { Ytelse.of(it) },
+                onlyIncludeAapenKategori = !input.showClosed,
             ).map {
                 it.copy(
                     alreadyUsedBy = behandlingService.findOpenBehandlingUsingGosysOppgave(it.id),
