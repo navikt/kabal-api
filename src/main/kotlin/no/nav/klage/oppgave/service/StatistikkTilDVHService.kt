@@ -65,11 +65,8 @@ class StatistikkTilDVHService(
 
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 
-    fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
-        // Added AO01 check, until we fix gosys completion system.
-        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired ||
-            behandlingChangedEvent.behandling.fagsystem == Fagsystem.AO01
-        ) {
+    fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean =
+        if (behandlingChangedEvent.behandling.gosysOppgaveRequired) {
             false
         } else {
             behandlingChangedEvent.changeList.any {
@@ -86,7 +83,6 @@ class StatistikkTilDVHService(
                     it.felt === BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET
             }
         }
-    }
 
     private fun getBehandlingState(behandlingChangedEvent: BehandlingChangedEvent): BehandlingState {
         val changeList: List<BehandlingChangedEvent.Change> = behandlingChangedEvent.changeList
