@@ -120,7 +120,7 @@ class MottakService(
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
             ytelse = oversendtKlageAnke.ytelse.navn,
-            type = oversendtKlageAnke.type.navn,
+            type = oversendtKlageAnke.type.toType().navn,
         )
         return behandling
     }
@@ -205,11 +205,11 @@ class MottakService(
 
         val mottak =
             when (oversendtKlageAnke.type) {
-                Type.KLAGE -> {
+                OversendtType.KLAGE -> {
                     oversendtKlageAnke.toMottak()
                 }
 
-                Type.ANKE_FOER_2027 -> {
+                OversendtType.ANKE -> {
                     val previousHandledKlage =
                         klagebehandlingRepository.findByKildeReferanseAndYtelseAndFeilregistreringIsNull(
                             kildeReferanse = oversendtKlageAnke.kildeReferanse,
@@ -233,30 +233,6 @@ class MottakService(
                     } else {
                         oversendtKlageAnke.toMottak()
                     }
-                }
-
-                Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
-                    TODO()
-                }
-
-                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
-                    TODO()
-                }
-
-                Type.OMGJOERINGSKRAV -> {
-                    TODO()
-                }
-
-                Type.BEGJAERING_OM_GJENOPPTAK -> {
-                    TODO()
-                }
-
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
-                    TODO()
-                }
-
-                Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
-                    TODO()
                 }
             }
         return mottak
@@ -456,7 +432,7 @@ class MottakService(
 
     fun OversendtKlageAnkeV3.validate() {
         validateYtelseAndHjemler(ytelse, hjemler)
-        validateDuplicate(fagsystem = kilde, kildeReferanse = kildeReferanse, type = type)
+        validateDuplicate(fagsystem = kilde, kildeReferanse = kildeReferanse, type = type.toType())
         validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(klager.id.toPartId())
         klager.klagersProsessfullmektig?.id?.let { validatePartId(it.toPartId()) }
@@ -491,7 +467,7 @@ class MottakService(
 
     fun OversendtKlageAnkeV4.validate() {
         validateYtelseAndHjemler(ytelse, hjemler)
-        validateDuplicate(fagsystem = fagsak.fagsystem, kildeReferanse = kildeReferanse, type = Type.valueOf(type.name))
+        validateDuplicate(fagsystem = fagsak.fagsystem, kildeReferanse = kildeReferanse, type = type.toType())
         validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(sakenGjelder.id.toPartId())
         klager?.run { validatePartId(klager.id.toPartId()) }

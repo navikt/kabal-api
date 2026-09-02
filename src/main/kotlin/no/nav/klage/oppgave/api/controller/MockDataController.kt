@@ -88,7 +88,7 @@ class MockDataController(
         mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
-                type = Type.KLAGE,
+                type = OversendtType.KLAGE,
                 klager =
                     OversendtKlagerLegacy(
                         id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = fnr),
@@ -143,7 +143,7 @@ class MockDataController(
         mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
-                type = Type.KLAGE,
+                type = OversendtType.KLAGE,
                 klager =
                     OversendtKlagerLegacy(
                         id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = fnr),
@@ -318,7 +318,12 @@ class MockDataController(
                     mottakFacade.createMottakForKlageAnkeV4(
                         OversendtKlageAnkeV4(
                             ytelse = ytelse,
-                            type = OversendtType.valueOf(type.name),
+                            type =
+                                when (type) {
+                                    Type.KLAGE -> OversendtType.KLAGE
+                                    Type.ANKE_FOER_2027 -> OversendtType.ANKE
+                                    else -> error("Type $type kan ikke oversendes via V4")
+                                },
                             sakenGjelder = sakenGjelder,
                             klager = klager,
                             prosessfullmektig = mockInput?.prosessfullmektig,

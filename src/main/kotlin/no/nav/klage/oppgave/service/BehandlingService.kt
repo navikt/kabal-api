@@ -111,6 +111,7 @@ import no.nav.klage.oppgave.domain.behandling.utfallITrygderettenOpphevetEllerHe
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingFerdigstiltEvent
 import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.ExternalType
 import no.nav.klage.oppgave.domain.kafka.ExtraUtfallEvent
 import no.nav.klage.oppgave.domain.kafka.FeilregistreringEvent
 import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
@@ -2673,7 +2674,7 @@ class BehandlingService(
     }
 
     fun feilregistrer(
-        type: Type,
+        type: ExternalType,
         reason: String,
         fagsystem: Fagsystem,
         navIdent: String,
@@ -2694,10 +2695,10 @@ class BehandlingService(
         )
 
         var candidates =
-            behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+            behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndTypeIn(
                 fagsystem = fagsystem,
                 kildeReferanse = kildereferanse,
-                type = type,
+                type = type.toTypes(),
             )
         if (candidates.isEmpty()) {
             throw FeilregistreringException("Fant ingen saker å feilføre")

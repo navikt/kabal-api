@@ -18,10 +18,10 @@ import java.util.stream.Stream
 interface BehandlingRepository :
     JpaRepository<Behandling, UUID>,
     JpaSpecificationExecutor<Behandling> {
-    fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+    fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndTypeIn(
         fagsystem: Fagsystem,
         kildeReferanse: String,
-        type: Type,
+        type: List<Type>,
     ): List<Behandling>
 
     fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNull(
