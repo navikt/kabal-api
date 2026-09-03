@@ -188,7 +188,7 @@ class GosysOppgaveService(
     private fun getSendtTilTrygderettenMappeForEnhet(tildeltEnhetsnr: String): Long? {
         val mapperForEnhet = getMapperForEnhet(tildeltEnhetsnr)
         return when (tildeltEnhetsnr) {
-            "4291" -> mapperForEnhet.find { it.id == 100024220L && it.navn == "Sendt Trygderetten" }?.id
+            "4291" -> mapperForEnhet.find { it.id == 100024220L && it.navn == "Sendt trygderetten" }?.id
             "4292" -> mapperForEnhet.find { it.id == 100024233L && it.navn == "Sendt Trygderetten" }?.id
             "4293" -> mapperForEnhet.find { it.id == 100024247L && it.navn == "Sendt Trygderetten" }?.id
             "4294" -> mapperForEnhet.find { it.id == 100024263L && it.navn == "Behandles i Trygderetten" }?.id
