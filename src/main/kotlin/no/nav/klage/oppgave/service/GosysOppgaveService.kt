@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.gosysoppgave.AddKommentarToGosysOppgaveRequest
 import no.nav.klage.oppgave.clients.gosysoppgave.AvsluttGosysOppgaveRequest
 import no.nav.klage.oppgave.clients.gosysoppgave.FradelGosysOppgaveRequest
+import no.nav.klage.oppgave.clients.gosysoppgave.FradelGosysOppgaveWithMappeRequest
 import no.nav.klage.oppgave.clients.gosysoppgave.Gjelder
 import no.nav.klage.oppgave.clients.gosysoppgave.GosysOppgaveClient
 import no.nav.klage.oppgave.clients.gosysoppgave.GosysOppgaveRecord
@@ -25,6 +26,7 @@ import no.nav.klage.oppgave.clients.gosysoppgave.UpdateOppgaveRequest
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
@@ -77,7 +79,7 @@ class GosysOppgaveService(
     fun assignGosysOppgave(
         gosysOppgaveId: Long,
         tildeltSaksbehandlerIdent: String?,
-        behandlingId: UUID,
+        behandling: Behandling,
         utfoerendeSaksbehandlerIdent: String,
         throwExceptionIfFerdigstilt: Boolean,
     ) {
@@ -98,11 +100,45 @@ class GosysOppgaveService(
 
         val updateGosysOppgaveRequest =
             if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
-                FradelGosysOppgaveRequest(
-                    versjon = currentGosysOppgave.versjon,
-                    endretAvEnhetsnr = endretAvEnhetsnr,
-                    tilordnetRessurs = null,
-                )
+                if (behandling is BehandlingITrygderetten) {
+                    val mappe = getSendtTilTrygderettenMappeForEnhet(currentGosysOppgave.tildeltEnhetsnr)
+
+                    if (mappe != null) {
+                        FradelGosysOppgaveWithMappeRequest(
+                            versjon = currentGosysOppgave.versjon,
+                            endretAvEnhetsnr = endretAvEnhetsnr,
+                            tilordnetRessurs = null,
+                            mappeId = mappe,
+                            kommentar =
+                                Kommentar(
+                                    tekst = "Fradelt i Kabal.",
+                                    automatiskGenerert = true,
+                                ),
+                        )
+                    } else {
+                        FradelGosysOppgaveRequest(
+                            versjon = currentGosysOppgave.versjon,
+                            endretAvEnhetsnr = endretAvEnhetsnr,
+                            tilordnetRessurs = null,
+                            kommentar =
+                                Kommentar(
+                                    tekst = "Fradelt i Kabal.",
+                                    automatiskGenerert = true,
+                                ),
+                        )
+                    }
+                } else {
+                    FradelGosysOppgaveRequest(
+                        versjon = currentGosysOppgave.versjon,
+                        endretAvEnhetsnr = endretAvEnhetsnr,
+                        tilordnetRessurs = null,
+                        kommentar =
+                            Kommentar(
+                                tekst = "Fradelt i Kabal.",
+                                automatiskGenerert = true,
+                            ),
+                    )
+                }
             } else {
                 val tildeltSaksbehandlerInfo =
                     klageLookupGateway.getUserInfoForGivenNavIdent(
@@ -115,6 +151,11 @@ class GosysOppgaveService(
                     tilordnetRessurs = tildeltSaksbehandlerIdent,
                     tildeltEnhetsnr = tildeltSaksbehandlerInfo.enhet.enhetId,
                     mappeId = null,
+                    kommentar =
+                        Kommentar(
+                            tekst = "Tildelt i Kabal.",
+                            automatiskGenerert = true,
+                        ),
                 )
             }
 
@@ -139,9 +180,22 @@ class GosysOppgaveService(
                         traceparent = currentTraceparent(),
                     ),
                 ),
-            behandlingId = behandlingId,
+            behandlingId = behandling.id,
             type = InternalEventType.GOSYSOPPGAVE,
         )
+    }
+
+    private fun getSendtTilTrygderettenMappeForEnhet(tildeltEnhetsnr: String): Long? {
+        val mapperForEnhet = getMapperForEnhet(tildeltEnhetsnr)
+        return when (tildeltEnhetsnr) {
+            "4291" -> mapperForEnhet.find { it.id == 100024220L && it.navn == "Sendt Trygderetten" }?.id
+            "4292" -> mapperForEnhet.find { it.id == 100024233L && it.navn == "Sendt Trygderetten" }?.id
+            "4293" -> mapperForEnhet.find { it.id == 100024247L && it.navn == "Sendt Trygderetten" }?.id
+            "4294" -> mapperForEnhet.find { it.id == 100024263L && it.navn == "Behandles i Trygderetten" }?.id
+            "4295" -> mapperForEnhet.find { it.id == 100024295L && it.navn == "Sendt Trygderetten" }?.id
+            "4250" -> mapperForEnhet.find { it.id == 100003004L && it.navn == "Sendt Trygderetten" }?.id
+            else -> null
+        }
     }
 
     fun updateInternalFristInGosysOppgave(
