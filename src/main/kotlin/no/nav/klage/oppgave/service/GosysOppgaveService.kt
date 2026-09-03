@@ -103,17 +103,30 @@ class GosysOppgaveService(
                 if (behandling is BehandlingITrygderetten) {
                     val mappe = getSendtTilTrygderettenMappeForEnhet(currentGosysOppgave.tildeltEnhetsnr)
 
-                    FradelGosysOppgaveWithMappeRequest(
-                        versjon = currentGosysOppgave.versjon,
-                        endretAvEnhetsnr = endretAvEnhetsnr,
-                        tilordnetRessurs = null,
-                        mappeId = mappe,
-                        kommentar =
-                            Kommentar(
-                                tekst = "Fradelt i Kabal.",
-                                automatiskGenerert = true,
-                            ),
-                    )
+                    if (mappe != null) {
+                        FradelGosysOppgaveWithMappeRequest(
+                            versjon = currentGosysOppgave.versjon,
+                            endretAvEnhetsnr = endretAvEnhetsnr,
+                            tilordnetRessurs = null,
+                            mappeId = mappe,
+                            kommentar =
+                                Kommentar(
+                                    tekst = "Fradelt i Kabal.",
+                                    automatiskGenerert = true,
+                                ),
+                        )
+                    } else {
+                        FradelGosysOppgaveRequest(
+                            versjon = currentGosysOppgave.versjon,
+                            endretAvEnhetsnr = endretAvEnhetsnr,
+                            tilordnetRessurs = null,
+                            kommentar =
+                                Kommentar(
+                                    tekst = "Fradelt i Kabal.",
+                                    automatiskGenerert = true,
+                                ),
+                        )
+                    }
                 } else {
                     FradelGosysOppgaveRequest(
                         versjon = currentGosysOppgave.versjon,
