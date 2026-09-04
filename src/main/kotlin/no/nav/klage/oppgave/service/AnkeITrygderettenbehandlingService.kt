@@ -19,6 +19,7 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -188,7 +189,7 @@ class AnkeITrygderettenbehandlingService(
                     behandlingStartetKA = null,
                     ansvarligEnhetKode = "TR0000",
                     behandlingStatus = BehandlingState.SENDT_TIL_TR,
-                    behandlingType = Type.ANKE_FOER_2027.name,
+                    behandlingType = BehandlingType.ANKE,
                     // Means medunderskriver
                     beslutter = null,
                     endringstid = ankeITrygderettenbehandling.sendtTilTrygderetten,

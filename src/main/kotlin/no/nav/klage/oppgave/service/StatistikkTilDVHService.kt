@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.utfallToNewAnkebehandling
 import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -273,18 +274,26 @@ class StatistikkTilDVHService(
         )
     }
 
-    private fun getBehandlingTypeName(type: Type): String =
+    private fun getBehandlingTypeName(type: Type): BehandlingType =
         when (type) {
-            Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
-                Type.ANKE_FOER_2027.name
+            Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                BehandlingType.ANKE
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
-                Type.BEGJAERING_OM_GJENOPPTAK.name
+            Type.BEGJAERING_OM_GJENOPPTAK, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                BehandlingType.BEGJAERING_OM_GJENOPPTAK
             }
 
-            else -> {
-                type.name
+            Type.KLAGE -> {
+                BehandlingType.KLAGE
+            }
+
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                BehandlingType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET
+            }
+
+            Type.OMGJOERINGSKRAV -> {
+                BehandlingType.OMGJOERINGSKRAV
             }
         }
 
@@ -374,6 +383,17 @@ class StatistikkTilDVHService(
         }
 
     private fun Registreringshjemmel.toSearchableString(): String = "${lovKilde.navn}-$spesifikasjon"
+
+    enum class BehandlingEventType {
+        KLAGEBEHANDLING_AVSLUTTET,
+        ANKEBEHANDLING_OPPRETTET,
+        ANKEBEHANDLING_AVSLUTTET,
+        ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
+        BEHANDLING_FEILREGISTRERT,
+        BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET,
+        OMGJOERINGSKRAVBEHANDLING_AVSLUTTET,
+        GJENOPPTAKSBEHANDLING_AVSLUTTET,
+    }
 }
 
 fun getDVHPart(

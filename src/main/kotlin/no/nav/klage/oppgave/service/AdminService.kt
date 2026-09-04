@@ -49,9 +49,7 @@ import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJo
 import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
-import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingFoer2027Repository
 import no.nav.klage.oppgave.repositories.AnkebehandlingFoer2027Repository
@@ -62,7 +60,6 @@ import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
-import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -244,49 +241,6 @@ class AdminService(
             type = EventType.STATS_DVH,
             utsendingStatusList = listOf(UtsendingStatus.IKKE_SENDT, UtsendingStatus.FEILET, UtsendingStatus.SENDT),
         )
-    }
-
-    @Transactional
-    fun migrateDvhEvents() {
-        val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
-
-        val filteredEvents =
-            events.filter {
-                val parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-                parsedStatistikkTilDVH.behandlingType == "Anke" &&
-                    parsedStatistikkTilDVH.behandlingStatus in
-                    listOf(
-                        BehandlingState.AVSLUTTET,
-                        BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
-                    )
-            }
-
-        logger.debug("Number of candidates: ${filteredEvents.size}")
-
-        filteredEvents.forEach {
-            if (ankeITrygderettenbehandlingFoer2027Repository.existsById(it.behandlingId)) {
-                logger.debug(
-                    "BEFORE: Modifying kafka event {}, behandling_id {}, payload: {}",
-                    it.id,
-                    it.behandlingId,
-                    it.jsonPayload,
-                )
-                var parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-                parsedStatistikkTilDVH =
-                    parsedStatistikkTilDVH.copy(
-                        ansvarligEnhetKode = TR_ENHET,
-                        tekniskTid = LocalDateTime.now(),
-                    )
-                it.jsonPayload = jacksonObjectMapper.writeValueAsString(parsedStatistikkTilDVH)
-                it.status = UtsendingStatus.IKKE_SENDT
-                logger.debug(
-                    "AFTER: Modified kafka event {}, behandling_id {}, payload: {}",
-                    it.id,
-                    it.behandlingId,
-                    it.jsonPayload,
-                )
-            }
-        }
     }
 
     @Transactional

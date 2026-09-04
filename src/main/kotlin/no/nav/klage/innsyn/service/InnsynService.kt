@@ -45,8 +45,8 @@ class InnsynService(
     private fun Behandling.toBasicType(): Type =
         when (this) {
             is Klagebehandling -> Type.KLAGE
-            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> Type.ANKE_FOER_2027
-            is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> Type.ANKE_FOER_2027
+            is AnkebehandlingFoer2027, is AnkeITrygderettenbehandlingFoer2027 -> Type.ANKE_FOER_2027
+            is AnkebehandlingEtter2027, is AnkeITrygderettenbehandlingEtter2027 -> Type.ANKE_ETTER_2027
             is BehandlingEtterTrygderettenOpphevet -> Type.ANKE_FOER_2027
             is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
             is Gjenopptaksbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
