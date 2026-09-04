@@ -59,9 +59,13 @@ class KabalJsonToPdfService(
                         behandlingstidUnitTypeId = svarbrev.varsletBehandlingstidUnitType.id,
                         avsenderEnhetId = avsenderEnhetId,
                         type =
-                            SvarbrevRequest.Type.valueOf(
-                                svarbrev.type.name,
-                            ),
+                            when (svarbrev.type) {
+                                Type.KLAGE -> SvarbrevRequest.Type.KLAGE
+                                Type.ANKE_FOER_2027 -> SvarbrevRequest.Type.ANKE
+                                Type.OMGJOERINGSKRAV -> SvarbrevRequest.Type.OMGJOERINGSKRAV
+                                Type.BEGJAERING_OM_GJENOPPTAK -> SvarbrevRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                else -> error("Unexpected svarbrev type: ${svarbrev.type}")
+                            },
                         initialCustomText = svarbrev.initialCustomText,
                         customText = svarbrev.customText,
                     ),
