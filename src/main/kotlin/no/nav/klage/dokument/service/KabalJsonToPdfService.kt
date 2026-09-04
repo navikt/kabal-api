@@ -116,9 +116,13 @@ class KabalJsonToPdfService(
                         behandlingstidUnitTypeId = behandlingstidUnitType?.id,
                         avsenderEnhetId = avsenderEnhetId,
                         type =
-                            ForlengetBehandlingstidRequest.Type.valueOf(
-                                type.name,
-                            ),
+                            when (type) {
+                                Type.KLAGE -> ForlengetBehandlingstidRequest.Type.KLAGE
+                                Type.ANKE_FOER_2027 -> ForlengetBehandlingstidRequest.Type.ANKE
+                                Type.OMGJOERINGSKRAV -> ForlengetBehandlingstidRequest.Type.OMGJOERINGSKRAV
+                                Type.BEGJAERING_OM_GJENOPPTAK -> ForlengetBehandlingstidRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                else -> error("Unexpected svarbrev type: $type")
+                            },
                         mottattKlageinstans = mottattKlageinstans,
                         previousBehandlingstidInfo = previousBehandlingstidInfo,
                         reason = reason,
