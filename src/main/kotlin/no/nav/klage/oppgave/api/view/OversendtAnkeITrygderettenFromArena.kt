@@ -15,7 +15,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Schema
-data class OversendtAnkeITrygderettenFraArena(
+data class OversendtAnkeITrygderettenFromArena(
     @Schema(
         description = "Fnr for saken gjelder. Brukes også som klager.",
         required = true,
@@ -53,7 +53,7 @@ data class OversendtAnkeITrygderettenFraArena(
     val gosysOppgaveId: Long,
 )
 
-fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input {
+fun OversendtAnkeITrygderettenFromArena.toAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input {
     val partId = PartId(type = PartIdType.PERSON, value = sakenGjelder)
     val partUuid = UUID.randomUUID()
 

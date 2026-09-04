@@ -158,6 +158,7 @@ class GosysOppgaveClient(
     fun fetchGosysOppgaveForAktoerIdAndTema(
         aktoerId: String,
         temaList: List<Tema>?,
+        onlyIncludeAapenKategori: Boolean,
     ): List<GosysOppgaveRecord> {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
@@ -166,6 +167,9 @@ class GosysOppgaveClient(
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("v1", "oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
+                        if (onlyIncludeAapenKategori) {
+                            uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
+                        }
                         temaList?.let { uriBuilder.queryParam("tema", temaList?.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
@@ -181,6 +185,11 @@ class GosysOppgaveClient(
             }
 
         return oppgaveResponse.oppgaver
+    }
+
+    enum class Statuskategori {
+        AAPEN,
+        AVSLUTTET,
     }
 
     private fun <T> logTimingAndWebClientResponseException(

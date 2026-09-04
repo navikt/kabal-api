@@ -6,7 +6,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFraArena
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingFoer2027Input
@@ -228,12 +228,12 @@ class AnkeITrygderettenbehandlingService(
         }
     }
 
-    fun createAnkeITrygderettenbehandlingFromArenaExternalApi(input: OversendtAnkeITrygderettenFraArena): UUID {
+    fun createAnkeITrygderettenbehandlingFromArena(input: OversendtAnkeITrygderettenFromArena): UUID {
         if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
             throw MissingTilgangException("Bare bruker med rollen `Oppgavestyring alle enheter` kan utføre denne operasjonen.")
         }
 
-        mottakService.validateAnkeITrygderettenFraArena(input)
+        mottakService.validateAnkeITrygderettenFromArena(input)
         input.validate()
         val newAnkeITrygderettenbehandling =
             createAnkeITrygderettenbehandling(
@@ -251,7 +251,7 @@ class AnkeITrygderettenbehandlingService(
 
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 
-    private fun OversendtAnkeITrygderettenFraArena.validate() {
+    private fun OversendtAnkeITrygderettenFromArena.validate() {
         val validationErrors = mutableListOf<InvalidProperty>()
         val ytelse = Ytelse.of(ytelseId)
         if (hjemmelIdList.isEmpty()) {

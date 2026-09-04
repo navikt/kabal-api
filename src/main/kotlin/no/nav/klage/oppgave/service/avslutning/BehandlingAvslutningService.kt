@@ -163,7 +163,7 @@ class BehandlingAvslutningService(
             setToFinishedInInfotrygd(klagebehandling)
         } else if (klagebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
-        } else if (klagebehandling.isArbeidsoppfolgingInArena()) {
+        } else if (klagebehandling.isImpliedArenaCase()) {
             logger.debug(
                 "Klage med id ${klagebehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
@@ -214,7 +214,7 @@ class BehandlingAvslutningService(
             setToFinishedInInfotrygd(ankebehandling)
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
-        } else if (ankebehandling.isArbeidsoppfolgingInArena()) {
+        } else if (ankebehandling.isImpliedArenaCase()) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
@@ -290,7 +290,7 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
-        } else if (ankeITrygderettenbehandling.isArbeidsoppfolgingInArena()) {
+        } else if (ankeITrygderettenbehandling.isImpliedArenaCase()) {
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
@@ -333,7 +333,7 @@ class BehandlingAvslutningService(
             logger.debug(
                 "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
-        } else if (behandlingEtterTrygderettenOpphevet.isArbeidsoppfolgingInArena()) {
+        } else if (behandlingEtterTrygderettenOpphevet.isImpliedArenaCase()) {
             logger.debug(
                 "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
@@ -670,7 +670,8 @@ class BehandlingAvslutningService(
         )
     }
 
-    private fun Behandling.isArbeidsoppfolgingInArena(): Boolean = fagsystem == Fagsystem.ARBEIDSOPPFOLGING && gosysOppgaveRequired
+    private fun Behandling.isImpliedArenaCase(): Boolean =
+        fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22) && gosysOppgaveRequired
 
     private fun getBehandlingDetaljer(
         behandling: Behandling,

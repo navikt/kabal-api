@@ -3220,6 +3220,7 @@ class BehandlingService(
             .getGosysOppgaveList(
                 fnr = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+                onlyIncludeAapenKategori = false,
             ).map {
                 it.copy(
                     alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(it.id),

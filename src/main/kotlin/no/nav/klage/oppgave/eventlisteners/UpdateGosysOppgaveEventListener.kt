@@ -34,7 +34,7 @@ class UpdateGosysOppgaveEventListener(
                 gosysOppgaveId = behandlingChangedEvent.behandling.gosysOppgaveId!!,
                 tildeltSaksbehandlerIdent = behandlingChangedEvent.behandling.tildeling?.saksbehandlerident,
                 utfoerendeSaksbehandlerIdent = relevantChange.saksbehandlerident ?: systembrukerIdent,
-                behandlingId = behandlingChangedEvent.behandling.id,
+                behandling = behandlingChangedEvent.behandling,
                 throwExceptionIfFerdigstilt = false,
             )
         }

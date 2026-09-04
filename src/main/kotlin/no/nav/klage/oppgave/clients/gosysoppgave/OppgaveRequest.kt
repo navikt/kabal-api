@@ -13,12 +13,22 @@ data class TildelGosysOppgaveRequest(
     val tilordnetRessurs: String,
     val tildeltEnhetsnr: String,
     val mappeId: Long?,
+    val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
 data class FradelGosysOppgaveRequest(
     override val versjon: Int,
     override val endretAvEnhetsnr: String?,
     val tilordnetRessurs: String?,
+    val kommentar: Kommentar,
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
+
+data class FradelGosysOppgaveWithMappeRequest(
+    override val versjon: Int,
+    override val endretAvEnhetsnr: String?,
+    val tilordnetRessurs: String?,
+    val mappeId: Long?,
+    val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
 data class UpdateGosysOppgaveOnCompletedBehandlingRequest(
