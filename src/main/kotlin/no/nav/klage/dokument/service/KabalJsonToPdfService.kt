@@ -59,9 +59,13 @@ class KabalJsonToPdfService(
                         behandlingstidUnitTypeId = svarbrev.varsletBehandlingstidUnitType.id,
                         avsenderEnhetId = avsenderEnhetId,
                         type =
-                            SvarbrevRequest.Type.valueOf(
-                                svarbrev.type.name,
-                            ),
+                            when (svarbrev.type) {
+                                Type.KLAGE -> SvarbrevRequest.Type.KLAGE
+                                Type.ANKE_FOER_2027 -> SvarbrevRequest.Type.ANKE
+                                Type.OMGJOERINGSKRAV -> SvarbrevRequest.Type.OMGJOERINGSKRAV
+                                Type.BEGJAERING_OM_GJENOPPTAK -> SvarbrevRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                else -> error("Unexpected svarbrev type: ${svarbrev.type}")
+                            },
                         initialCustomText = svarbrev.initialCustomText,
                         customText = svarbrev.customText,
                     ),
@@ -112,9 +116,13 @@ class KabalJsonToPdfService(
                         behandlingstidUnitTypeId = behandlingstidUnitType?.id,
                         avsenderEnhetId = avsenderEnhetId,
                         type =
-                            ForlengetBehandlingstidRequest.Type.valueOf(
-                                type.name,
-                            ),
+                            when (type) {
+                                Type.KLAGE -> ForlengetBehandlingstidRequest.Type.KLAGE
+                                Type.ANKE_FOER_2027 -> ForlengetBehandlingstidRequest.Type.ANKE
+                                Type.OMGJOERINGSKRAV -> ForlengetBehandlingstidRequest.Type.OMGJOERINGSKRAV
+                                Type.BEGJAERING_OM_GJENOPPTAK -> ForlengetBehandlingstidRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                else -> error("Unexpected svarbrev type: $type")
+                            },
                         mottattKlageinstans = mottattKlageinstans,
                         previousBehandlingstidInfo = previousBehandlingstidInfo,
                         reason = reason,

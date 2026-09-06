@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.view
 
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
@@ -141,7 +140,7 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         }
 
     return Mottak(
-        type = Type.valueOf(type.name),
+        type = type.toType(),
         sakenGjelder = sakenGjelderPart,
         klager = klagePart,
         fagsystem = fagsak.fagsystem,
@@ -164,11 +163,6 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         gosysOppgaveRequired = false,
         gosysOppgaveId = null,
     )
-}
-
-enum class OversendtType {
-    KLAGE,
-    ANKE,
 }
 
 @Schema(

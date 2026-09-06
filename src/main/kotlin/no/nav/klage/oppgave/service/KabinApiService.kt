@@ -64,7 +64,7 @@ class KabinApiService(
     fun getAnkemuligheter(partIdValue: String): List<Mulighet> =
         behandlingService
             .getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
-            .map { it.toMulighet(mulighetType = Type.ANKE) }
+            .map { it.toMulighet(mulighetType = Type.ANKE_FOER_2027) }
 
     fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
         val infotrygdSak =
@@ -83,7 +83,7 @@ class KabinApiService(
         logger.debug(
             "Found ${ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.size} infotrygd muligheter for infotrygdSakId $infotrygdSakId",
         )
-        return ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.map { it.toMulighet(mulighetType = Type.ANKE) }
+        return ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.map { it.toMulighet(mulighetType = Type.ANKE_FOER_2027) }
     }
 
     fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> =

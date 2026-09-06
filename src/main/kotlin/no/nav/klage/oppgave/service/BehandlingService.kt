@@ -55,7 +55,8 @@ import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiC
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.SchedulerHealthGate
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
@@ -71,7 +72,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.noKvalitetsvurderingNeeded
 import no.nav.klage.oppgave.domain.behandling.noRegistringshjemmelNeeded
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
+import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingFoer2027Setters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
@@ -110,6 +111,7 @@ import no.nav.klage.oppgave.domain.behandling.utfallITrygderettenOpphevetEllerHe
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingFerdigstiltEvent
 import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.ExternalType
 import no.nav.klage.oppgave.domain.kafka.ExtraUtfallEvent
 import no.nav.klage.oppgave.domain.kafka.FeilregistreringEvent
 import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
@@ -159,6 +161,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingEtter2027Setters.setNyAnkebehandlingKA as setNyAnkebehandlingKAEtter2027
 
 @Service
 @Transactional
@@ -224,7 +227,12 @@ class BehandlingService(
                 behandlingId = behandlingId,
             )
 
-        val ankeITRHenvist = behandling is AnkeITrygderettenbehandling && behandling.utfall == Utfall.HENVIST
+        val ankeITRHenvist =
+            (
+                behandling is AnkeITrygderettenbehandlingFoer2027 ||
+                    behandling is AnkeITrygderettenbehandlingEtter2027
+            ) &&
+                behandling.utfall == Utfall.HENVIST
 
         if ((ankeITRHenvist || nyBehandlingEtterTROpphevet) && gosysOppgaveInput != null) {
             throw SectionedValidationErrorWithDetailsException(
@@ -365,7 +373,7 @@ class BehandlingService(
                     if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
                         if (behandling.type in
                             listOf(
-                                Type.ANKE,
+                                Type.ANKE_FOER_2027,
                                 Type.BEGJAERING_OM_GJENOPPTAK,
                             ) && behandling.shouldBeSentToTrygderetten()
                         ) {
@@ -451,7 +459,9 @@ class BehandlingService(
         val sectionList = mutableListOf<ValidationSection>()
 
         if (nyBehandlingEtterTROpphevet) {
-            if (behandling is AnkeITrygderettenbehandling) {
+            if (behandling is AnkeITrygderettenbehandlingFoer2027 ||
+                behandling is AnkeITrygderettenbehandlingEtter2027
+            ) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
                     throw IllegalOperation(
                         "NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.",
@@ -521,7 +531,7 @@ class BehandlingService(
 
         if (behandling.type in
             listOf(
-                Type.ANKE,
+                Type.ANKE_FOER_2027,
                 Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
@@ -944,7 +954,7 @@ class BehandlingService(
             }
 
             // if fagsystem is Infotrygd also do this.
-            if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+            if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN_FOER_2027) {
                 logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
                 klankeService.setToHandledInKabal(
                     sakId = behandling.kildeReferanse,
@@ -1158,7 +1168,7 @@ class BehandlingService(
         }
 
         // if fagsystem is Infotrygd also do this.
-        if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+        if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN_FOER_2027) {
             logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
             klankeService.setToHandledInKabal(
                 sakId = behandling.kildeReferanse,
@@ -1594,12 +1604,29 @@ class BehandlingService(
     ): Behandling {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
-        if (behandling is AnkeITrygderettenbehandling) {
+        if (behandling is AnkeITrygderettenbehandlingFoer2027 ||
+            behandling is AnkeITrygderettenbehandlingEtter2027
+        ) {
             val eventNyBehandling =
-                behandling.setNyAnkebehandlingKA(
-                    nyVerdi = LocalDateTime.now(),
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                )
+                when (behandling) {
+                    is AnkeITrygderettenbehandlingFoer2027 -> {
+                        behandling.setNyAnkebehandlingKA(
+                            nyVerdi = LocalDateTime.now(),
+                            saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                        )
+                    }
+
+                    is AnkeITrygderettenbehandlingEtter2027 -> {
+                        behandling.setNyAnkebehandlingKAEtter2027(
+                            nyVerdi = LocalDateTime.now(),
+                            saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                        )
+                    }
+
+                    else -> {
+                        error("Unreachable")
+                    }
+                }
             val eventAvsluttetAvSaksbehandler =
                 behandling.setAvsluttetAvSaksbehandler(
                     saksbehandlerident = utfoerendeSaksbehandlerIdent,
@@ -2647,7 +2674,7 @@ class BehandlingService(
     }
 
     fun feilregistrer(
-        type: Type,
+        type: ExternalType,
         reason: String,
         fagsystem: Fagsystem,
         navIdent: String,
@@ -2668,10 +2695,10 @@ class BehandlingService(
         )
 
         var candidates =
-            behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+            behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndTypeIn(
                 fagsystem = fagsystem,
                 kildeReferanse = kildereferanse,
-                type = type,
+                type = type.toTypes(),
             )
         if (candidates.isEmpty()) {
             throw FeilregistreringException("Fant ingen saker å feilføre")

@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
 import no.nav.klage.oppgave.domain.kafka.BehandlingFeilregistrertDetaljer
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
+import no.nav.klage.oppgave.domain.kafka.toExternalType
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
@@ -163,7 +164,7 @@ class CleanupAfterBehandlingEventListener(
                                 feilregistrert = behandling.feilregistrering!!.registered,
                                 navIdent = behandling.feilregistrering!!.navIdent,
                                 reason = behandling.feilregistrering!!.reason,
-                                type = behandling.type,
+                                type = behandling.type.toExternalType(),
                             ),
                     ),
             )

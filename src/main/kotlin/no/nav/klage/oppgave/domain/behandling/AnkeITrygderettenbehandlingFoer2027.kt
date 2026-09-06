@@ -34,10 +34,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
-@DiscriminatorValue("anke_i_trygderetten")
+@DiscriminatorValue("anke_i_trygderetten_foer_2027")
 @DynamicUpdate
 @Audited
-class AnkeITrygderettenbehandling(
+class AnkeITrygderettenbehandlingFoer2027(
     @Column(name = "sendt_til_trygderetten", nullable = false)
     override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "paaanket_vedtaks_dato")
@@ -143,7 +143,7 @@ class AnkeITrygderettenbehandling(
     BehandlingITrygderetten,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =
-        "Ankebehandling(id=$id, " +
+        "AnkeITrygderettenbehandlingFoer2027(id=$id, " +
             "modified=$modified, " +
             "created=$created)"
 
@@ -151,7 +151,7 @@ class AnkeITrygderettenbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as AnkeITrygderettenbehandling
+        other as AnkeITrygderettenbehandlingFoer2027
 
         return id == other.id
     }
@@ -165,7 +165,7 @@ class AnkeITrygderettenbehandling(
     fun shouldNotCreateNewBehandling(): Boolean = (!shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
 }
 
-data class AnkeITrygderettenbehandlingInput(
+data class AnkeITrygderettenbehandlingFoer2027Input(
     val klager: Klager,
     val sakenGjelder: SakenGjelder? = null,
     val prosessfullmektig: Prosessfullmektig?,

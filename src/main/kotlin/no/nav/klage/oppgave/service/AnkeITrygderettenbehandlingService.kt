@@ -8,10 +8,10 @@ import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
-import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingFoer2027Input
+import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingFoer2027Input
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.AnkeITrygderettenbehandlingOpprettetDetaljer
@@ -19,6 +19,7 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -28,7 +29,7 @@ import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.exceptions.ValidationSection
-import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
+import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingFoer2027Repository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -44,7 +45,7 @@ import java.util.UUID
 @Service
 @Transactional
 class AnkeITrygderettenbehandlingService(
-    private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
+    private val ankeITrygderettenbehandlingFoer2027Repository: AnkeITrygderettenbehandlingFoer2027Repository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kafkaEventRepository: KafkaEventRepository,
@@ -60,10 +61,10 @@ class AnkeITrygderettenbehandlingService(
         private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
-    fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingInput): AnkeITrygderettenbehandling {
+    fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingFoer2027Input): AnkeITrygderettenbehandlingFoer2027 {
         val ankeITrygderettenbehandling =
-            ankeITrygderettenbehandlingRepository.save(
-                AnkeITrygderettenbehandling(
+            ankeITrygderettenbehandlingFoer2027Repository.save(
+                AnkeITrygderettenbehandlingFoer2027(
                     klager = input.klager.copy(),
                     sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
                     prosessfullmektig = input.prosessfullmektig,
@@ -174,7 +175,7 @@ class AnkeITrygderettenbehandlingService(
             dokumentService.createSaksdokumenterFromJournalpostIdList(input.tilknyttedeJournalposter.map { it.journalpostId })
         val ankeITrygderettenbehandling =
             createAnkeITrygderettenbehandling(
-                input.createAnkeITrygderettenbehandlingInput(inputDocuments),
+                input.createAnkeITrygderettenbehandlingFoer2027Input(inputDocuments),
             )
 
         // Custom handling for Pesys:
@@ -188,7 +189,7 @@ class AnkeITrygderettenbehandlingService(
                     behandlingStartetKA = null,
                     ansvarligEnhetKode = "TR0000",
                     behandlingStatus = BehandlingState.SENDT_TIL_TR,
-                    behandlingType = Type.ANKE.name,
+                    behandlingType = BehandlingType.ANKE,
                     // Means medunderskriver
                     beslutter = null,
                     endringstid = ankeITrygderettenbehandling.sendtTilTrygderetten,
@@ -237,7 +238,7 @@ class AnkeITrygderettenbehandlingService(
         input.validate()
         val newAnkeITrygderettenbehandling =
             createAnkeITrygderettenbehandling(
-                input.toAnkeITrygderettenbehandlingInput(),
+                input.toAnkeITrygderettenbehandlingFoer2027Input(),
             )
         gosysOppgaveService.addKommentar(
             behandling = newAnkeITrygderettenbehandling,
@@ -349,7 +350,7 @@ class AnkeITrygderettenbehandlingService(
             mottakService.validateDuplicate(
                 fagsystem = Fagsystem.AO01,
                 kildeReferanse = fagsakId,
-                type = Type.ANKE_I_TRYGDERETTEN,
+                type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
             )
         } catch (_: DuplicateOversendelseException) {
             validationErrors.add(

@@ -9,8 +9,8 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
@@ -248,7 +248,7 @@ class BehandlingAvslutningServiceTest {
     @Nested
     inner class AnkebehandlingTest {
         val behandling =
-            mockk<Ankebehandling>(relaxed = true) {
+            mockk<AnkebehandlingFoer2027>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns
                     Ferdigstilling(
@@ -268,7 +268,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall going to Trygderetten and fagsystem Infotrygd creates AnkeITrygderettenbehandling and updates Infotrygd and GosysOppgave`() {
+        fun `AnkebehandlingFoer2027 with utfall going to Trygderetten and fagsystem Infotrygd creates AnkeITrygderettenbehandlingFoer2027 and updates Infotrygd and GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
             every { behandling.gosysOppgaveRequired } returns true
@@ -279,7 +279,7 @@ class BehandlingAvslutningServiceTest {
                     oppgaveUpdateKommentar = "",
                 )
             every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
-            every { behandling.createAnkeITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createAnkeITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -336,10 +336,10 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall to Trygderetten creates AnkeITrygderettenbehandling`() {
+        fun `AnkebehandlingFoer2027 with utfall to Trygderetten creates AnkeITrygderettenbehandlingFoer2027`() {
             every { behandling.fagsystem } returns Fagsystem.FS36
             every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
-            every { behandling.createAnkeITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createAnkeITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -383,7 +383,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall not going to Trygderetten from modern fagsystem creates kafka event`() {
+        fun `AnkebehandlingFoer2027 with utfall not going to Trygderetten from modern fagsystem creates kafka event`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.FS36
 
@@ -429,7 +429,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall not going to Trygderetten from Infotrygd should update Infotrygd and GosysOppgave`() {
+        fun `AnkebehandlingFoer2027 with utfall not going to Trygderetten from Infotrygd should update Infotrygd and GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -499,7 +499,7 @@ class BehandlingAvslutningServiceTest {
     @Nested
     inner class AnkeITrygderettenbehandlingTest {
         val behandling =
-            mockk<AnkeITrygderettenbehandling>(relaxed = true) {
+            mockk<AnkeITrygderettenbehandlingFoer2027>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns
                     Ferdigstilling(
@@ -522,7 +522,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from modernized fagsystem with utfall HENVIST creates new Ankebehandling`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from modernized fagsystem with utfall HENVIST creates new AnkebehandlingFoer2027`() {
             every { behandling.utfall } returns Utfall.HENVIST
             every { behandling.fagsystem } returns Fagsystem.FS36
 
@@ -568,7 +568,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from Infotrygd with utfall HENVIST and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd with utfall HENVIST and gosysOppgaveId creates new AnkebehandlingFoer2027 and notifies GosysOppgave`() {
             every { behandling.utfall } returns Utfall.HENVIST
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -617,7 +617,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from modernized fagsystem tagged with nyAnkebehandlingKA creates new Ankebehandling`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from modernized fagsystem tagged with nyAnkebehandlingKA creates new AnkebehandlingFoer2027`() {
             every { behandling.nyAnkebehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.FS36
 
@@ -663,7 +663,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from Infotrygd tagged with nyAnkebehandlingKA and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd tagged with nyAnkebehandlingKA and gosysOppgaveId creates new AnkebehandlingFoer2027 and notifies GosysOppgave`() {
             every { behandling.nyAnkebehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -711,7 +711,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from modernized fagsystem with utfall Opphevet and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from modernized fagsystem with utfall Opphevet and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet`() {
             every { behandling.nyBehandlingEtterTROpphevet } returns now
             every { behandling.utfall } returns Utfall.OPPHEVET
             every { behandling.fagsystem } returns Fagsystem.FS36
@@ -758,7 +758,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from Infotrygd with utfall Opphevet, gosysOppgaveId and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd with utfall Opphevet, gosysOppgaveId and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet and notifies GosysOppgave`() {
             every { behandling.nyBehandlingEtterTROpphevet } returns now
             every { behandling.utfall } returns Utfall.OPPHEVET
             every { behandling.fagsystem } returns Fagsystem.IT01
@@ -807,7 +807,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from modern fagsystem with utfall Opphevet but no nyBehandling tag sends Kafka event to fagsystem`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from modern fagsystem with utfall Opphevet but no nyBehandling tag sends Kafka event to fagsystem`() {
             every { behandling.nyBehandlingEtterTROpphevet } returns null
             every { behandling.utfall } returns Utfall.OPPHEVET
             every { behandling.fagsystem } returns Fagsystem.FS36
@@ -854,7 +854,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from modern fagsystem with different utfall sends Kafka event to fagsystem`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from modern fagsystem with different utfall sends Kafka event to fagsystem`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.FS36
 
@@ -900,7 +900,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling from Infotrygd with different utfall updates Infotrygd`() {
+        fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd with different utfall updates Infotrygd`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -2245,7 +2245,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling tagged with nyAnkebehandlingKA and with gosysOppgave creates new Ankebehandling and notifies GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandling tagged with nyAnkebehandlingKA and with gosysOppgave creates new AnkebehandlingFoer2027 and notifies GosysOppgave`() {
             every { behandling.nyGjenopptaksbehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L

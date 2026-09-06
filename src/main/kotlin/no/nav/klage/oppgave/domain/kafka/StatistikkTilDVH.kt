@@ -45,7 +45,7 @@ data class StatistikkTilDVH(
     /** Kode som angir den aktuelle behandlingens tilstand på gjeldende tidspunkt. */
     val behandlingStatus: BehandlingState,
     /** Kode som beskriver behandlingen, for eksempel, klage, anke, tilbakekreving o.l. */
-    val behandlingType: String,
+    val behandlingType: BehandlingType,
     /** BrukerIDen til ev. medunderskriver. */
     val beslutter: String?,
     /** Tidspunktet da hendelsen faktisk ble gjennomført eller registrert i systemet. (format:$DATE_TIME_FORMAT) Dette er det tidspunkt der hendelsen faktisk er gjeldende fra. Ved for eksempel patching av data eller oppdatering tilbake i tid, skal tekniskTid være lik endringstidspunktet, mens endringstid angir tidspunktet da endringen offisielt gjelder fra. */
@@ -105,6 +105,14 @@ data class StatistikkTilDVH(
         PERSON,
         VIRKSOMHET,
     }
+}
+
+enum class BehandlingType {
+    KLAGE,
+    ANKE,
+    BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+    OMGJOERINGSKRAV,
+    BEGJAERING_OM_GJENOPPTAK,
 }
 
 enum class BehandlingState {

@@ -34,8 +34,10 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTST
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.PersonProtection
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -47,12 +49,10 @@ import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJo
 import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
-import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
-import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingFoer2027Repository
+import no.nav.klage.oppgave.repositories.AnkebehandlingFoer2027Repository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
@@ -60,7 +60,6 @@ import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
-import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -86,8 +85,8 @@ class AdminService(
     private val kafkaDispatcher: KafkaDispatcher,
     private val behandlingRepository: BehandlingRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
-    private val ankebehandlingRepository: AnkebehandlingRepository,
-    private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
+    private val ankebehandlingFoer2027Repository: AnkebehandlingFoer2027Repository,
+    private val ankeITrygderettenbehandlingFoer2027Repository: AnkeITrygderettenbehandlingFoer2027Repository,
     private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
@@ -245,49 +244,6 @@ class AdminService(
     }
 
     @Transactional
-    fun migrateDvhEvents() {
-        val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
-
-        val filteredEvents =
-            events.filter {
-                val parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-                parsedStatistikkTilDVH.behandlingType == "Anke" &&
-                    parsedStatistikkTilDVH.behandlingStatus in
-                    listOf(
-                        BehandlingState.AVSLUTTET,
-                        BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
-                    )
-            }
-
-        logger.debug("Number of candidates: ${filteredEvents.size}")
-
-        filteredEvents.forEach {
-            if (ankeITrygderettenbehandlingRepository.existsById(it.behandlingId)) {
-                logger.debug(
-                    "BEFORE: Modifying kafka event {}, behandling_id {}, payload: {}",
-                    it.id,
-                    it.behandlingId,
-                    it.jsonPayload,
-                )
-                var parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-                parsedStatistikkTilDVH =
-                    parsedStatistikkTilDVH.copy(
-                        ansvarligEnhetKode = TR_ENHET,
-                        tekniskTid = LocalDateTime.now(),
-                    )
-                it.jsonPayload = jacksonObjectMapper.writeValueAsString(parsedStatistikkTilDVH)
-                it.status = UtsendingStatus.IKKE_SENDT
-                logger.debug(
-                    "AFTER: Modified kafka event {}, behandling_id {}, payload: {}",
-                    it.id,
-                    it.behandlingId,
-                    it.jsonPayload,
-                )
-            }
-        }
-    }
-
-    @Transactional
     fun logExpiredUsers() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
@@ -424,7 +380,7 @@ class AdminService(
 
         unfinishedBehandlinger.forEach { behandling ->
             when (behandling) {
-                is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
+                is Klagebehandling, is AnkebehandlingFoer2027, is AnkebehandlingEtter2027, is Omgjoeringskravbehandling -> {
                     if (behandling.tildeling == null) {
                         val hjemlerForYtelseInInnstillinger =
                             ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
@@ -620,7 +576,7 @@ class AdminService(
         val filteredKlageInvalidHjemler = klageinvalidHjemler.filter { it.second.isNotEmpty() }
         teamLogger.debug("Invalid registreringshjemler in klagebehandlinger v2: {}", filteredKlageInvalidHjemler)
 
-        val ankebehandlinger = ankebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
+        val ankebehandlinger = ankebehandlingFoer2027Repository.findByKakaKvalitetsvurderingVersionIs(2)
         val ankeYtelseAndHjemmelPairSet = ankebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
         val (_, ankeinvalidHjemler) =
             ankeYtelseAndHjemmelPairSet.partition { pair ->
@@ -662,8 +618,13 @@ class AdminService(
                                 felt =
                                     when (behandling) {
                                         is Klagebehandling -> BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
-                                        is Ankebehandling -> BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
+
+                                        is AnkebehandlingFoer2027,
+                                        is AnkebehandlingEtter2027,
+                                        -> BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
+
                                         is Omgjoeringskravbehandling -> BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+
                                         else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
                                     },
                                 fraVerdi = null,
@@ -701,7 +662,7 @@ class AdminService(
                     klagebehandlingIds += "${behandling.id}, "
                 }
             }
-            val ankebehandlinger = ankebehandlingRepository.findAll()
+            val ankebehandlinger = ankebehandlingFoer2027Repository.findAll()
             logger.debug("Generating opprettetEvents for ${ankebehandlinger.size} ankebehandlinger")
             var ankebehandlingIds = ""
             ankebehandlinger.forEach { behandling ->
@@ -948,7 +909,7 @@ class AdminService(
                             null
                         }
 
-                        is Ankebehandling -> {
+                        is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
                             behandling.previousBehandlingId
                         }
 
@@ -960,8 +921,8 @@ class AdminService(
                             }
                         }
 
-                        is AnkeITrygderettenbehandling -> {
-                            ankebehandlingRepository
+                        is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
+                            ankebehandlingFoer2027Repository
                                 .findPreviousAnker(
                                     sakenGjelder = behandling.sakenGjelder.partId.value,
                                     kildeReferanse = behandling.kildeReferanse,

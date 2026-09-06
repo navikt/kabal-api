@@ -42,12 +42,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-// TODO: Denne er basert på AnkebehandlingFoer2027, tilpass etter behov.
 @Entity
-@DiscriminatorValue("gjenopptak")
+@DiscriminatorValue("anke_foer_2027")
 @DynamicUpdate
 @Audited
-abstract class Gjenopptaksbehandling(
+class AnkebehandlingFoer2027(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
     @Column(name = "paaanket_vedtaks_dato")
@@ -55,14 +54,14 @@ abstract class Gjenopptaksbehandling(
     @Column(name = "forsterket_rett")
     override var forsterketRett: Boolean? = null,
     @Column(name = "klage_behandlende_enhet", nullable = false)
-    val klageBehandlendeEnhet: String,
+    override val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
     override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     override var kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
@@ -74,6 +73,9 @@ abstract class Gjenopptaksbehandling(
     )
     @NotAudited
     override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+//    Finn ut hvordan dette skal fungere i anker etter hvert
+//    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
+//    var avsluttetAvSaksbehandler: LocalDateTime? = null,
     // Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -164,9 +166,10 @@ abstract class Gjenopptaksbehandling(
     BehandlingWithVarsletBehandlingstid,
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
+    BehandlingWithKlageBehandlendeEnhet,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =
-        "Gjenopptaksbehandling(id=$id, " +
+        "AnkebehandlingFoer2027(id=$id, " +
             "modified=$modified, " +
             "created=$created)"
 
@@ -174,14 +177,10 @@ abstract class Gjenopptaksbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Gjenopptaksbehandling
+        other as AnkebehandlingFoer2027
 
         return id == other.id
     }
 
     override fun hashCode(): Int = id.hashCode()
-
-    fun shouldBeSentToVedtaksinstans(): Boolean = utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
-
-    override fun shouldBeCompletedInKA(): Boolean = utfall in listOf(Utfall.TRUKKET, Utfall.HENLAGT)
 }

@@ -14,8 +14,8 @@ import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -129,14 +129,14 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         )
 
         simpleInsert(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = saksbehandlerIdent,
@@ -145,7 +145,7 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         val results =
             oppgaveService.getFerdigstilteOppgaverForNavIdent(
                 MineFerdigstilteOppgaverQueryParams(
-                    typer = listOf(Type.KLAGE.id, Type.ANKE.id),
+                    typer = listOf(Type.KLAGE.id, Type.ANKE_FOER_2027.id),
                     ytelser = listOf(Ytelse.OMS_OMP.id),
                     registreringshjemler = emptyList(),
                     rekkefoelge = Rekkefoelge.STIGENDE,
@@ -170,14 +170,14 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         )
 
         simpleInsert(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             ytelse = Ytelse.OMS_PSB,
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = saksbehandlerIdent,
@@ -219,7 +219,7 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         )
 
         simpleInsert(
-            type = Type.ANKE,
+            type = Type.ANKE_FOER_2027,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = saksbehandlerIdent,
@@ -374,7 +374,7 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
         val behandling2 =
             simpleInsert(
-                type = Type.ANKE_I_TRYGDERETTEN,
+                type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                 ytelse = Ytelse.OMS_OMP,
                 registreringshjemmelList = emptyList(),
                 tildeltSaksbehandlerIdent = saksbehandlerIdent,
@@ -536,8 +536,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                     )
                 }
 
-                Type.ANKE -> {
-                    Ankebehandling(
+                Type.ANKE_FOER_2027 -> {
+                    AnkebehandlingFoer2027(
                         klager =
                             Klager(
                                 id = UUID.randomUUID(),
@@ -582,8 +582,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                     )
                 }
 
-                Type.ANKE_I_TRYGDERETTEN -> {
-                    AnkeITrygderettenbehandling(
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
+                    AnkeITrygderettenbehandlingFoer2027(
                         klager =
                             Klager(
                                 id = UUID.randomUUID(),

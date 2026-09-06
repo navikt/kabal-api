@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
@@ -46,7 +47,7 @@ class V188__dvh_tr_migrations : BaseJavaMigration() {
                     from klage.behandling b
                     where b.sak_fagsystem = '${Fagsystem.PP01.id}'
                     and created > '2025-01-30 00:00:00.000000'
-                    and b.type_id = '${Type.ANKE_I_TRYGDERETTEN.id}'
+                    and b.type_id = '${Type.ANKE_I_TRYGDERETTEN_FOER_2027.id}'
                     and b.feilregistrering_registered is null
                     and b.previous_saksbehandlerident is null
                     """,
@@ -80,7 +81,7 @@ class V188__dvh_tr_migrations : BaseJavaMigration() {
                                 behandlingStartetKA = null,
                                 ansvarligEnhetKode = "TR0000",
                                 behandlingStatus = BehandlingState.SENDT_TIL_TR,
-                                behandlingType = Type.ANKE.name,
+                                behandlingType = BehandlingType.ANKE,
                                 // Means medunderskriver
                                 beslutter = null,
                                 endringstid = sendtTilTR.toLocalDateTime(),

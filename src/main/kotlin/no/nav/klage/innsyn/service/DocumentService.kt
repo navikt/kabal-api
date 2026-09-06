@@ -5,7 +5,8 @@ import no.nav.klage.innsyn.api.view.SakView
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningGraphQlClient
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningRestClient
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -159,7 +160,8 @@ class DocumentService(
             eventDocumentType =
                 when (behandling) {
                     is Klagebehandling,
-                    is Ankebehandling,
+                    is AnkebehandlingFoer2027,
+                    is AnkebehandlingEtter2027,
                     is Omgjoeringskravbehandling,
                     is Gjenopptaksbehandling,
                     -> SakView.Event.EventDocument.EventDocumentType.SVARBREV

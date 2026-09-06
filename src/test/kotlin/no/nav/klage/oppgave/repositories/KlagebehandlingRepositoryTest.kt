@@ -8,7 +8,7 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
@@ -39,7 +39,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
     lateinit var klagebehandlingRepository: KlagebehandlingRepository
 
     @Autowired
-    lateinit var ankebehandlingRepository: AnkebehandlingRepository
+    lateinit var ankebehandlingFoer2027Repository: AnkebehandlingFoer2027Repository
 
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
@@ -149,7 +149,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
         klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnke2, klageWithAnke))
 
         val ankebehandling =
-            Ankebehandling(
+            AnkebehandlingFoer2027(
                 klageBehandlendeEnhet = "",
                 klager =
                     Klager(
@@ -181,7 +181,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 previousBehandlingId = klageWithAnke.id,
             )
 
-        ankebehandlingRepository.save(ankebehandling)
+        ankebehandlingFoer2027Repository.save(ankebehandling)
 
         testEntityManager.flush()
         testEntityManager.clear()

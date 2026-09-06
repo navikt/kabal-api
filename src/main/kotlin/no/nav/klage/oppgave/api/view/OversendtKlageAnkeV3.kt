@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.PastOrPresent
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.mottak.Mottak
@@ -19,7 +18,7 @@ data class OversendtKlageAnkeV3(
         example = "KLAGE",
         description = "Gyldige verdier er KLAGE og ANKE",
     )
-    val type: Type,
+    val type: OversendtType,
     @Schema(
         required = true,
     )
@@ -120,7 +119,7 @@ data class OversendtKlageAnkeV3(
 fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
     val (sakenGjelderPart, klagePart, prosessfullmektigPart) = getParts(sakenGjelder, klager)
     return Mottak(
-        type = type,
+        type = type.toType(),
         klager = klagePart,
         sakenGjelder = sakenGjelderPart,
         fagsystem = kilde,

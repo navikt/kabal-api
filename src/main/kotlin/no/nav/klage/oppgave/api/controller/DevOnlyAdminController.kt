@@ -88,19 +88,6 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/migratedvh")
-    fun migrateDvhEvents() {
-        logger.debug("migrateDvhEvents is called")
-
-        try {
-            adminService.migrateDvhEvents()
-        } catch (e: Exception) {
-            logger.warn("Failed to migrate DVH events", e)
-            throw e
-        }
-    }
-
-    @Unprotected
     @GetMapping("/mytokens")
     fun getTokens(): Map<String, String> =
         mapOf(

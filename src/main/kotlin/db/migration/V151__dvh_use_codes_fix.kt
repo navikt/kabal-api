@@ -1,6 +1,5 @@
 package db.migration
 
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -50,7 +49,7 @@ class V151__dvh_use_codes_fix : BaseJavaMigration() {
                                     resultat =
                                         Utfall.entries.find { it.navn == statistikkTilDVH.resultat }?.name
                                             ?: statistikkTilDVH.resultat,
-                                    behandlingType = Type.entries.find { it.navn == statistikkTilDVH.behandlingType }!!.name,
+                                    behandlingType = statistikkTilDVH.behandlingType,
                                     tekniskTid = LocalDateTime.now(),
                                 )
 

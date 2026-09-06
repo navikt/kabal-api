@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
@@ -47,7 +48,7 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
                     where b.sak_fagsystem = '${Fagsystem.PP01.id}'
                     and kilde_referanse = '51465082'
                     and dvh_referanse = '48827910'
-                    and b.type_id = '${Type.ANKE_I_TRYGDERETTEN.id}'                    
+                    and b.type_id = '${Type.ANKE_I_TRYGDERETTEN_FOER_2027.id}'
                     """,
                 ).use { rows ->
                     val now = LocalDateTime.now()
@@ -79,7 +80,7 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
                                 behandlingStartetKA = null,
                                 ansvarligEnhetKode = "TR0000",
                                 behandlingStatus = BehandlingState.SENDT_TIL_TR,
-                                behandlingType = Type.ANKE.name,
+                                behandlingType = BehandlingType.ANKE,
                                 // Means medunderskriver
                                 beslutter = null,
                                 endringstid = sendtTilTR.toLocalDateTime(),

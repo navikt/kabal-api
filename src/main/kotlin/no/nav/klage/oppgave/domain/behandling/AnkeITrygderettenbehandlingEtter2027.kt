@@ -1,14 +1,8 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -25,55 +19,39 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
-import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.historikk.FullmektigHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.KlagerHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.MedunderskriverHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.RolHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
-import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
-import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
-// TODO: Denne er basert på AnkebehandlingFoer2027, tilpass etter behov.
 @Entity
-@DiscriminatorValue("gjenopptak")
+@DiscriminatorValue("anke_i_trygderetten_etter_2027")
 @DynamicUpdate
 @Audited
-abstract class Gjenopptaksbehandling(
-    @Column(name = "klage_vedtaks_dato")
-    val klageVedtaksDato: LocalDate? = null,
+class AnkeITrygderettenbehandlingEtter2027(
+    @Column(name = "sendt_til_trygderetten", nullable = false)
+    override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "paaanket_vedtaks_dato")
     override var paaanketVedtaksdato: LocalDate? = null,
     @Column(name = "forsterket_rett")
     override var forsterketRett: Boolean? = null,
-    @Column(name = "klage_behandlende_enhet", nullable = false)
-    val klageBehandlendeEnhet: String,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    override var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    override var kakaKvalitetsvurderingVersion: Int,
-    @Embedded
-    override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true)
-    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
-    @NotAudited
-    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
-    @OneToMany(
-        mappedBy = "behandling",
-        cascade = [CascadeType.ALL],
-        orphanRemoval = true,
-        fetch = FetchType.LAZY,
-    )
-    @NotAudited
-    override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    @Column(name = "kjennelse_mottatt")
+    override var kjennelseMottatt: LocalDateTime? = null,
+    /** Tatt over av KA mens den er i TR */
+    @Column(name = "ny_ankebehandling_ka")
+    var nyAnkebehandlingKA: LocalDateTime? = null,
+    /** Skal det opprettes ny behandling etter TR har opphevet? */
+    @Column(name = "ny_behandling_etter_tr_opphevet")
+    override var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
     // Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -87,7 +65,8 @@ abstract class Gjenopptaksbehandling(
     fagsystem: Fagsystem,
     fagsakId: String,
     mottattKlageinstans: LocalDateTime,
-    frist: LocalDate,
+    // TODO: Trenger denne være nullable? Den blir da alltid satt i createKlagebehandlingFromMottak?
+    frist: LocalDate? = null,
     tildeling: Tildeling? = null,
     created: LocalDateTime = LocalDateTime.now(),
     modified: LocalDateTime = created,
@@ -96,7 +75,7 @@ abstract class Gjenopptaksbehandling(
     sattPaaVent: SattPaaVent? = null,
     feilregistrering: Feilregistrering? = null,
     utfall: Utfall? = null,
-    extraUtfallSet: Set<Utfall> = emptySet(),
+    extraUtfallSet: Set<Utfall> = setOf(),
     registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
     medunderskriver: MedunderskriverTildeling? = null,
     medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
@@ -161,12 +140,10 @@ abstract class Gjenopptaksbehandling(
         gosysOppgaveRequired = gosysOppgaveRequired,
         initiatingSystem = initiatingSystem,
     ),
-    BehandlingWithVarsletBehandlingstid,
-    BehandlingWithMottakDokument,
-    BehandlingWithKvalitetsvurdering,
+    BehandlingITrygderetten,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =
-        "Gjenopptaksbehandling(id=$id, " +
+        "AnkeITrygderettenbehandlingEtter2027(id=$id, " +
             "modified=$modified, " +
             "created=$created)"
 
@@ -174,14 +151,42 @@ abstract class Gjenopptaksbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Gjenopptaksbehandling
+        other as AnkeITrygderettenbehandlingEtter2027
 
         return id == other.id
     }
 
     override fun hashCode(): Int = id.hashCode()
 
-    fun shouldBeSentToVedtaksinstans(): Boolean = utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
+    fun shouldCreateNewAnkebehandling(): Boolean = nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
 
-    override fun shouldBeCompletedInKA(): Boolean = utfall in listOf(Utfall.TRUKKET, Utfall.HENLAGT)
+    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean = nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
+
+    fun shouldNotCreateNewBehandling(): Boolean = (!shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
 }
+
+data class AnkeITrygderettenbehandlingEtter2027Input(
+    val klager: Klager,
+    val sakenGjelder: SakenGjelder? = null,
+    val prosessfullmektig: Prosessfullmektig?,
+    val ytelse: Ytelse,
+    val type: Type,
+    val kildeReferanse: String,
+    val dvhReferanse: String?,
+    val fagsystem: Fagsystem,
+    val fagsakId: String,
+    val sakMottattKlageinstans: LocalDateTime,
+    val saksdokumenter: MutableSet<Saksdokument>,
+    val innsendingsHjemler: Set<Hjemmel>?,
+    val sendtTilTrygderetten: LocalDateTime,
+    val paaanketVedtaksdato: LocalDate? = null,
+    val forsterketRett: Boolean? = null,
+    val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
+    val ankebehandlingUtfall: ExternalUtfall? = null,
+    val previousSaksbehandlerident: String?,
+    val gosysOppgaveId: Long?,
+    val tilbakekreving: Boolean,
+    val gosysOppgaveRequired: Boolean,
+    val initiatingSystem: Behandling.InitiatingSystem,
+    val previousBehandlingId: UUID?,
+)

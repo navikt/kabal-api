@@ -51,7 +51,7 @@ data class Mottak(
         type: Type,
     ): LocalDate =
         when (type) {
-            Type.ANKE -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(0))
+            Type.ANKE_FOER_2027 -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(0))
             else -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
         }
 }

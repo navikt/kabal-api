@@ -63,19 +63,6 @@ class AdminController(
         }
     }
 
-    @PostMapping("/migratedvhevents")
-    fun migrateDvhEvents() {
-        logger.debug("migrateDvhEvents is called")
-        krevAdminTilgang()
-
-        try {
-            adminService.migrateDvhEvents()
-        } catch (e: Exception) {
-            logger.warn("Failed to migrate DVH events", e)
-            throw e
-        }
-    }
-
     @GetMapping("/invalidregistreringshjemler")
     fun getInvalidRegistreringshjemler() {
         logger.debug("getInvalidRegistreringshjemler is called")

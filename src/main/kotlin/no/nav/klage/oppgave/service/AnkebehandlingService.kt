@@ -2,13 +2,13 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.AnkebehandlingFoer2027Repository
 import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -21,7 +21,7 @@ import java.time.Period
 @Service
 @Transactional
 class AnkebehandlingService(
-    private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val ankebehandlingFoer2027Repository: AnkebehandlingFoer2027Repository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
     private val behandlingService: BehandlingService,
@@ -34,12 +34,12 @@ class AnkebehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
+    fun createAnkebehandlingFromMottak(mottak: Mottak): AnkebehandlingFoer2027 {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
         val ankebehandling =
-            ankebehandlingRepository.save(
-                Ankebehandling(
+            ankebehandlingFoer2027Repository.save(
+                AnkebehandlingFoer2027(
                     klager = mottak.klager.copy(),
                     sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
                     prosessfullmektig = mottak.prosessfullmektig,
@@ -124,16 +124,18 @@ class AnkebehandlingService(
         return ankebehandling
     }
 
-    fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
+    fun createAnkebehandlingFromAnkeITrygderettenbehandling(
+        ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027,
+    ): AnkebehandlingFoer2027 {
         val ankebehandling =
-            ankebehandlingRepository.save(
-                Ankebehandling(
+            ankebehandlingFoer2027Repository.save(
+                AnkebehandlingFoer2027(
                     previousBehandlingId = ankeITrygderettenbehandling.id,
                     klager = ankeITrygderettenbehandling.klager.copy(),
                     sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
                     prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,
                     ytelse = ankeITrygderettenbehandling.ytelse,
-                    type = Type.ANKE,
+                    type = Type.ANKE_FOER_2027,
                     kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
                     dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
                     fagsystem = ankeITrygderettenbehandling.fagsystem,

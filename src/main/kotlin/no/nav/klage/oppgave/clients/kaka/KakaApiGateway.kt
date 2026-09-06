@@ -3,7 +3,8 @@ package no.nav.klage.oppgave.clients.kaka
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
@@ -80,7 +81,7 @@ class KakaApiGateway(
                     avsenderEnhetFoersteinstans to kakaKvalitetsvurderingId
                 }
 
-                is Ankebehandling -> {
+                is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
                     if (Enhet.entries.none { it.navn == klageBehandlendeEnhet }) {
                         logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
                     }

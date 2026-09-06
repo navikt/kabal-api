@@ -1,5 +1,6 @@
 package db.migration
 
+import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
@@ -24,7 +25,7 @@ class V174__revert_errors_in_klage_migration_pesys : BaseJavaMigration() {
                     """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
-                    where ke.type = 'STATS_DVH'                    
+                    where ke.type = 'STATS_DVH'
                       and ke.kilde_referanse in (
 '68341966',
 '68335904',
@@ -76,7 +77,7 @@ class V174__revert_errors_in_klage_migration_pesys : BaseJavaMigration() {
                             jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                         // Only applicable for KLAGE entries.
-                        if (statistikkTilDVH.behandlingType == "KLAGE") {
+                        if (statistikkTilDVH.behandlingType == BehandlingType.KLAGE) {
                             val modifiedVersion =
                                 when (statistikkTilDVH.behandlingId) {
                                     "49861032" -> statistikkTilDVH.copy(behandlingId = "49090340", tekniskTid = LocalDateTime.now())
