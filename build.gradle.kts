@@ -19,7 +19,7 @@ val klageKodeverkVersion = "3.3.25"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.65.0"
 val mikrofrontendSelectorVersion = "3.0.0"
-val simpleSlackPosterVersion = "1.0.0"
+val simpleSlackPosterVersion = "1.1.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
