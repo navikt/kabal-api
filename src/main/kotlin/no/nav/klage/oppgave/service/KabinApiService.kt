@@ -61,10 +61,15 @@ class KabinApiService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getAnkemuligheter(partIdValue: String): List<Mulighet> =
+    fun getAnkemuligheterFoer2027(partIdValue: String): List<Mulighet> =
         behandlingService
-            .getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
+            .getAnkemuligheterFoer2027ByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.ANKE_FOER_2027) }
+
+    fun getAnkemuligheterEtter2027(partIdValue: String): List<Mulighet> =
+        behandlingService
+            .getAnkemuligheterEtter2027ByPartIdValue(partIdValue = partIdValue)
+            .map { it.toMulighet(mulighetType = Type.ANKE_ETTER_2027) }
 
     fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
         val infotrygdSak =

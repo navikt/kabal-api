@@ -3291,17 +3291,55 @@ class BehandlingService(
         }
     }
 
-    fun getAnkemuligheterByPartIdValue(partIdValue: String): List<Behandling> =
-        behandlingRepository.getAnkemuligheter(partIdValue).filter {
-            try {
-                checkReadAccessToSak(
-                    behandling = it,
-                )
-                true
-            } catch (_: MissingTilgangException) {
-                false
+    fun getAnkemuligheterFoer2027ByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository
+            .getAnkemuligheter(
+                partIdValue = partIdValue,
+                excludedFagsystems = listOf(Fagsystem.IT01),
+                utfallWithoutAnkemulighet =
+                    listOf(
+                        Utfall.INNSTILLING_AVVIST,
+                        Utfall.INNSTILLING_STADFESTELSE,
+                    ),
+                excludedTypes =
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.ANKE_ETTER_2027,
+                    ),
+            ).filter {
+                try {
+                    checkReadAccessToSak(
+                        behandling = it,
+                    )
+                    true
+                } catch (_: MissingTilgangException) {
+                    false
+                }
             }
-        }
+
+    fun getAnkemuligheterEtter2027ByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository
+            .getAnkemuligheter(
+                partIdValue = partIdValue,
+                excludedFagsystems = emptyList(),
+                utfallWithoutAnkemulighet =
+                    listOf(
+                        Utfall.INNSTILLING_AVVIST,
+                        Utfall.INNSTILLING_STADFESTELSE,
+                    ),
+                excludedTypes =
+                    Type.entries - Type.KLAGE,
+            ).filter {
+                try {
+                    checkReadAccessToSak(
+                        behandling = it,
+                    )
+                    true
+                } catch (_: MissingTilgangException) {
+                    false
+                }
+            }
 
     fun getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
         partIdValue: String,
