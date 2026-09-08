@@ -186,7 +186,23 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        assertThat(behandlingRepository.getAnkemuligheterFoer2027("23452354")).containsExactlyInAnyOrder(
+        assertThat(
+            behandlingRepository.getAnkemuligheter(
+                partIdValue = "23452354",
+                excludedFagsystems = listOf(Fagsystem.IT01),
+                utfallWithoutAnkemulighet =
+                    listOf(
+                        Utfall.INNSTILLING_AVVIST,
+                        Utfall.INNSTILLING_STADFESTELSE,
+                    ),
+                excludedTypes =
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.ANKE_ETTER_2027,
+                    ),
+            ),
+        ).containsExactlyInAnyOrder(
             klageWithNoAnke,
             klageWithNoAnke2,
             klageWithAnke,
