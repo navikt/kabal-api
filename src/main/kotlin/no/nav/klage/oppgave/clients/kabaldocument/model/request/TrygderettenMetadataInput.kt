@@ -14,6 +14,7 @@ data class TrygderettenMetadataInput(
     val ettersendelse: Boolean,
     val lovhenvisning: Set<String>,
     val representant: Representant?,
+    val trygderettenSaksnummer: String?,
 ) {
     data class Representant(
         val partId: PartId?,

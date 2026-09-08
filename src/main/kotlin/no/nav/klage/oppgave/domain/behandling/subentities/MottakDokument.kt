@@ -54,9 +54,14 @@ enum class MottakDokumentType {
 fun Type.getMottakDokumentType(): MottakDokumentType =
     when (this) {
         Type.KLAGE -> MottakDokumentType.BRUKERS_KLAGE
-        Type.ANKE_FOER_2027 -> MottakDokumentType.BRUKERS_ANKE
+
+        // Should anke etter 2027 have another document type?
+        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> MottakDokumentType.BRUKERS_ANKE
+
         Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+
         Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+
         else -> throw IllegalArgumentException("Type $this has no MottakDokumentType.")
     }
 
