@@ -552,13 +552,21 @@ class GosysOppgaveService(
             if (tema != null) {
                 if (tema == Tema.MED) {
                     // Legger til TRY når vi søker på MED.
-                    listOf(tema, Tema.TRY)
+                    mutableListOf(tema, Tema.TRY)
                 } else {
-                    listOf(tema)
+                    mutableListOf(tema)
                 }
             } else {
                 null
             }
+
+        if (temaList != null && Tema.KTR !in temaList) {
+            temaList.add(Tema.KTR)
+        }
+
+        if (temaList != null && Tema.FEI !in temaList) {
+            temaList.add(Tema.FEI)
+        }
 
         val gosysOppgaveList =
             gosysOppgaveClient.fetchGosysOppgaveForAktoerIdAndTema(
