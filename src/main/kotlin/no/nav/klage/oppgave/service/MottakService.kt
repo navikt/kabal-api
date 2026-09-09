@@ -573,7 +573,7 @@ class MottakService(
         type: Type,
     ) {
         if (type == Type.ANKE_ETTER_2027) {
-            if (trygderettenSaksnummer == null) {
+            if (trygderettenSaksnummer.isNullOrBlank()) {
                 throw OversendtKlageNotValidException("En anke etter 2027 må ha saksnummer fra Trygderetten.")
             }
         } else if (trygderettenSaksnummer != null) {
