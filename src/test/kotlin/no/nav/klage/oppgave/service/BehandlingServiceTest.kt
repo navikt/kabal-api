@@ -25,6 +25,7 @@ import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole.KABAL_SAKSBEHANDLING
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -186,6 +187,34 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             )
 
             assertThrows<BehandlingAvsluttetException> { behandlingService.getBehandlingForUpdate(behandling.id) }
+        }
+    }
+
+    @Nested
+    inner class ResolvePaaanketVedtaksdatoFromPreviousBehandling {
+        @Test
+        fun `finner dato fra klagebehandling lenger bak i kjeden`() {
+            val klagebehandling = simpleInsert(fullfoert = true)
+            val anke = insertAnke(previousBehandlingId = klagebehandling.id)
+
+            assertThat(
+                behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(anke.previousBehandlingId),
+            ).isEqualTo(klagebehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate())
+        }
+
+        @Test
+        fun `sirkel i previousBehandlingId-kjeden gir null i stedet for evig loekke`() {
+            val first = insertAnke(previousBehandlingId = null)
+            val second = insertAnke(previousBehandlingId = first.id)
+
+            // Lukk sirkelen: first -> second -> first
+            behandlingRepository.getReferenceById(first.id).previousBehandlingId = second.id
+            testEntityManager.flush()
+            testEntityManager.clear()
+
+            assertThat(
+                behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(second.previousBehandlingId),
+            ).isNull()
         }
     }
 
@@ -497,6 +526,51 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 gosysOppgaveRequired = false,
                 initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 previousBehandlingId = null,
+            )
+
+        behandlingRepository.save(behandling)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        return behandling
+    }
+
+    private fun insertAnke(previousBehandlingId: UUID?): Behandling {
+        val now = LocalDateTime.now()
+
+        val behandling =
+            AnkebehandlingEtter2027(
+                paaanketVedtaksdato = null,
+                trygderettenSaksnummer = "TR-123",
+                klageBehandlendeEnhet = "enhet",
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                previousBehandlingId = previousBehandlingId,
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.ANKE_ETTER_2027,
+                kildeReferanse = "abc",
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                mottattKlageinstans = now,
+                frist = now.toLocalDate(),
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
             )
 
         behandlingRepository.save(behandling)

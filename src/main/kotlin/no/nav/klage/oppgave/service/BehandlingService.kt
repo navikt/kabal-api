@@ -2417,8 +2417,18 @@ class BehandlingService(
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
     fun resolvePaaanketVedtaksdatoFromPreviousBehandling(previousBehandlingId: UUID?): LocalDate? {
+        val visited = mutableSetOf<UUID>()
         var currentBehandlingId = previousBehandlingId
         while (currentBehandlingId != null) {
+            if (!visited.add(currentBehandlingId)) {
+                logger.error(
+                    "Cycle detected in previousBehandlingId chain starting from behandling {}. Revisited behandling {}. Chain so far: {}. Returning null.",
+                    previousBehandlingId,
+                    currentBehandlingId,
+                    visited.joinToString(" -> "),
+                )
+                return null
+            }
             val previousBehandling = getBehandlingForReadWithoutCheckForAccess(currentBehandlingId)
             if (previousBehandling is BehandlingWithTrygderettenMetadata && previousBehandling.paaanketVedtaksdato != null) {
                 return previousBehandling.paaanketVedtaksdato
