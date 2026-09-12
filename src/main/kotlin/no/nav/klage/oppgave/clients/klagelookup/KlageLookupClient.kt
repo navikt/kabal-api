@@ -183,6 +183,35 @@ class KlageLookupClient(
                 }.block() ?: throw RuntimeException("Could not get sluttdato for input $navIdentList")
         }
 
+    @Retryable
+    fun getEnheterBatched(navIdentList: List<String>): BatchedEnheterResponse =
+        runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+            klageLookupWebClient
+                .post()
+                .uri("/users/enheter")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                ).contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    BatchedUserRequest(
+                        navIdentList = navIdentList,
+                    ),
+                ).exchangeToMono { response ->
+                    if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getEnheterBatched.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<BatchedEnheterResponse>()
+                    }
+                }.block() ?: throw RuntimeException("Could not get enheter for input $navIdentList")
+        }
+
     @Retryable(
         excludes = [UserNotFoundException::class],
     )

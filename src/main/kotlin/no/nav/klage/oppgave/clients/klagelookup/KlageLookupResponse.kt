@@ -34,6 +34,18 @@ data class Enhet(
     val enhetNavn: String,
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class BatchedEnheterResponse(
+    val hits: List<EnheterResponse>,
+    val misses: List<String>,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class EnheterResponse(
+    val navIdent: String,
+    val enheter: List<Enhet>,
+)
+
 data class GroupsResponse(
     val groupIds: List<String>,
 )
