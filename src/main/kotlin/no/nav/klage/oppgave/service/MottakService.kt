@@ -540,6 +540,11 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
+        validateAnkeType(typeId = typeId)
+        validateTrygderettenSaksnummer(
+            trygderettenSaksnummer = trygderettenSaksnummer,
+            type = typeId?.let { Type.of(it) } ?: Type.ANKE_FOER_2027,
+        )
         validatePreviousKabalBehandlingId(previousKabalBehandlingId)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
@@ -548,7 +553,7 @@ class MottakService(
         validateIncomingDocumentSource(
             journalpostId = ankeJournalpostId,
             uploadedDocument = uploadedDocument,
-            type = Type.ANKE_FOER_2027,
+            type = typeId?.let { Type.of(it) } ?: Type.ANKE_FOER_2027,
         )
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -562,6 +567,27 @@ class MottakService(
         )
     }
 
+    /** An anke etter 2027 always comes from Trygderetten, and no other behandling does. */
+    private fun validateTrygderettenSaksnummer(
+        trygderettenSaksnummer: String?,
+        type: Type,
+    ) {
+        if (type == Type.ANKE_ETTER_2027) {
+            if (trygderettenSaksnummer.isNullOrBlank()) {
+                throw OversendtKlageNotValidException("En anke etter 2027 må ha saksnummer fra Trygderetten.")
+            }
+        } else if (trygderettenSaksnummer != null) {
+            throw OversendtKlageNotValidException("Saksnummer fra Trygderetten kan kun settes på en anke etter 2027.")
+        }
+    }
+
+    private fun validateAnkeType(typeId: String?) {
+        if (typeId == null) return
+        if (Type.of(typeId) !in listOf(Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027)) {
+            throw OversendtKlageNotValidException("Anke må ha en anketype.")
+        }
+    }
+
     private fun validatePreviousKabalBehandlingId(previousKabalBehandlingId: UUID?) {
         if (previousKabalBehandlingId == null) return
         if (!behandlingRepository.existsById(previousKabalBehandlingId)) {
@@ -570,6 +596,7 @@ class MottakService(
     }
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
+        validateTrygderettenSaksnummer(trygderettenSaksnummer = trygderettenSaksnummer, type = Type.of(typeId!!))
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) },
@@ -592,6 +619,7 @@ class MottakService(
     }
 
     fun CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling.validate(sourceBehandling: Behandling) {
+        validateTrygderettenSaksnummer(trygderettenSaksnummer = trygderettenSaksnummer, type = Type.of(typeId))
         validateBehandlingCreationBasedOnSourceBehandling(
             sourceBehandling = sourceBehandling,
         )
@@ -906,6 +934,7 @@ class MottakService(
             isBasedOnJournalpost = false,
             gosysOppgaveRequired = gosysOppgaveRequired,
             gosysOppgaveId = input.gosysOppgaveId,
+            trygderettenSaksnummer = input.trygderettenSaksnummer,
         )
     }
 
@@ -987,6 +1016,7 @@ class MottakService(
             isBasedOnJournalpost = false,
             gosysOppgaveRequired = true,
             gosysOppgaveId = gosysOppgaveId,
+            trygderettenSaksnummer = null,
         )
     }
 
@@ -1040,7 +1070,8 @@ class MottakService(
             }
 
         return Mottak(
-            type = Type.ANKE_FOER_2027,
+            // An anke received from Trygderetten is an anke etter 2027, other anker keep the old type.
+            type = typeId?.let { Type.of(it) } ?: Type.ANKE_FOER_2027,
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
@@ -1072,6 +1103,7 @@ class MottakService(
             isBasedOnJournalpost = false,
             gosysOppgaveRequired = true,
             gosysOppgaveId = gosysOppgaveId,
+            trygderettenSaksnummer = trygderettenSaksnummer,
         )
     }
 
@@ -1158,6 +1190,7 @@ class MottakService(
             isBasedOnJournalpost = true,
             gosysOppgaveRequired = true,
             gosysOppgaveId = gosysOppgaveId,
+            trygderettenSaksnummer = trygderettenSaksnummer,
         )
     }
 }

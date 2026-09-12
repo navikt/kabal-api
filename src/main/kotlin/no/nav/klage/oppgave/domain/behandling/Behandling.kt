@@ -539,3 +539,16 @@ interface BehandlingWithTrygderettenMetadata {
     var paaanketVedtaksdato: LocalDate?
     var forsterketRett: Boolean?
 }
+
+/**
+ * Only anker etter 2027 arrive from Trygderetten, so they are the only behandlinger that have a
+ * saksnummer from Trygderetten.
+ */
+interface BehandlingWithTrygderettenSaksnummer {
+    /**
+     * Saksnummeret Trygderetten has given the anke, on the form year + counter, e.g. 2027123. Passed on
+     * to kabal-document so it can end up as saksaar and sakssekvensnummer in the avtalemelding. The
+     * column is nullable in the database because all behandlinger share a single table.
+     */
+    var trygderettenSaksnummer: String
+}

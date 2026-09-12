@@ -59,6 +59,7 @@ data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
+    val trygderettenSaksnummer: String?,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -80,6 +81,9 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
     val previousKabalBehandlingId: UUID?,
+    /** Null keeps the historical behaviour of always creating an [Type.ANKE_FOER_2027]. */
+    val typeId: String?,
+    val trygderettenSaksnummer: String?,
 )
 
 data class OversendtPartId(
@@ -133,6 +137,7 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
+    val trygderettenSaksnummer: String?,
 )
 
 data class SvarbrevInput(

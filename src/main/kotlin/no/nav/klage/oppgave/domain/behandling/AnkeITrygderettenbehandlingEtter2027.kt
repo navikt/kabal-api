@@ -44,6 +44,8 @@ class AnkeITrygderettenbehandlingEtter2027(
     override var paaanketVedtaksdato: LocalDate? = null,
     @Column(name = "forsterket_rett")
     override var forsterketRett: Boolean? = null,
+    @Column(name = "trygderetten_saksnummer", nullable = false)
+    override var trygderettenSaksnummer: String,
     @Column(name = "kjennelse_mottatt")
     override var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
@@ -141,7 +143,8 @@ class AnkeITrygderettenbehandlingEtter2027(
         initiatingSystem = initiatingSystem,
     ),
     BehandlingITrygderetten,
-    BehandlingWithTrygderettenMetadata {
+    BehandlingWithTrygderettenMetadata,
+    BehandlingWithTrygderettenSaksnummer {
     override fun toString(): String =
         "AnkeITrygderettenbehandlingEtter2027(id=$id, " +
             "modified=$modified, " +
@@ -181,6 +184,7 @@ data class AnkeITrygderettenbehandlingEtter2027Input(
     val sendtTilTrygderetten: LocalDateTime,
     val paaanketVedtaksdato: LocalDate? = null,
     val forsterketRett: Boolean? = null,
+    val trygderettenSaksnummer: String,
     val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
     val ankebehandlingUtfall: ExternalUtfall? = null,
     val previousSaksbehandlerident: String?,
