@@ -16,10 +16,12 @@ import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
@@ -40,6 +42,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
@@ -107,6 +110,8 @@ class AdminService(
     private val klageLookupGateway: KlageLookupGateway,
     private val personProtectionRepository: PersonProtectionRepository,
     private val transactionTemplate: TransactionTemplate,
+    private val safFacade: SafFacade,
+    private val kabalDocumentGateway: KabalDocumentGateway,
 ) {
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
@@ -182,6 +187,13 @@ class AdminService(
                 .findByBehandlingId(behandlingId)
                 .partition { it is DokumentUnderArbeidAsHoveddokument }
 
+        // Må hentes før dokumentene slettes.
+        val journalpostIdsFromDokumentUnderArbeid =
+            (hoveddokumenter + vedlegg)
+                .flatMap { it.dokarkivReferences }
+                .map { it.journalpostId }
+                .toSet()
+
         for (dua in hoveddokumenter + vedlegg) {
             try {
                 if (dua is DokumentUnderArbeidAsMellomlagret && dua.mellomlagerId != null) {
@@ -212,6 +224,13 @@ class AdminService(
 
         val behandling = behandlingRepository.findById(behandlingId).get()
 
+        val journalpostIdsFromMottakDokument =
+            if (behandling is BehandlingWithMottakDokument) {
+                behandling.mottakDokument.map { it.journalpostId }.toSet()
+            } else {
+                emptySet()
+            }
+
         behandlingRepository.deleteById(behandlingId)
 
         // Delete in search
@@ -229,7 +248,47 @@ class AdminService(
             logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
         }
 
-        // Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
+        feilregistrerJournalposterInDev(
+            journalpostIdsFromDokumentUnderArbeid = journalpostIdsFromDokumentUnderArbeid,
+            journalpostIdsFromMottakDokument = journalpostIdsFromMottakDokument,
+        )
+    }
+
+    /**
+     * only for use in dev
+     *
+     * Feilregistrerer sakstilknytningen til journalposter som er opprettet for behandlingen.
+     *
+     * Journalposter fra MottakDokument feilregistreres kun hvis de er opprettet i dag, altså av testen selv.
+     */
+    private fun feilregistrerJournalposterInDev(
+        journalpostIdsFromDokumentUnderArbeid: Set<String>,
+        journalpostIdsFromMottakDokument: Set<String>,
+    ) {
+        val today = LocalDate.now()
+
+        val mottakDokumentJournalpostIdsToFeilregistrer =
+            (journalpostIdsFromMottakDokument - journalpostIdsFromDokumentUnderArbeid).filter { journalpostId ->
+                try {
+                    safFacade.getJournalpostAsSystembruker(journalpostId = journalpostId).datoOpprettet.toLocalDate() ==
+                        today
+                } catch (e: Exception) {
+                    logger.warn(
+                        "Delete test data in dev: could not get journalpost $journalpostId from SAF. Skipping feilregistrering.",
+                        e,
+                    )
+                    false
+                }
+            }
+
+        (journalpostIdsFromDokumentUnderArbeid + mottakDokumentJournalpostIdsToFeilregistrer).forEach { journalpostId ->
+            try {
+                kabalDocumentGateway.feilregistrerSakstilknytningInDev(journalpostId = journalpostId)
+                logger.debug("Delete test data in dev: feilregistrerte journalpost {}", journalpostId)
+            } catch (e: Exception) {
+                logger.warn("Delete test data in dev: could not feilregistrer journalpost $journalpostId", e)
+            }
+        }
     }
 
     @Transactional
