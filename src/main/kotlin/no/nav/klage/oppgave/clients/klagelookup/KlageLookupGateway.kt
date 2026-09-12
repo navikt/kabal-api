@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.clients.klagelookup
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnheter
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerSluttdato
@@ -40,6 +41,19 @@ class KlageLookupGateway(
             logger.warn("Did not find user info for ${data.misses} from KlageLookup")
         }
         return data.hits.map { it.toSaksbehandlerPersonligInfo() }
+    }
+
+    /**
+     * All enheter each user is a member of, as opposed to the single primary enhet in
+     * [getUserInfoForNavIdentList]. Users we could not look up are left out of the result.
+     */
+    fun getEnheterForNavIdentList(navIdentList: List<String>): List<SaksbehandlerEnheter> {
+        logger.debug("Getting enheter for {} from KlageLookup", navIdentList)
+        val data = klageLookupClient.getEnheterBatched(navIdentList = navIdentList)
+        if (data.misses.isNotEmpty()) {
+            logger.warn("Did not find enheter for ${data.misses} from KlageLookup")
+        }
+        return data.hits.map { it.toSaksbehandlerEnheter() }
     }
 
     fun getSluttdatoForNavIdentList(navIdentList: List<String>): List<SaksbehandlerSluttdato> {
@@ -86,6 +100,18 @@ class KlageLookupGateway(
     fun getFoedselsnummerFromIdent(ident: String): String = klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
 
     fun getAktoerIdFromIdent(ident: String): String = klageLookupClient.getAktoerIdFromIdent(ident = ident)
+
+    private fun EnheterResponse.toSaksbehandlerEnheter(): SaksbehandlerEnheter =
+        SaksbehandlerEnheter(
+            navIdent = this.navIdent,
+            enheter =
+                this.enheter.map {
+                    SaksbehandlerEnhet(
+                        enhetId = it.enhetNr,
+                        navn = it.enhetNavn,
+                    )
+                },
+        )
 
     private fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo =
         SaksbehandlerPersonligInfo(

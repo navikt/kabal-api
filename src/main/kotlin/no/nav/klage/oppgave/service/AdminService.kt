@@ -51,10 +51,9 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingFoer2027Repository
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnheter
 import no.nav.klage.oppgave.repositories.AnkebehandlingFoer2027Repository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
@@ -63,6 +62,7 @@ import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
+import no.nav.slackposter.Severity
 import no.nav.slackposter.SlackClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
@@ -74,7 +74,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -86,11 +85,9 @@ class AdminService(
     private val behandlingRepository: BehandlingRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingFoer2027Repository: AnkebehandlingFoer2027Repository,
-    private val ankeITrygderettenbehandlingFoer2027Repository: AnkeITrygderettenbehandlingFoer2027Repository,
     private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
-    private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val saksbehandlerService: SaksbehandlerService,
@@ -118,7 +115,8 @@ class AdminService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val jacksonObjectMapper = jacksonObjectMapper()
+        private val enhetByNavn = Enhet.entries.associateBy { it.navn }
+        private val allowedEnheter = styringsenheter + klageenheter
     }
 
     /**
@@ -516,7 +514,7 @@ class AdminService(
             }
     }
 
-    private fun getUsersToRemove(candidates: Set<String>): Set<String> {
+    internal fun getUsersToRemove(candidates: Set<String>): Set<String> {
         if (candidates.isEmpty()) return emptySet()
 
         val sluttdatoList = klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = candidates.toList())
@@ -530,30 +528,106 @@ class AdminService(
                 }.map { it.navIdent }
                 .toSet()
 
-        logger.debug("Found users no longer in Nav: $usersNoLongerInNav")
+        logger.debug("Found users no longer in Nav: {}", usersNoLongerInNav)
         val furtherCandidates = candidates - usersNoLongerInNav
-
-        val enhetByNavn = Enhet.entries.associateBy { it.navn }
-        val allowedEnheter = (styringsenheter + klageenheter).toSet()
 
         val usersNoLongerInCorrectEnhet =
             if (furtherCandidates.isEmpty()) {
                 emptySet()
             } else {
-                klageLookupGateway
-                    .getUserInfoForNavIdentList(navIdentList = furtherCandidates.toList())
+                val navIdentList = furtherCandidates.toList()
+                val enheterPerUser = klageLookupGateway.getEnheterForNavIdentList(navIdentList = navIdentList)
+
+                val primaryEnhetIdByNavIdent = getPrimaryEnhetIdByNavIdent(navIdentList = navIdentList)
+
+                enheterPerUser
                     .asSequence()
-                    .filter { info ->
-                        val enhet = enhetByNavn[info.enhet.enhetId]
-                        enhet !in allowedEnheter
+                    .filter { saksbehandlerEnheter ->
+                        hasLostAllAllowedEnheter(
+                            saksbehandlerEnheter = saksbehandlerEnheter,
+                            primaryEnhetId = primaryEnhetIdByNavIdent[saksbehandlerEnheter.navIdent],
+                        )
                     }.map { it.navIdent }
                     .toSet()
             }
 
-        logger.debug("Found users no longer in enhet: $usersNoLongerInCorrectEnhet")
+        logger.debug("Found users no longer in enhet: {}", usersNoLongerInCorrectEnhet)
 
         val usersToRemove = usersNoLongerInNav + usersNoLongerInCorrectEnhet
         return usersToRemove
+    }
+
+    /**
+     * Primary enhet per navIdent. Users we could not look up are absent from the result, which
+     * makes [hasLostAllAllowedEnheter] skip them, and a failing lookup therefore removes nobody.
+     */
+    private fun getPrimaryEnhetIdByNavIdent(navIdentList: List<String>): Map<String, String> {
+        if (navIdentList.isEmpty()) return emptyMap()
+
+        return runCatching {
+            klageLookupGateway
+                .getUserInfoForNavIdentList(navIdentList = navIdentList)
+                .associate { it.navIdent to it.enhet.enhetId }
+        }.getOrElse { throwable ->
+            logger.error("Could not look up primary enhet. Skipping all users in this run.", throwable)
+            notifyTeam(
+                "Klarte ikke å hente primærenhet fra klage-lookup. Ingen brukere blir fjernet fra behandlinger i denne kjøringen.",
+            )
+            emptyMap()
+        }
+    }
+
+    private fun notifyTeam(message: String) {
+        runCatching {
+            slackClient.postMessage(
+                text = "<!subteam^$klageBackendGroupId>: \n$message",
+                severity = Severity.ERROR,
+            )
+        }.onFailure { throwable ->
+            logger.error("Could not notify team on Slack", throwable)
+        }
+    }
+
+    /**
+     * Whether the user has lost access to every enhet Kabal accepts, and should therefore be
+     * removed from their behandlinger.
+     *
+     * Three cases leave us without a basis for that decision, and all of them skip the user:
+     *
+     * - An empty enhet list means we could not determine the user's enheter, not that the user
+     *   has none. Removing on empty would unassign everyone whenever the lookup fails.
+     * - A missing primary enhet means the user was not returned by the lookup at all, so we
+     *   know nothing about where they belong.
+     * - The primary enhet is an Entra user attribute, while the enhet list is based on group
+     *   membership. If the primary enhet is missing from the list, the two sources disagree
+     *   about where the user belongs.
+     */
+    private fun hasLostAllAllowedEnheter(
+        saksbehandlerEnheter: SaksbehandlerEnheter,
+        primaryEnhetId: String?,
+    ): Boolean {
+        if (saksbehandlerEnheter.enheter.isEmpty()) {
+            logger.error("Found no enheter at all for ${saksbehandlerEnheter.navIdent}. Skipping this user.")
+            return false
+        }
+
+        if (primaryEnhetId == null) {
+            logger.error("Found no primary enhet for ${saksbehandlerEnheter.navIdent}. Skipping this user.")
+            return false
+        }
+
+        if (saksbehandlerEnheter.enheter.none { it.enhetId == primaryEnhetId }) {
+            logger.error(
+                "Primary enhet $primaryEnhetId for ${saksbehandlerEnheter.navIdent} is missing from the enheter " +
+                    "based on group membership: ${saksbehandlerEnheter.enheter.map { it.enhetId }}. " +
+                    "Skipping this user.",
+            )
+            return false
+        }
+
+        return saksbehandlerEnheter.enheter.none { enhet ->
+            enhetByNavn[enhet.enhetId] in allowedEnheter
+        }
     }
 
     @Transactional
