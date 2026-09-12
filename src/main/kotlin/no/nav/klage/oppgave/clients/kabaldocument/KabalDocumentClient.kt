@@ -43,6 +43,29 @@ class KabalDocumentClient(
             }.bodyToMono<DokumentEnhetOutput>()
             .block() ?: throw RuntimeException("Dokumentenhet could not be created")
 
+    /**
+     * Feilregistrerer journalpostens knytning til sak i Dokarkiv, slik at SAF filtrerer den bort fra
+     * dokumentoversikten. Endepunktet finnes kun i dev, og brukes til opprydding av testdata.
+     */
+    fun feilregistrerSakstilknytningInDev(journalpostId: String) {
+        kabalDocumentWebClient
+            .patch()
+            .uri {
+                it.path("/dokarkiv/dev/journalposter/{journalpostId}/feilregistrersakstilknytning").build(journalpostId)
+            }.header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}",
+            ).retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::feilregistrerSakstilknytningInDev.name,
+                    classLogger = logger,
+                )
+            }.bodyToMono<String>()
+            .block()
+    }
+
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): DokumentEnhetFullfoerOutput =
         kabalDocumentWebClient
             .post()
