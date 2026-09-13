@@ -7,9 +7,7 @@ spring:
     resources:
       add-mappings: false
   datasource:
-    url: jdbc:postgresql://${NAIS_DATABASE_KABAL_API_KABAL_API_HOST}:${NAIS_DATABASE_KABAL_API_KABAL_API_PORT}/${NAIS_DATABASE_KABAL_API_KABAL_API_DATABASE}
-    username: ${NAIS_DATABASE_KABAL_API_KABAL_API_USERNAME}
-    password: ${NAIS_DATABASE_KABAL_API_KABAL_API_PASSWORD}
+    url: ${NAIS_DATABASE_KABAL_API_PRIV_KABAL_API_JDBC_URL}
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
