@@ -16,7 +16,7 @@ spec:
       runtime: java
   gcp:
     sqlInstances:
-      - name: kabal-api
+      - name: kabal-api-priv
         type: {{ db_type }}
         maintenance:
           day: 1
