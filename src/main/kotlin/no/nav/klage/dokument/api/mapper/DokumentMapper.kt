@@ -393,6 +393,7 @@ class DokumentMapper(
         val dokumentReferanse =
             DokumentReferanse(
                 tittel = hoveddokument.tittel,
+                brevkode = hoveddokument.brevkode,
                 tema = Tema.fromNavn(journalpost.tema.name).id,
                 temaId = Tema.fromNavn(journalpost.tema.name).id,
                 dokumentInfoId = hoveddokument.dokumentInfoId,
@@ -619,6 +620,7 @@ class DokumentMapper(
             journalpost.dokumenter?.subList(fromIndex = 1, toIndex = journalpost.dokumenter.size)?.map { vedlegg ->
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
+                    brevkode = vedlegg.brevkode,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(vedlegg),
                     hasAccess = harTilgangTilArkivEllerSladdetVariant(vedlegg),
