@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
+val ktlintKotlinCompilerVersion = "2.2.21"
 val mockkVersion = "1.14.11"
 val tokenValidationVersion = "6.0.12"
 val logstashVersion = "9.0"
@@ -128,6 +129,20 @@ dependencies {
 idea {
     module {
         isDownloadJavadoc = true
+    }
+}
+
+// The Spring Boot plugin sets kotlin.version to the applied Kotlin plugin version, and
+// io.spring.dependency-management then aligns every org.jetbrains.kotlin artifact in all
+// configurations to it. That upgrades kotlin-compiler-embeddable on the ktlint classpath,
+// and ktlint 1.8.0 fails with "Extensions storage is not registered". Pin the embeddable
+// compiler ktlint was built against (resolutionStrategy.force loses to dependency management,
+// eachDependency does not).
+configurations.matching { it.name.startsWith("ktlint") }.configureEach {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.jetbrains.kotlin") {
+            useVersion(ktlintKotlinCompilerVersion)
+        }
     }
 }
 
