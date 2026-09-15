@@ -3,13 +3,16 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
+// Kotlin version each tool is built against, see the comment on the resolution strategy below.
+val ktlintKotlinVersion = "2.2.21"
+val detektKotlinVersion = "2.4.10"
 val mockkVersion = "1.14.11"
 val tokenValidationVersion = "6.0.12"
 val logstashVersion = "9.0"
 val springMockkVersion = "5.0.1"
-val springDocVersion = "3.1.0"
+val springDocVersion = "3.1.1"
 val testContainersVersion = "2.0.5"
-val shedlockVersion = "7.9.0"
+val shedlockVersion = "7.10.1"
 val archunitVersion = "1.5.0"
 val logbackSyslog4jVersion = "1.0.0"
 val pdfboxVersion = "3.0.8"
@@ -19,11 +22,11 @@ val klageKodeverkVersion = "3.3.31"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.65.0"
 val mikrofrontendSelectorVersion = "3.0.0"
-val simpleSlackPosterVersion = "1.0.0"
+val simpleSlackPosterVersion = "1.1.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.4.10"
+    val kotlinVersion = "2.4.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
@@ -128,6 +131,26 @@ dependencies {
 idea {
     module {
         isDownloadJavadoc = true
+    }
+}
+
+// The Spring Boot plugin sets kotlin.version to the applied Kotlin plugin version, and
+// io.spring.dependency-management then aligns every org.jetbrains.kotlin artifact in all
+// configurations to it - also the classpaths of ktlint and detekt, which embed the Kotlin
+// compiler and must run on the exact version they were built against. Without this, ktlint
+// fails with "Extensions storage is not registered" and detekt with "detekt was compiled
+// with Kotlin X but is currently running with Y". Both versions must be bumped together with
+// their tool. resolutionStrategy.force loses to dependency management, eachDependency does not.
+mapOf(
+    "ktlint" to ktlintKotlinVersion,
+    "detekt" to detektKotlinVersion,
+).forEach { (toolName, kotlinVersion) ->
+    configurations.matching { it.name.startsWith(toolName) }.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion(kotlinVersion)
+            }
+        }
     }
 }
 
