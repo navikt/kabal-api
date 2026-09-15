@@ -47,6 +47,8 @@ internal class AdminServiceTest {
             klageLookupGateway = klageLookupGateway,
             personProtectionRepository = mockk(relaxed = true),
             transactionTemplate = mockk(relaxed = true),
+            safFacade = mockk(relaxed = true),
+            kabalDocumentGateway = mockk(relaxed = true),
         ).apply {
             klageBackendGroupId = "klage-backend-group-id"
         }

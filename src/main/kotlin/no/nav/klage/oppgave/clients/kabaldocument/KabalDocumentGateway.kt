@@ -39,4 +39,8 @@ class KabalDocumentGateway(
 
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): DokumentEnhetFullfoerOutput =
         kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId)
+
+    fun feilregistrerSakstilknytningInDev(journalpostId: String) {
+        kabalDocumentClient.feilregistrerSakstilknytningInDev(journalpostId = journalpostId)
+    }
 }
