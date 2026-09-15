@@ -3,9 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
+
 // Kotlin version each tool is built against, see the comment on the resolution strategy below.
 val ktlintKotlinVersion = "2.2.21"
 val detektKotlinVersion = "2.4.10"
+
 val mockkVersion = "1.14.11"
 val tokenValidationVersion = "6.0.12"
 val logstashVersion = "9.0"
