@@ -53,6 +53,8 @@ class AnkebehandlingEtter2027(
     override var paaanketVedtaksdato: LocalDate? = null,
     @Column(name = "forsterket_rett")
     override var forsterketRett: Boolean? = null,
+    @Column(name = "trygderetten_saksnummer", nullable = false)
+    override var trygderettenSaksnummer: String,
     @Column(name = "klage_behandlende_enhet", nullable = false)
     override val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
@@ -167,7 +169,8 @@ class AnkebehandlingEtter2027(
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,
-    BehandlingWithTrygderettenMetadata {
+    BehandlingWithTrygderettenMetadata,
+    BehandlingWithTrygderettenSaksnummer {
     override fun toString(): String =
         "AnkebehandlingEtter2027(id=$id, " +
             "modified=$modified, " +

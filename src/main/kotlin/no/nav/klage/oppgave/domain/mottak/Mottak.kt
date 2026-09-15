@@ -38,6 +38,7 @@ data class Mottak(
     val isBasedOnJournalpost: Boolean,
     val gosysOppgaveRequired: Boolean,
     val gosysOppgaveId: Long?,
+    val trygderettenSaksnummer: String?,
 ) {
     enum class Sender {
         FAGSYSTEM,
