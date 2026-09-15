@@ -3,7 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 val ktlintVersion = "1.8.0"
-val ktlintKotlinCompilerVersion = "2.2.21"
+// Kotlin version each tool is built against, see the comment on the resolution strategy below.
+val ktlintKotlinVersion = "2.2.21"
+val detektKotlinVersion = "2.4.10"
 val mockkVersion = "1.14.11"
 val tokenValidationVersion = "6.0.12"
 val logstashVersion = "9.0"
@@ -134,14 +136,20 @@ idea {
 
 // The Spring Boot plugin sets kotlin.version to the applied Kotlin plugin version, and
 // io.spring.dependency-management then aligns every org.jetbrains.kotlin artifact in all
-// configurations to it. That upgrades kotlin-compiler-embeddable on the ktlint classpath,
-// and ktlint 1.8.0 fails with "Extensions storage is not registered". Pin the embeddable
-// compiler ktlint was built against (resolutionStrategy.force loses to dependency management,
-// eachDependency does not).
-configurations.matching { it.name.startsWith("ktlint") }.configureEach {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "org.jetbrains.kotlin") {
-            useVersion(ktlintKotlinCompilerVersion)
+// configurations to it - also the classpaths of ktlint and detekt, which embed the Kotlin
+// compiler and must run on the exact version they were built against. Without this, ktlint
+// fails with "Extensions storage is not registered" and detekt with "detekt was compiled
+// with Kotlin X but is currently running with Y". Both versions must be bumped together with
+// their tool. resolutionStrategy.force loses to dependency management, eachDependency does not.
+mapOf(
+    "ktlint" to ktlintKotlinVersion,
+    "detekt" to detektKotlinVersion,
+).forEach { (toolName, kotlinVersion) ->
+    configurations.matching { it.name.startsWith(toolName) }.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "org.jetbrains.kotlin") {
+                useVersion(kotlinVersion)
+            }
         }
     }
 }
