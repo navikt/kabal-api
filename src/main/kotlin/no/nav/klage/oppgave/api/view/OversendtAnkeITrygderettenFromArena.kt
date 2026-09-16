@@ -63,7 +63,7 @@ fun OversendtAnkeITrygderettenFromArena.toAnkeITrygderettenbehandlingFoer2027Inp
         prosessfullmektig = null,
         ytelse = Ytelse.of(ytelseId),
         type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
-        kildeReferanse = fagsakId,
+        kildeReferanse = UUID.randomUUID().toString(),
         dvhReferanse = null,
         fagsystem = Fagsystem.AO01,
         fagsakId = fagsakId,
