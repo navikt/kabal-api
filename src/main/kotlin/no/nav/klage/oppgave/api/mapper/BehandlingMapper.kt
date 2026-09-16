@@ -30,6 +30,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKlageBehandlendeEnhet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
@@ -431,6 +432,7 @@ class BehandlingMapper(
             fagsystemId = ankebehandling.fagsystem.id,
             paaanketVedtaksdato = ankebehandling.paaanketVedtaksdato,
             forsterketRett = ankebehandling.forsterketRett,
+            trygderettenSaksnummer = (ankebehandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
             relevantDocumentIdList =
                 ankebehandling.saksdokumenter
                     .map {
@@ -513,6 +515,7 @@ class BehandlingMapper(
             kjennelseMottatt = behandling.kjennelseMottatt,
             paaanketVedtaksdato = (behandling as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
             forsterketRett = behandling.forsterketRett,
+            trygderettenSaksnummer = (behandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
             feilregistrering = behandling.feilregistrering.toView(),
             fagsystemId = behandling.fagsystem.id,
             relevantDocumentIdList =

@@ -102,6 +102,7 @@ interface BehandlingRepository :
         excludedTypes: List<Type> =
             listOf(
                 Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
             ),
     ): List<Behandling>
@@ -139,16 +140,9 @@ interface BehandlingRepository :
     )
     fun getAnkemuligheter(
         partIdValue: String,
-        excludedFagsystems: List<Fagsystem> = listOf(Fagsystem.IT01),
-        utfallWithoutAnkemulighet: List<Utfall> =
-            listOf(
-                Utfall.INNSTILLING_AVVIST,
-                Utfall.INNSTILLING_STADFESTELSE,
-            ),
-        excludedTypes: List<Type> =
-            listOf(
-                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
-            ),
+        excludedFagsystems: List<Fagsystem>,
+        utfallWithoutAnkemulighet: List<Utfall>,
+        excludedTypes: List<Type>,
     ): List<Behandling>
 
     @EntityGraph(attributePaths = ["hjemler"])

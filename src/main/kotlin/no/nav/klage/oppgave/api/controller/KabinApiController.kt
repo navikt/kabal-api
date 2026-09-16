@@ -95,17 +95,30 @@ class KabinApiController(
         )
     }
 
-    @PostMapping("/ankemuligheter")
-    fun getAnkemuligheter(
+    @PostMapping("/ankemuligheter-foer-2027")
+    fun getAnkemuligheterFoer2027(
         @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
-            methodName = ::getAnkemuligheter.name,
+            methodName = ::getAnkemuligheterFoer2027.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        return kabinApiService.getAnkemuligheter(partIdValue = input.idnummer)
+        return kabinApiService.getAnkemuligheterFoer2027(partIdValue = input.idnummer)
+    }
+
+    @PostMapping("/ankemuligheter-etter-2027")
+    fun getAnkemuligheterEtter2027(
+        @RequestBody input: GetCompletedBehandlingerInput,
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getAnkemuligheterEtter2027.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        return kabinApiService.getAnkemuligheterEtter2027(partIdValue = input.idnummer)
     }
 
     @PostMapping("/kabal-muligheter-from-infotrygd-sak")
