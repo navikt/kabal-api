@@ -172,7 +172,7 @@ abstract class Omgjoeringskravbehandling(
 
     override fun hashCode(): Int = id.hashCode()
 
-    fun shouldBeSentToVedtaksinstans(): Boolean = utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
+    fun shouldBeSentToVedtaksinstans(): Boolean = utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35, Utfall.UGUNST)
 
     override fun shouldBeCompletedInKA(): Boolean =
         utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
