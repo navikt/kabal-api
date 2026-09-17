@@ -112,7 +112,7 @@ class OmgjoeringskravbehandlingService(
 
         omgjoeringskravbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
-        logger.debug("Created {} with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id)
+        logger.debug("Created {} with id {}", omgjoeringskravbehandling.javaClass.name, omgjoeringskravbehandling.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = omgjoeringskravbehandling.id,

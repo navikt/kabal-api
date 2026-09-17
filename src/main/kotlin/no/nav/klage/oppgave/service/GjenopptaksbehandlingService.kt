@@ -121,7 +121,7 @@ class GjenopptaksbehandlingService(
 
         gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
-        logger.debug("Created {} with id {}", gjenopptaksbehandling::javaClass.name, gjenopptaksbehandling.id)
+        logger.debug("Created {} with id {}", gjenopptaksbehandling.javaClass.name, gjenopptaksbehandling.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = gjenopptaksbehandling.id,
