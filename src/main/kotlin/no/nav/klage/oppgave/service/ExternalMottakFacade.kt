@@ -152,7 +152,7 @@ class ExternalMottakFacade(
         logger.debug("Found enhet {} for saksbehandlerid {}", enhet, saksbehandlerIdent)
 
         val saksbehandlerAccess =
-            kabalInnstillingerClient.getSaksbehandlersTildelteYtelserAppAccess(navIdent = saksbehandlerIdent)
+            kabalInnstillingerClient.getSaksbehandlersAccessAppAccess(navIdent = saksbehandlerIdent)
 
         if (saksbehandlerAccess.created == null) {
             logger.debug(
