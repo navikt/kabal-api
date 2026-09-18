@@ -63,7 +63,7 @@ class KabalInnstillingerService(
 
     // TODO: Bør vi ha et cache her? Kan være et problem om leder gir nye tilganger, kanskje et kortere cache?
     fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> =
-        kabalInnstillingerClient.getSaksbehandlersTildelteYtelser(navIdent).ytelseIdList.map {
+        kabalInnstillingerClient.getSaksbehandlersAccess(navIdent).ytelseIdList.map {
             Ytelse.of(it)
         }
 

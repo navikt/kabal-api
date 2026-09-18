@@ -49,11 +49,11 @@ class KabalInnstillingerClient(
     }
 
     @Retryable
-    fun getSaksbehandlersTildelteYtelser(navIdent: String): SaksbehandlerAccess {
-        logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger")
+    fun getSaksbehandlersAccess(navIdent: String): SaksbehandlerAccess {
+        logger.debug("Getting access info for $navIdent in kabal-innstillinger")
         return kabalInnstillingerWebClient
             .get()
-            .uri { it.path("/ansatte/$navIdent/tildelteytelser").build() }
+            .uri { it.path("/ansatte/$navIdent/access").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
@@ -61,19 +61,19 @@ class KabalInnstillingerClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
-                    functionName = ::getSaksbehandlersTildelteYtelser.name,
+                    functionName = ::getSaksbehandlersAccess.name,
                     classLogger = logger,
                 )
             }.bodyToMono<SaksbehandlerAccess>()
-            .block() ?: throw RuntimeException("Could not get tildelte ytelser")
+            .block() ?: throw RuntimeException("Could not get access info for $navIdent")
     }
 
     @Retryable
-    fun getSaksbehandlersTildelteYtelserAppAccess(navIdent: String): SaksbehandlerAccess {
-        logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger through app access")
+    fun getSaksbehandlersAccessAppAccess(navIdent: String): SaksbehandlerAccess {
+        logger.debug("Getting access info for $navIdent in kabal-innstillinger through app access")
         return kabalInnstillingerWebClient
             .get()
-            .uri { it.path("/ansatte/$navIdent/tildelteytelser").build() }
+            .uri { it.path("/ansatte/$navIdent/access").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}",
@@ -81,11 +81,11 @@ class KabalInnstillingerClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
-                    functionName = ::getSaksbehandlersTildelteYtelser.name,
+                    functionName = ::getSaksbehandlersAccessAppAccess.name,
                     classLogger = logger,
                 )
             }.bodyToMono<SaksbehandlerAccess>()
-            .block() ?: throw RuntimeException("Could not get tildelte ytelser")
+            .block() ?: throw RuntimeException("Could not get access info for $navIdent")
     }
 
     @Retryable

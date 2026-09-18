@@ -117,6 +117,60 @@ class TilgangServiceTest {
 
         assertThat(tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling)).isEqualTo(Unit)
     }
+
+    @Test
+    fun `lesetilgang sjekker sakenGjelder for behandling uten sakspersongalleri`() {
+        val klagebehandling = getKlagebehandling()
+
+        assertThat(tilgangService.getPersongalleriToCheckForBehandling(klagebehandling))
+            .containsExactly(klagebehandling.sakenGjelder.partId.value)
+    }
+
+    @Test
+    fun `lesetilgang til persongalleri gir ok når klage-lookup svarer ja`() {
+        val klagebehandling = getKlagebehandling()
+
+        every { klageLookupGateway.getAccess(brukerId = any(), navIdent = any()) }
+            .returns(TilgangService.Access(access = true, reason = ""))
+
+        assertThat(tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(klagebehandling))
+            .isEqualTo(Unit)
+    }
+
+    @Test
+    fun `lesetilgang til persongalleri gir feil når klage-lookup svarer nei`() {
+        val klagebehandling = getKlagebehandling()
+
+        every { klageLookupGateway.getAccess(brukerId = any(), navIdent = any()) }
+            .returns(TilgangService.Access(access = false, reason = "Mangler tilgang til person"))
+
+        assertThrows<MissingTilgangException> {
+            tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(klagebehandling)
+        }
+    }
+
+    @Test
+    fun `getSaksbehandlerAccessToBehandling gir ok når alle i persongalleriet er tilgjengelige`() {
+        val klagebehandling = getKlagebehandling()
+
+        every { klageLookupGateway.getAccess(brukerId = any(), navIdent = any()) }
+            .returns(TilgangService.Access(access = true, reason = ""))
+
+        assertThat(tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling).access).isTrue()
+    }
+
+    @Test
+    fun `getSaksbehandlerAccessToBehandling returnerer avslaget fra klage-lookup`() {
+        val klagebehandling = getKlagebehandling()
+
+        every { klageLookupGateway.getAccess(brukerId = any(), navIdent = any()) }
+            .returns(TilgangService.Access(access = false, reason = "Kode 6"))
+
+        val access = tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling)
+
+        assertThat(access.access).isFalse()
+        assertThat(access.reason).isEqualTo("Kode 6")
+    }
 }
 
 fun getKlagebehandling(): Klagebehandling =

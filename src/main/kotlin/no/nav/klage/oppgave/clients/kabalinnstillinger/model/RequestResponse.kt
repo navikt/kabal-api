@@ -36,6 +36,7 @@ data class SaksbehandlerAccess(
     val saksbehandlerIdent: String,
     val saksbehandlerName: String,
     val ytelseIdList: List<String>,
+    val anketeam: Boolean,
     val created: LocalDateTime?,
     val accessRightsModified: LocalDateTime?,
 )
