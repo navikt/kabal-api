@@ -144,11 +144,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns saksbehandlerIdent
-        every {
-            tilgangService.verifyLoggedInUsersAccessToPerson(
-                any(),
-            )
-        } returns Unit
         every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(access = true, reason = "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns
