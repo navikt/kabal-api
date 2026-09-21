@@ -48,6 +48,8 @@ class SaksbehandlerService(
         hasKabalOppgavestyringAlleEnheterRole(navIdent) ||
             getTildelteYtelserForSaksbehandler(navIdent).contains(ytelse)
 
+    fun isAnketeam(ident: String): Boolean = kabalInnstillingerService.getAnketeamForSaksbehandler(navIdent = ident)
+
     fun isSaksbehandler(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
 
     fun isROL(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ROL)
