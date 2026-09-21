@@ -84,8 +84,9 @@ class KabalInnstillingerService(
     fun getRegisteredHjemlerForYtelse(
         ytelse: Ytelse,
         includeSE: Boolean,
+        onlyAnketeam: Boolean,
     ): Set<Hjemmel> {
-        val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse = ytelse, includeSE = includeSE)
+        val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse = ytelse, includeSE = includeSE, onlyAnketeam = onlyAnketeam)
         return hjemler.map { Hjemmel.of(it) }.toSet()
     }
 }
