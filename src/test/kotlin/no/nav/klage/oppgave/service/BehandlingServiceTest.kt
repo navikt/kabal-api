@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -21,6 +22,7 @@ import no.nav.klage.oppgave.api.view.GosysOppgaveInput
 import no.nav.klage.oppgave.api.view.GosysOppgaveUpdateInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlowStateResponse
 import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
+import no.nav.klage.oppgave.api.view.RolView
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
@@ -34,6 +36,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -130,7 +133,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 behandlingMapper = behandlingMapper,
                 historyService = mockk(),
                 systembrukerIdent = "SYSTEMBRUKER",
-                kafkaInternalEventService = mockk(),
+                kafkaInternalEventService = mockk(relaxed = true),
                 partSearchService = mockk(),
                 safFacade = mockk(),
                 tokenUtil = mockk(),
@@ -141,11 +144,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns saksbehandlerIdent
-        every {
-            tilgangService.verifyLoggedInUsersAccessToPerson(
-                any(),
-            )
-        } returns Unit
         every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(access = true, reason = "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns
@@ -162,6 +160,15 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             )
         every { kakaApiGateway.getValidationErrors(any()) } returns emptyList()
         every { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(any()) } returns emptySortedSet()
+        every { saksbehandlerService.isKROL(any()) } returns false
+        every { saksbehandlerService.getNameForIdentDefaultIfNull(any()) } returns "Navn Navnesen"
+        every { innloggetSaksbehandlerService.isROL() } returns false
+        every { behandlingMapper.mapToRolView(any()) } returns
+            RolView(
+                employee = null,
+                flowState = FlowState.NOT_SENT,
+                modified = LocalDateTime.now(),
+            )
     }
 
     @Nested
@@ -233,6 +240,134 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            assertThat(output.medunderskriver?.saksbehandlerident).isNull()
 //            assertThat(output.medunderskriverHistorikk).hasSize(1)
 //        }
+    }
+
+    @Nested
+    inner class TilgangssjekkerISetROLIdent {
+        @Test
+        fun `KROL-grenen sjekker lesetilgang en gang og skrivetilgang null ganger`() {
+            every { saksbehandlerService.isKROL(saksbehandlerIdent) } returns true
+
+            behandlingService.setROLIdent(
+                behandlingId = behandlingId,
+                rolIdent = "ROL_IDENT",
+                utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+            )
+
+            verify(exactly = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+            verify(exactly = 0) { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) }
+        }
+
+        @Test
+        fun `oppgavestyring-grenen avviser naar ROL ikke er sendt og utfoerende ikke er tildelt`() {
+            every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(saksbehandlerIdent) } returns true
+
+            assertThrows<MissingTilgangException> {
+                behandlingService.setROLIdent(
+                    behandlingId = behandlingId,
+                    rolIdent = "ROL_IDENT",
+                    utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+                )
+            }
+
+            verify(exactly = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+        }
+
+        @Test
+        fun `ROL som tar ledig ROL-oppgave sjekker lesetilgang en gang og skrivetilgang null ganger`() {
+            val behandling = insertMedRolFlowState(FlowState.SENT)
+            every { innloggetSaksbehandlerService.isROL() } returns true
+
+            behandlingService.setROLIdent(
+                behandlingId = behandling.id,
+                rolIdent = "ROL_IDENT",
+                utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+            )
+
+            verify(exactly = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+            verify(exactly = 0) { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) }
+        }
+
+        @Test
+        fun `vanlig saksbehandler sjekker lesetilgang en gang og skrivetilgang en gang`() {
+            behandlingService.setROLIdent(
+                behandlingId = behandlingId,
+                rolIdent = "ROL_IDENT",
+                utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+            )
+
+            verify(exactly = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+            verify(exactly = 1) { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) }
+        }
+
+        @Test
+        fun `vanlig saksbehandler uten skrivetilgang blir avvist`() {
+            every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) } throws
+                MissingTilgangException("Kun tildelt saksbehandler kan endre behandlingen")
+
+            assertThrows<MissingTilgangException> {
+                behandlingService.setROLIdent(
+                    behandlingId = behandlingId,
+                    rolIdent = "ROL_IDENT",
+                    utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+                )
+            }
+        }
+    }
+
+    @Nested
+    inner class TilgangssjekkerISetMedunderskriverNavIdent {
+        @Test
+        fun `oppgavestyring-grenen avviser naar medunderskriver ikke er sendt og utfoerende ikke er tildelt`() {
+            every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(saksbehandlerIdent) } returns true
+
+            assertThrows<MissingTilgangException> {
+                behandlingService.setMedunderskriverNavIdent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+                    navIdent = "MU_IDENT",
+                )
+            }
+
+            verify(exactly = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+        }
+
+        @Test
+        fun `vanlig saksbehandler sjekker ikke lesetilgang i det hele tatt`() {
+            behandlingService.setMedunderskriverNavIdent(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+                navIdent = "MU_IDENT",
+            )
+
+            verify(exactly = 0) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+            verify(exactly = 1) { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) }
+        }
+
+        @Test
+        fun `vanlig saksbehandler uten skrivetilgang blir avvist`() {
+            every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(any()) } throws
+                MissingTilgangException("Kun tildelt saksbehandler kan endre behandlingen")
+
+            assertThrows<MissingTilgangException> {
+                behandlingService.setMedunderskriverNavIdent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
+                    navIdent = "MU_IDENT",
+                )
+            }
+        }
+    }
+
+    private fun insertMedRolFlowState(flowState: FlowState): Behandling {
+        val behandling = simpleInsert()
+        behandling.rolFlowState = flowState
+        behandlingRepository.save(behandling)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        return behandling
     }
 
     // TODO fix

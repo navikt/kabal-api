@@ -2108,28 +2108,30 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String,
         navIdent: String?,
     ): MedunderskriverWrapped {
-        val behandling =
-            if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
-                val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
-                if (behandling.medunderskriverFlowState != FlowState.SENT &&
-                    behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
-                ) {
-                    throw MissingTilgangException(
-                        "OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.",
-                    )
-                }
+        val behandling = getBehandlingOrThrow(behandlingId)
 
-                if (behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent && navIdent == null) {
-                    throw MissingTilgangException("Kun saksbehandler har lov til å nullstille medunderskriver.")
-                }
+        if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
+            checkReadAccessToSak(behandling)
 
-                getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
-            } else {
-                getBehandlingForWriteAllowROLAndMU(
-                    behandlingId = behandlingId,
-                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            if (behandling.medunderskriverFlowState != FlowState.SENT &&
+                behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
+            ) {
+                throw MissingTilgangException(
+                    "OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.",
                 )
             }
+
+            if (behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent && navIdent == null) {
+                throw MissingTilgangException("Kun saksbehandler har lov til å nullstille medunderskriver.")
+            }
+
+            checkBehandlingNotAvsluttet(behandling)
+        } else {
+            checkWriteAccessAllowROLAndMU(
+                behandling = behandling,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
+        }
 
         if (navIdent != null && behandling.tildeling?.saksbehandlerident == navIdent) {
             throw IllegalOperation("Medunderskriver kan ikke være lik saksbehandler")
@@ -2390,20 +2392,21 @@ class BehandlingService(
         behandlingRepository
             .findById(behandlingId)
             .get()
-            .also {
-                if (!systemUserContext) {
-                    if (it.feilregistrering != null) {
-                        throw BehandlingAvsluttetException("Behandlingen er feilregistrert")
-                    }
-                    if (it.ferdigstilling != null) {
-                        throw BehandlingAvsluttetException("Behandlingen er avsluttet")
-                    }
-                }
-            }.also { if (!systemUserContext) checkReadAccessToSak(it) }
+            .also { if (!systemUserContext) checkBehandlingNotAvsluttet(it) }
+            .also { if (!systemUserContext) checkReadAccessToSak(it) }
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     fun checkReadAccessToSak(behandling: Behandling) {
         tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling)
+    }
+
+    private fun checkBehandlingNotAvsluttet(behandling: Behandling) {
+        if (behandling.feilregistrering != null) {
+            throw BehandlingAvsluttetException("Behandlingen er feilregistrert")
+        }
+        if (behandling.ferdigstilling != null) {
+            throw BehandlingAvsluttetException("Behandlingen er avsluttet")
+        }
     }
 
     private fun checkSkrivetilgang(behandling: Behandling) {
@@ -2569,8 +2572,19 @@ class BehandlingService(
     fun getBehandlingForWriteAllowROLAndMU(
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String,
-    ): Behandling {
-        val behandling = behandlingRepository.findById(behandlingId).get()
+    ): Behandling =
+        getBehandlingOrThrow(behandlingId)
+            .also {
+                checkWriteAccessAllowROLAndMU(
+                    behandling = it,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                )
+            }
+
+    private fun checkWriteAccessAllowROLAndMU(
+        behandling: Behandling,
+        utfoerendeSaksbehandlerIdent: String,
+    ) {
         if (behandling.medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent ||
             behandling.rolIdent == utfoerendeSaksbehandlerIdent
         ) {
@@ -2578,7 +2592,6 @@ class BehandlingService(
         } else {
             checkSkrivetilgang(behandling)
         }
-        return behandling
     }
 
     fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView =
@@ -2600,10 +2613,13 @@ class BehandlingService(
 
     @Transactional(readOnly = true)
     fun getBehandlingAndCheckReadAccessToSak(behandlingId: UUID): Behandling =
+        getBehandlingOrThrow(behandlingId)
+            .also { checkReadAccessToSak(it) }
+
+    private fun getBehandlingOrThrow(behandlingId: UUID): Behandling =
         behandlingRepository
             .findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
-            .also { checkReadAccessToSak(it) }
 
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Behandling> =
@@ -2982,7 +2998,6 @@ class BehandlingService(
         behandlingId: UUID,
         flowState: FlowState,
         utfoerendeSaksbehandlerIdent: String,
-        systemUserContext: Boolean = false,
     ): RolView {
         val behandling =
             getBehandlingForWriteAllowROLAndMU(
@@ -3044,39 +3059,32 @@ class BehandlingService(
         behandlingId: UUID,
         rolIdent: String?,
         utfoerendeSaksbehandlerIdent: String,
-        systemUserContext: Boolean = false,
     ): RolView {
-        val behandlingForCheck = getBehandlingAndCheckReadAccessToSak(behandlingId)
-        val behandling =
-            if (saksbehandlerService.isKROL(utfoerendeSaksbehandlerIdent)) {
-                if (behandlingForCheck.rolFlowState == FlowState.RETURNED) {
-                    throw MissingTilgangException("KROL har ikke lov til å endre ROL når den er returnert.")
-                }
-                getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
-            } else if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
-                if (behandlingForCheck.rolFlowState != FlowState.SENT &&
-                    behandlingForCheck.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
-                ) {
-                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sendt.")
-                }
-                getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
-            } else {
-                if (behandlingForCheck.rolFlowState == FlowState.SENT && behandlingForCheck.rolIdent == null) {
-                    if (innloggetSaksbehandlerService.isROL()) {
-                        getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
-                    } else {
-                        getBehandlingForWriteAllowROLAndMU(
-                            behandlingId = behandlingId,
-                            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                        )
-                    }
-                } else {
-                    getBehandlingForWriteAllowROLAndMU(
-                        behandlingId = behandlingId,
-                        utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    )
-                }
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
+
+        if (saksbehandlerService.isKROL(utfoerendeSaksbehandlerIdent)) {
+            if (behandling.rolFlowState == FlowState.RETURNED) {
+                throw MissingTilgangException("KROL har ikke lov til å endre ROL når den er returnert.")
             }
+            checkBehandlingNotAvsluttet(behandling)
+        } else if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
+            if (behandling.rolFlowState != FlowState.SENT &&
+                behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
+            ) {
+                throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sendt.")
+            }
+            checkBehandlingNotAvsluttet(behandling)
+        } else if (behandling.rolFlowState == FlowState.SENT &&
+            behandling.rolIdent == null &&
+            innloggetSaksbehandlerService.isROL()
+        ) {
+            checkBehandlingNotAvsluttet(behandling)
+        } else {
+            checkWriteAccessAllowROLAndMU(
+                behandling = behandling,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
+        }
 
         val event =
             behandling.setROLIdent(

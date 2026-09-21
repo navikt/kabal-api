@@ -43,16 +43,6 @@ class TilgangService(
         ident: String,
     ): Boolean = ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifyLoggedInUsersAccessToPerson(fnr: String) {
-        val access =
-            getSaksbehandlerAccessToPerson(
-                fnr = fnr,
-            )
-        if (!access.access) {
-            throw MissingTilgangException(access.reason)
-        }
-    }
-
     fun verifySaksbehandlersAccessToYtelse(
         saksbehandlerIdent: String,
         ytelse: Ytelse,
@@ -100,8 +90,9 @@ class TilgangService(
     }
 
     fun verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling: Behandling) {
-        getPersongalleriToCheckForBehandling(behandling).forEach { fnr ->
-            verifyLoggedInUsersAccessToPerson(fnr = fnr)
+        val access = getSaksbehandlerAccessToBehandling(behandling)
+        if (!access.access) {
+            throw MissingTilgangException(access.reason)
         }
     }
 
