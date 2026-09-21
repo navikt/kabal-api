@@ -29,6 +29,7 @@ class KabalInnstillingerService(
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
                 fagsystemId = behandling.fagsystem.id,
+                typeId = behandling.type.id,
             ),
         )
 
@@ -46,6 +47,7 @@ class KabalInnstillingerService(
                         sakId = behandling.fagsakId,
                         fagsystemId = behandling.fagsystem.id,
                         ytelseId = behandling.ytelse.id,
+                        typeId = behandling.type.id,
                     ),
             ),
         )
@@ -58,6 +60,7 @@ class KabalInnstillingerService(
                 sakId = behandling.fagsakId,
                 fagsystemId = behandling.fagsystem.id,
                 ytelseId = behandling.ytelse.id,
+                typeId = behandling.type.id,
             ),
         )
 
@@ -66,6 +69,8 @@ class KabalInnstillingerService(
         kabalInnstillingerClient.getSaksbehandlersAccess(navIdent).ytelseIdList.map {
             Ytelse.of(it)
         }
+
+    fun getAnketeamForSaksbehandler(navIdent: String): Boolean = kabalInnstillingerClient.getSaksbehandlersAccess(navIdent).anketeam
 
     fun getTildelteYtelserForEnhet(enhet: String): Set<Ytelse> =
         kabalInnstillingerClient

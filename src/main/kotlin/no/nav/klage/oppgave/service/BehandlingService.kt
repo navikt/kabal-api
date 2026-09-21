@@ -899,6 +899,7 @@ class BehandlingService(
 
             if (!systemUserContext) {
                 checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
+                checkAnkeTypeAfter2027Access(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandlingType = behandling.type)
             }
 
             if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
@@ -2458,6 +2459,19 @@ class BehandlingService(
             saksbehandlerIdent = tildeltSaksbehandlerIdent,
             ytelse = behandling.ytelse,
         )
+    }
+
+    private fun checkAnkeTypeAfter2027Access(
+        tildeltSaksbehandlerIdent: String,
+        behandlingType: Type,
+    ) {
+        when (behandlingType) {
+            Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                tilgangService.verifySaksbehandlersIsAnketeam(saksbehandlerIdent = tildeltSaksbehandlerIdent)
+            }
+
+            else -> {}
+        }
     }
 
     // TODO: Se om ansvar for sjekk av medunderskriver/rol og finalize kan deles opp.
