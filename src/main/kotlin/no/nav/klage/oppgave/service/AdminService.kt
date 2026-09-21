@@ -441,10 +441,10 @@ class AdminService(
                     if (behandling.tildeling == null) {
                         val hjemlerForYtelseInInnstillinger =
                             ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
-                                // Exclude innstillinger for people in KA Styringsenhet.
                                 kabalInnstillingerService.getRegisteredHjemlerForYtelse(
                                     ytelse = behandling.ytelse,
                                     includeSE = false,
+                                    onlyAnketeam = behandling is AnkebehandlingEtter2027,
                                 )
                             }
                         if (behandling.hjemler.all {
