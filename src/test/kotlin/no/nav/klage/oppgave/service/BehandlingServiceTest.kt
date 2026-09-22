@@ -681,8 +681,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 klageBehandlendeEnhet = "enhet",
                 kakaKvalitetsvurderingId = UUID.randomUUID(),
                 kakaKvalitetsvurderingVersion = 2,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
                 previousBehandlingId = previousBehandlingId,
                 klager =
                     Klager(

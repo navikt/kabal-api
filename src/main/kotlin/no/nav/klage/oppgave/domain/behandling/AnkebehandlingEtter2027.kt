@@ -3,12 +3,9 @@ package no.nav.klage.oppgave.domain.behandling
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
-import jakarta.persistence.JoinColumn
 import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -25,14 +22,12 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
-import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.historikk.FullmektigHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.KlagerHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.MedunderskriverHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.RolHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
-import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import org.hibernate.annotations.DynamicUpdate
@@ -61,12 +56,6 @@ class AnkebehandlingEtter2027(
     override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     override var kakaKvalitetsvurderingVersion: Int,
-    @Embedded
-    override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
-    @NotAudited
-    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     @OneToMany(
         mappedBy = "behandling",
         cascade = [CascadeType.ALL],
@@ -165,7 +154,6 @@ class AnkebehandlingEtter2027(
         gosysOppgaveRequired = gosysOppgaveRequired,
         initiatingSystem = initiatingSystem,
     ),
-    BehandlingWithVarsletBehandlingstid,
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,

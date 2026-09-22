@@ -172,8 +172,6 @@ class AnkebehandlingService(
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
                     previousBehandlingId = mottak.forrigeBehandlingId,

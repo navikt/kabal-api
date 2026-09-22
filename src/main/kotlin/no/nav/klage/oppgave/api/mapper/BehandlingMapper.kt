@@ -27,8 +27,6 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
-import no.nav.klage.oppgave.domain.behandling.BehandlingWithKlageBehandlendeEnhet
-import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -82,8 +80,15 @@ class BehandlingMapper(
                 )
             }
 
-            is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
-                mapAnkebehandlingToBehandlingDetaljerView(
+            is AnkebehandlingFoer2027 -> {
+                mapAnkebehandlingFoer2027ToBehandlingDetaljerView(
+                    ankebehandling = behandling,
+                    person = person,
+                )
+            }
+
+            is AnkebehandlingEtter2027 -> {
+                mapAnkebehandlingEtter2027ToBehandlingDetaljerView(
                     ankebehandling = behandling,
                     person = person,
                 )
@@ -356,14 +361,10 @@ class BehandlingMapper(
             returnedFromROLDate = null,
         )
 
-    fun <T> mapAnkebehandlingToBehandlingDetaljerView(
-        ankebehandling: T,
+    fun mapAnkebehandlingFoer2027ToBehandlingDetaljerView(
+        ankebehandling: AnkebehandlingFoer2027,
         person: Person,
-    ): BehandlingDetaljerView where T : Behandling,
-                                    T : BehandlingWithVarsletBehandlingstid,
-                                    T : BehandlingWithKvalitetsvurdering,
-                                    T : BehandlingWithTrygderettenMetadata,
-                                    T : BehandlingWithKlageBehandlendeEnhet {
+    ): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
@@ -444,6 +445,97 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletBehandlingstid?.varsletFrist,
+            gosysOppgaveId = ankebehandling.gosysOppgaveId,
+            tilbakekreving = ankebehandling.tilbakekreving,
+            timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = ankebehandling.gosysOppgaveRequired,
+        )
+    }
+
+    fun mapAnkebehandlingEtter2027ToBehandlingDetaljerView(
+        ankebehandling: AnkebehandlingEtter2027,
+        person: Person,
+    ): BehandlingDetaljerView {
+        val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        return BehandlingDetaljerView(
+            id = ankebehandling.id,
+            fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
+            mottattVedtaksinstans = null,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling, person = person),
+            klager =
+                getPartViewWithUtsendingskanal(
+                    technicalPartId = ankebehandling.klager.id,
+                    partId = ankebehandling.klager.partId,
+                    behandling = ankebehandling,
+                    navn = null,
+                    address = null,
+                ),
+            prosessfullmektig =
+                ankebehandling.prosessfullmektig?.let {
+                    getPartViewWithUtsendingskanal(
+                        technicalPartId = it.id,
+                        partId = it.partId,
+                        behandling = ankebehandling,
+                        navn = it.navn,
+                        address = it.address,
+                    )
+                },
+            temaId = ankebehandling.ytelse.toTema().id,
+            ytelseId = ankebehandling.ytelse.id,
+            typeId = ankebehandling.type.id,
+            mottattKlageinstans = ankebehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = ankebehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = ankebehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = ankebehandling.ferdigstilling != null,
+            frist = ankebehandling.frist,
+            datoSendtMedunderskriver = ankebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = ankebehandling.hjemler.map { it.id },
+            modified = ankebehandling.modified,
+            created = ankebehandling.created,
+            resultat = ankebehandling.mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter =
+                ankebehandling.saksdokumenter
+                    .map {
+                        TilknyttetDokument(
+                            journalpostId = it.journalpostId,
+                            dokumentInfoId = it.dokumentInfoId,
+                        )
+                    }.toSet(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
+            kvalitetsvurderingReference =
+                if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
+                    BehandlingDetaljerView.KvalitetsvurderingReference(
+                        id = ankebehandling.kakaKvalitetsvurderingId!!,
+                        version = ankebehandling.kakaKvalitetsvurderingVersion,
+                    )
+                } else {
+                    null
+                },
+            sattPaaVent = ankebehandling.sattPaaVent,
+            feilregistrering = ankebehandling.feilregistrering.toView(),
+            fagsystemId = ankebehandling.fagsystem.id,
+            paaanketVedtaksdato = ankebehandling.paaanketVedtaksdato,
+            forsterketRett = ankebehandling.forsterketRett,
+            trygderettenSaksnummer = (ankebehandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
+            relevantDocumentIdList =
+                ankebehandling.saksdokumenter
+                    .map {
+                        it.dokumentInfoId
+                    }.toSet(),
+            saksnummer = ankebehandling.fagsakId,
+            rol = ankebehandling.toROLView(),
+            medunderskriver = ankebehandling.toMedunderskriverView(),
+            saksbehandler = ankebehandling.toSaksbehandlerView(),
+            previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = null,
             gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
             timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
