@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.clients.klagefileapi
 
 import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.core.io.FileSystemResource
@@ -83,7 +84,8 @@ class FileApiClient(
                 SignedUrlRequest(
                     headers =
                         mapOf(
-                            "content-disposition" to "$contentDisposition; filename=\"$filename\"",
+                            "content-disposition" to
+                                contentDispositionHeaderValue(filename = filename, type = contentDisposition),
                         ),
                 ),
             ).retrieve()

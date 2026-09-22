@@ -92,6 +92,7 @@ import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.buildFilename
+import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSortKey
 import no.nav.klage.oppgave.util.isInngaaende
@@ -1799,7 +1800,7 @@ class DokumentUnderArbeidService(
                 contentType = MediaType.APPLICATION_PDF
                 add(
                     "Content-Disposition",
-                    "inline; filename=\"$filename.pdf\"",
+                    contentDispositionHeaderValue(filename = buildFilename(title = filename), inline = true),
                 )
             },
             HttpStatus.OK,

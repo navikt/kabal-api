@@ -7,6 +7,8 @@ import no.nav.klage.innsyn.api.view.InnsynResponse
 import no.nav.klage.innsyn.service.InnsynService
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.buildFilename
+import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -74,7 +76,10 @@ class InnsynController(
         val (pathToMergedDocument, title) = innsynService.getJournalpostPdf(journalpostId = journalpostId)
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
-        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
+        responseHeaders.add(
+            HttpHeaders.CONTENT_DISPOSITION,
+            contentDispositionHeaderValue(filename = buildFilename(title = title), inline = true),
+        )
 
         return ResponseEntity
             .ok()
