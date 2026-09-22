@@ -14,10 +14,11 @@ import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.util.buildFilename
+import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.klage.oppgave.util.mediaTypeToFileExtension
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -185,8 +186,7 @@ class JournalpostController(
                 variantFormat = variantFormat,
             )
 
-        val fileExtension = mediaTypeToFileExtension(fysiskDokument.mediaType)
-        val filename = fysiskDokument.title.removeSuffix(fileExtension) + fileExtension
+        val filename = buildFilename(title = fysiskDokument.title, mediaType = fysiskDokument.mediaType)
 
         val resourceThatWillBeDeleted =
             getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(resource = fysiskDokument.content, title = fysiskDokument.title))
@@ -197,11 +197,10 @@ class JournalpostController(
                     contentType = fysiskDokument.mediaType
                     add(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        if (fysiskDokument.mediaType == MediaType.APPLICATION_PDF) {
-                            "inline; filename=\"$filename\""
-                        } else {
-                            "attachment; filename=\"$filename\""
-                        },
+                        contentDispositionHeaderValue(
+                            filename = filename,
+                            inline = fysiskDokument.mediaType == MediaType.APPLICATION_PDF,
+                        ),
                     )
                 },
             ).contentLength(resourceThatWillBeDeleted.contentLength())
@@ -269,7 +268,10 @@ class JournalpostController(
             )
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
-        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
+        responseHeaders.add(
+            HttpHeaders.CONTENT_DISPOSITION,
+            contentDispositionHeaderValue(filename = buildFilename(title = title), inline = true),
+        )
 
         return ResponseEntity
             .ok()
