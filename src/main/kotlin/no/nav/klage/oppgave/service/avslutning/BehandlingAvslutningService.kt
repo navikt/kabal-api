@@ -226,7 +226,7 @@ class BehandlingAvslutningService(
         } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
         } else {
-            throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandlingFoer2027 med id ${ankebehandling.id}. Undersøk.")
+            logger.debug("Unknown situation behandling ${ankebehandling.id}")
         }
         if (ankebehandling.gosysOppgaveRequired) {
             if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
