@@ -140,7 +140,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -194,7 +194,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -285,7 +285,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -345,7 +345,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -391,7 +391,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -445,7 +445,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -530,7 +530,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -579,7 +579,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -625,7 +625,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -673,7 +673,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -720,7 +720,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -769,7 +769,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -816,7 +816,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -862,7 +862,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -916,7 +916,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1002,7 +1002,7 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1051,7 +1051,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1097,7 +1097,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1145,7 +1145,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1192,7 +1192,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1241,7 +1241,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1288,7 +1288,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1334,7 +1334,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1388,7 +1388,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1442,7 +1442,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1520,7 +1520,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1566,7 +1566,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1618,7 +1618,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1669,7 +1669,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1733,7 +1733,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1801,7 +1801,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1855,7 +1855,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1958,7 +1958,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2023,7 +2023,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2078,7 +2078,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2126,7 +2126,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2181,7 +2181,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2229,7 +2229,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2304,7 +2304,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2359,7 +2359,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2408,7 +2408,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2464,7 +2464,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2514,7 +2514,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2570,7 +2570,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2619,7 +2619,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2674,7 +2674,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2720,7 +2720,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2768,7 +2768,7 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
