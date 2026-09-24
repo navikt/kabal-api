@@ -19,6 +19,7 @@ data class SakInput(
     val sakId: String,
     val ytelseId: String,
     val fagsystemId: String,
+    val typeId: String,
 )
 
 data class Saksbehandlere(

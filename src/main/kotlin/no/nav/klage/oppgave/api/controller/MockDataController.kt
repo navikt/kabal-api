@@ -404,7 +404,7 @@ class MockDataController(
                             previousBehandlingId = null,
                         )
 
-                    ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+                    ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(
                         input = input,
                     )
                 }
