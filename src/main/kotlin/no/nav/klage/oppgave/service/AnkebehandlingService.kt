@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
@@ -159,11 +160,8 @@ class AnkebehandlingService(
                         dokumentService.createSaksdokumenterFromJournalpostIdList(
                             mottak.mottakDokument.map { it.journalpostId },
                         ),
-                    kakaKvalitetsvurderingId =
-                        kakaApiGateway
-                            .createKvalitetsvurdering(
-                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                            ).kvalitetsvurderingId,
+                    // TODO: Finn ut mer her.
+                    kakaKvalitetsvurderingId = null,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -226,44 +224,44 @@ class AnkebehandlingService(
         return ankebehandling
     }
 
-    fun createAnkebehandlingFromAnkeITrygderettenbehandling(
-        ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027,
+    fun createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(
+        ankeITrygderettenbehandlingFoer2027: AnkeITrygderettenbehandlingFoer2027,
     ): AnkebehandlingFoer2027 {
         val ankebehandling =
             ankebehandlingFoer2027Repository.save(
                 AnkebehandlingFoer2027(
-                    previousBehandlingId = ankeITrygderettenbehandling.id,
-                    klager = ankeITrygderettenbehandling.klager.copy(),
-                    sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
-                    prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,
-                    ytelse = ankeITrygderettenbehandling.ytelse,
+                    previousBehandlingId = ankeITrygderettenbehandlingFoer2027.id,
+                    klager = ankeITrygderettenbehandlingFoer2027.klager.copy(),
+                    sakenGjelder = ankeITrygderettenbehandlingFoer2027.sakenGjelder.copy(),
+                    prosessfullmektig = ankeITrygderettenbehandlingFoer2027.prosessfullmektig,
+                    ytelse = ankeITrygderettenbehandlingFoer2027.ytelse,
                     type = Type.ANKE_FOER_2027,
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
-                    fagsystem = ankeITrygderettenbehandling.fagsystem,
-                    fagsakId = ankeITrygderettenbehandling.fagsakId,
-                    mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                    tildeling = ankeITrygderettenbehandling.tildeling,
+                    kildeReferanse = ankeITrygderettenbehandlingFoer2027.kildeReferanse,
+                    dvhReferanse = ankeITrygderettenbehandlingFoer2027.dvhReferanse,
+                    fagsystem = ankeITrygderettenbehandlingFoer2027.fagsystem,
+                    fagsakId = ankeITrygderettenbehandlingFoer2027.fagsakId,
+                    mottattKlageinstans = ankeITrygderettenbehandlingFoer2027.mottattKlageinstans,
+                    tildeling = ankeITrygderettenbehandlingFoer2027.tildeling,
                     frist = LocalDate.now() + Period.ofWeeks(0),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = ankeITrygderettenbehandling.hjemler,
-                    klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
-                    paaanketVedtaksdato = ankeITrygderettenbehandling.paaanketVedtaksdato,
-                    forsterketRett = ankeITrygderettenbehandling.forsterketRett,
-                    previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                    gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
-                    tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
+                    hjemler = ankeITrygderettenbehandlingFoer2027.hjemler,
+                    klageBehandlendeEnhet = ankeITrygderettenbehandlingFoer2027.tildeling?.enhet!!,
+                    paaanketVedtaksdato = ankeITrygderettenbehandlingFoer2027.paaanketVedtaksdato,
+                    forsterketRett = ankeITrygderettenbehandlingFoer2027.forsterketRett,
+                    previousSaksbehandlerident = ankeITrygderettenbehandlingFoer2027.tildeling?.saksbehandlerident,
+                    gosysOppgaveId = ankeITrygderettenbehandlingFoer2027.gosysOppgaveId,
+                    tilbakekreving = ankeITrygderettenbehandlingFoer2027.tilbakekreving,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
+                    gosysOppgaveRequired = ankeITrygderettenbehandlingFoer2027.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 ),
             )
         logger.debug(
-            "Created ankebehandling {} from ankeITrygderettenbehandling {}",
+            "Created ankebehandlingFoer2027 {} from ankeITrygderettenbehandlingFoer2027 {}",
             ankebehandling.id,
-            ankeITrygderettenbehandling.id,
+            ankeITrygderettenbehandlingFoer2027.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
@@ -279,7 +277,75 @@ class AnkebehandlingService(
                 changeList =
                     listOfNotNull(
                         createChange(
-                            saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
+                            saksbehandlerident = ankeITrygderettenbehandlingFoer2027.tildeling!!.saksbehandlerident,
+                            felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = ankebehandling.id,
+                        ),
+                    ),
+            ),
+        )
+
+        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
+
+        return ankebehandling
+    }
+
+    fun createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(
+        ankeITrygderettenbehandlingEtter2027: AnkeITrygderettenbehandlingEtter2027,
+    ): AnkebehandlingEtter2027 {
+        val ankebehandling =
+            ankebehandlingEtter2027Repository.save(
+                AnkebehandlingEtter2027(
+                    previousBehandlingId = ankeITrygderettenbehandlingEtter2027.id,
+                    klager = ankeITrygderettenbehandlingEtter2027.klager.copy(),
+                    sakenGjelder = ankeITrygderettenbehandlingEtter2027.sakenGjelder.copy(),
+                    prosessfullmektig = ankeITrygderettenbehandlingEtter2027.prosessfullmektig,
+                    ytelse = ankeITrygderettenbehandlingEtter2027.ytelse,
+                    type = Type.ANKE_ETTER_2027,
+                    kildeReferanse = ankeITrygderettenbehandlingEtter2027.kildeReferanse,
+                    dvhReferanse = ankeITrygderettenbehandlingEtter2027.dvhReferanse,
+                    fagsystem = ankeITrygderettenbehandlingEtter2027.fagsystem,
+                    fagsakId = ankeITrygderettenbehandlingEtter2027.fagsakId,
+                    mottattKlageinstans = ankeITrygderettenbehandlingEtter2027.mottattKlageinstans,
+                    tildeling = ankeITrygderettenbehandlingEtter2027.tildeling,
+                    frist = LocalDate.now() + Period.ofWeeks(0),
+                    // TODO: Fnn ut mer her
+                    kakaKvalitetsvurderingId = null,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = ankeITrygderettenbehandlingEtter2027.hjemler,
+                    klageBehandlendeEnhet = ankeITrygderettenbehandlingEtter2027.tildeling?.enhet!!,
+                    paaanketVedtaksdato = ankeITrygderettenbehandlingEtter2027.paaanketVedtaksdato,
+                    forsterketRett = ankeITrygderettenbehandlingEtter2027.forsterketRett,
+                    previousSaksbehandlerident = ankeITrygderettenbehandlingEtter2027.tildeling?.saksbehandlerident,
+                    gosysOppgaveId = ankeITrygderettenbehandlingEtter2027.gosysOppgaveId,
+                    tilbakekreving = ankeITrygderettenbehandlingEtter2027.tilbakekreving,
+                    trygderettenSaksnummer = ankeITrygderettenbehandlingEtter2027.trygderettenSaksnummer,
+                    gosysOppgaveRequired = ankeITrygderettenbehandlingEtter2027.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                ),
+            )
+        logger.debug(
+            "Created ankebehandlingEtter2027 {} from ankeITrygderettenbehandlingEtter2027 {}",
+            ankebehandling.id,
+            ankeITrygderettenbehandlingEtter2027.id,
+        )
+
+        behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
+            behandlingId = ankebehandling.id,
+            saksbehandlerIdent = systembrukerIdent,
+            systemUserContext = true,
+            ignoreCheckSkrivetilgang = true,
+        )
+
+        applicationEventPublisher.publishEvent(
+            BehandlingChangedEvent(
+                behandling = ankebehandling,
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = ankeITrygderettenbehandlingEtter2027.tildeling!!.saksbehandlerident,
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
