@@ -30,6 +30,7 @@ import no.nav.klage.oppgave.domain.behandling.historikk.SattPaaVentHistorikk
 import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
@@ -174,4 +175,32 @@ class AnkebehandlingEtter2027(
     }
 
     override fun hashCode(): Int = id.hashCode()
+
+    fun createAnkeITrygderettenbehandlingEtter2027Input(): AnkeITrygderettenbehandlingEtter2027Input =
+        AnkeITrygderettenbehandlingEtter2027Input(
+            klager = klager,
+            sakenGjelder = sakenGjelder,
+            prosessfullmektig = prosessfullmektig,
+            ytelse = ytelse,
+            type = Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            kildeReferanse = kildeReferanse,
+            dvhReferanse = dvhReferanse,
+            fagsystem = fagsystem,
+            fagsakId = fagsakId,
+            sakMottattKlageinstans = mottattKlageinstans,
+            saksdokumenter = saksdokumenter,
+            innsendingsHjemler = hjemler,
+            sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
+            paaanketVedtaksdato = (this as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
+            forsterketRett = this.forsterketRett,
+            registreringsHjemmelSet = registreringshjemler,
+            ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
+            previousSaksbehandlerident = tildeling!!.saksbehandlerident,
+            gosysOppgaveId = gosysOppgaveId,
+            tilbakekreving = tilbakekreving,
+            gosysOppgaveRequired = gosysOppgaveRequired,
+            initiatingSystem = InitiatingSystem.KABAL,
+            previousBehandlingId = id,
+            trygderettenSaksnummer = trygderettenSaksnummer,
+        )
 }

@@ -119,11 +119,11 @@ class BehandlingAvslutningService(
             }
 
             is AnkebehandlingFoer2027 -> {
-                handleAnkebehandling(behandling)
+                handleAnkebehandlingFoer2027(behandling)
             }
 
             is AnkebehandlingEtter2027 -> {
-                TODO("Avslutning av AnkebehandlingEtter2027 er ikke implementert")
+                handleAnkebehandlingEtter2027(behandling)
             }
 
             is AnkeITrygderettenbehandlingFoer2027 -> {
@@ -188,10 +188,12 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleAnkebehandling(ankebehandling: AnkebehandlingFoer2027) {
+    private fun handleAnkebehandlingFoer2027(ankebehandling: AnkebehandlingFoer2027) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
-            logger.debug("Anke med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandlingFoer2027.")
-            createAnkeITrygderettenbehandling(ankebehandling)
+            logger.debug(
+                "AnkebehandlingFoer2027 med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandlingFoer2027.",
+            )
+            createAnkeITrygderettenbehandlingFoer2027(ankebehandling)
             if (ankebehandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
                 klankeService.setToFinishedWithAppAccess(
@@ -210,20 +212,51 @@ class BehandlingAvslutningService(
             }
             // No need for notifying modernized fagsystem when sending to Trygderetten.
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankebehandling)
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (ankebehandling.isImpliedArenaCase()) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.")
+            logger.debug(
+                "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
         } else if (!ankebehandling.gosysOppgaveRequired) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
         } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
-            logger.debug("Anke med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
+        } else {
+            throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandlingFoer2027 med id ${ankebehandling.id}. Undersøk.")
+        }
+        if (ankebehandling.gosysOppgaveRequired) {
+            if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
+                logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = ankebehandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+        }
+    }
+
+    private fun handleAnkebehandlingEtter2027(ankebehandling: AnkebehandlingEtter2027) {
+        createAnkeITrygderettenbehandlingEtter2027(ankebehandling)
+
+        if (ankebehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
+        } else if (ankebehandling.isImpliedArenaCase()) {
+            logger.debug(
+                "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
+        } else if (!ankebehandling.gosysOppgaveRequired) {
+            // TODO: Gå gjennom før prodsetting, må informere VL
+            logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
+            createKafkaEventForModernizedFagsystem(ankebehandling)
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandling med id ${ankebehandling.id}. Undersøk.")
         }
+        // Tror denne skal endres.
         if (ankebehandling.gosysOppgaveRequired) {
             if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
                 logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
@@ -763,10 +796,17 @@ class BehandlingAvslutningService(
         )
     }
 
-    private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
-        logger.debug("Creating ankeITrygderettenbehandling based on behandling with id {}", behandling.id)
-        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+    private fun createAnkeITrygderettenbehandlingFoer2027(behandling: Behandling) {
+        logger.debug("Creating ankeITrygderettenbehandlingFoer2027 based on behandling with id {}", behandling.id)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(
             behandling.createAnkeITrygderettenbehandlingFoer2027Input(),
+        )
+    }
+
+    private fun createAnkeITrygderettenbehandlingEtter2027(behandling: AnkebehandlingEtter2027) {
+        logger.debug("Creating ankeITrygderettenbehandlingEtter2027 based on behandling with id {}", behandling.id)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(
+            behandling.createAnkeITrygderettenbehandlingEtter2027Input(),
         )
     }
 
