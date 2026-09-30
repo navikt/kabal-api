@@ -131,7 +131,6 @@ class KlageLookupGateway(
             skriverettigheter = skriverettigheter,
         )
 
-
     private fun EnheterResponse.toSaksbehandlerEnheter(): SaksbehandlerEnheter =
         SaksbehandlerEnheter(
             navIdent = this.navIdent,
