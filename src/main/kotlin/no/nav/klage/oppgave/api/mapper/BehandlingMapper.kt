@@ -510,15 +510,7 @@ class BehandlingMapper(
             vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
             dead = person.doed,
             sikkerhetstiltak = person.sikkerhetstiltak(),
-            kvalitetsvurderingReference =
-                if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
-                    BehandlingDetaljerView.KvalitetsvurderingReference(
-                        id = ankebehandling.kakaKvalitetsvurderingId!!,
-                        version = ankebehandling.kakaKvalitetsvurderingVersion,
-                    )
-                } else {
-                    null
-                },
+            kvalitetsvurderingReference = null,
             sattPaaVent = ankebehandling.sattPaaVent,
             feilregistrering = ankebehandling.feilregistrering.toView(),
             fagsystemId = ankebehandling.fagsystem.id,

@@ -679,8 +679,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 paaanketVedtaksdato = null,
                 trygderettenSaksnummer = "TR-123",
                 klageBehandlendeEnhet = "enhet",
-                kakaKvalitetsvurderingId = UUID.randomUUID(),
-                kakaKvalitetsvurderingVersion = 2,
                 previousBehandlingId = previousBehandlingId,
                 klager =
                     Klager(

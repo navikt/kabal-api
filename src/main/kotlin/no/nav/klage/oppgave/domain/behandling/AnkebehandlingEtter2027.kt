@@ -53,10 +53,6 @@ class AnkebehandlingEtter2027(
     override var trygderettenSaksnummer: String,
     @Column(name = "klage_behandlende_enhet", nullable = false)
     override val klageBehandlendeEnhet: String,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    override var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    override var kakaKvalitetsvurderingVersion: Int,
     @OneToMany(
         mappedBy = "behandling",
         cascade = [CascadeType.ALL],
@@ -156,7 +152,6 @@ class AnkebehandlingEtter2027(
         initiatingSystem = initiatingSystem,
     ),
     BehandlingWithMottakDokument,
-    BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,
     BehandlingWithTrygderettenMetadata,
     BehandlingWithTrygderettenSaksnummer {
