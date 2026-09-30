@@ -981,8 +981,8 @@ class BehandlingService(
                     input = null,
                 )
             }
-
-            if (behandling is BehandlingWithKvalitetsvurdering) {
+// TODO: Juster når kvalitetsvurderingsgreier er landet
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling !is AnkeITrygderettenbehandlingEtter2027) {
                 kakaApiGateway.deleteKvalitetsvurdering(
                     kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                     kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
