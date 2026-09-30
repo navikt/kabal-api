@@ -160,9 +160,6 @@ class AnkebehandlingService(
                         dokumentService.createSaksdokumenterFromJournalpostIdList(
                             mottak.mottakDokument.map { it.journalpostId },
                         ),
-                    // TODO: Finn ut mer her.
-                    kakaKvalitetsvurderingId = null,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                     paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
@@ -311,9 +308,6 @@ class AnkebehandlingService(
                     mottattKlageinstans = ankeITrygderettenbehandlingEtter2027.mottattKlageinstans,
                     tildeling = ankeITrygderettenbehandlingEtter2027.tildeling,
                     frist = LocalDate.now() + Period.ofWeeks(0),
-                    // TODO: Fnn ut mer her
-                    kakaKvalitetsvurderingId = null,
-                    kakaKvalitetsvurderingVersion = 2,
                     hjemler = ankeITrygderettenbehandlingEtter2027.hjemler,
                     klageBehandlendeEnhet = ankeITrygderettenbehandlingEtter2027.tildeling?.enhet!!,
                     paaanketVedtaksdato = ankeITrygderettenbehandlingEtter2027.paaanketVedtaksdato,
