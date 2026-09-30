@@ -2,6 +2,9 @@ package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.oppgave.domain.person.Person
+import no.nav.klage.oppgave.domain.representasjon.Fullmaktsforhold
+import no.nav.klage.oppgave.domain.representasjon.Representasjonsforhold
+import no.nav.klage.oppgave.domain.representasjon.Vergemaalsforhold
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnheter
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
@@ -100,6 +103,34 @@ class KlageLookupGateway(
     fun getFoedselsnummerFromIdent(ident: String): String = klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
 
     fun getAktoerIdFromIdent(ident: String): String = klageLookupClient.getAktoerIdFromIdent(ident = ident)
+
+    fun getRepresentasjonsforhold(ident: String): Representasjonsforhold {
+        logger.debug("Getting representasjonsforhold for ident from KlageLookup")
+        return klageLookupClient.getRepresentasjonsforhold(ident = ident).toRepresentasjonsforhold()
+    }
+
+    private fun RepresentasjonsforholdResponse.toRepresentasjonsforhold(): Representasjonsforhold =
+        Representasjonsforhold(
+            fullmakt = fullmakt.map { it.toFullmaktsforhold() },
+            vergemaal = vergemaal.map { it.toVergemaalsforhold() },
+        )
+
+    private fun FullmaktsforholdResponse.toFullmaktsforhold(): Fullmaktsforhold =
+        Fullmaktsforhold(
+            fullmaktsgiver = fullmaktsgiver,
+            fullmektig = fullmektig,
+            leserettigheter = leserettigheter,
+            skriverettigheter = skriverettigheter,
+        )
+
+    private fun VergemaalsforholdResponse.toVergemaalsforhold(): Vergemaalsforhold =
+        Vergemaalsforhold(
+            vergehaver = vergehaver,
+            verge = verge,
+            leserettigheter = leserettigheter,
+            skriverettigheter = skriverettigheter,
+        )
+
 
     private fun EnheterResponse.toSaksbehandlerEnheter(): SaksbehandlerEnheter =
         SaksbehandlerEnheter(
