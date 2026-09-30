@@ -406,7 +406,7 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<RepresentasjonsforholdResponse>()
                     }
-                }.block() ?: throw RuntimeException("Could not get representasjonsforhold for ident $ident")
+                }.block() ?: throw RuntimeException("Could not get representasjonsforhold. Response was null.")
         }
 
     @Retryable
