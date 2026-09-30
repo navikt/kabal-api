@@ -56,6 +56,12 @@ management:
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include:
+            - readinessState
   endpoints.web:
     exposure:
       include: info, health, metrics, prometheus
