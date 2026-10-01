@@ -52,6 +52,12 @@ class TilgangService(
         }
     }
 
+    fun verifySaksbehandlersIsAnketeam(saksbehandlerIdent: String) {
+        if (!saksbehandlerService.isAnketeam(ident = saksbehandlerIdent)) {
+            throw MissingTilgangException("Saksbehandler har ikke tilgang til denne typen anke.")
+        }
+    }
+
     fun verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling: Behandling) {
         if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")

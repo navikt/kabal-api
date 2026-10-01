@@ -119,19 +119,19 @@ class BehandlingAvslutningService(
             }
 
             is AnkebehandlingFoer2027 -> {
-                handleAnkebehandling(behandling)
+                handleAnkebehandlingFoer2027(behandling)
             }
 
             is AnkebehandlingEtter2027 -> {
-                TODO("Avslutning av AnkebehandlingEtter2027 er ikke implementert")
+                handleAnkebehandlingEtter2027(behandling)
             }
 
             is AnkeITrygderettenbehandlingFoer2027 -> {
-                handleAnkeITrygderettenbehandling(behandling)
+                handleAnkeITrygderettenbehandlingFoer2027(behandling)
             }
 
             is AnkeITrygderettenbehandlingEtter2027 -> {
-                TODO("Avslutning av AnkeITrygderettenbehandlingEtter2027 er ikke implementert")
+                handleAnkeITrygderettenbehandlingEtter2027(behandling)
             }
 
             is BehandlingEtterTrygderettenOpphevet -> {
@@ -188,10 +188,12 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleAnkebehandling(ankebehandling: AnkebehandlingFoer2027) {
+    private fun handleAnkebehandlingFoer2027(ankebehandling: AnkebehandlingFoer2027) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
-            logger.debug("Anke med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandlingFoer2027.")
-            createAnkeITrygderettenbehandling(ankebehandling)
+            logger.debug(
+                "AnkebehandlingFoer2027 med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandlingFoer2027.",
+            )
+            createAnkeITrygderettenbehandlingFoer2027(ankebehandling)
             if (ankebehandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
                 klankeService.setToFinishedWithAppAccess(
@@ -210,20 +212,51 @@ class BehandlingAvslutningService(
             }
             // No need for notifying modernized fagsystem when sending to Trygderetten.
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankebehandling)
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (ankebehandling.isImpliedArenaCase()) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.")
+            logger.debug(
+                "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
         } else if (!ankebehandling.gosysOppgaveRequired) {
-            logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
         } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
-            logger.debug("Anke med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
+            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
+        } else {
+            logger.debug("Unknown situation behandling ${ankebehandling.id}")
+        }
+        if (ankebehandling.gosysOppgaveRequired) {
+            if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
+                logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = ankebehandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+        }
+    }
+
+    private fun handleAnkebehandlingEtter2027(ankebehandling: AnkebehandlingEtter2027) {
+        createAnkeITrygderettenbehandlingEtter2027(ankebehandling)
+
+        if (ankebehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
+        } else if (ankebehandling.isImpliedArenaCase()) {
+            logger.debug(
+                "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
+        } else if (!ankebehandling.gosysOppgaveRequired) {
+            // TODO: Gå gjennom før prodsetting, må informere VL
+            logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
+            createKafkaEventForModernizedFagsystem(ankebehandling)
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandling med id ${ankebehandling.id}. Undersøk.")
         }
+        // Tror denne skal endres.
         if (ankebehandling.gosysOppgaveRequired) {
             if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
                 logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
@@ -236,12 +269,12 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027) {
+    private fun handleAnkeITrygderettenbehandlingFoer2027(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027) {
         if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
             logger.debug(
                 "Oppretter ny AnkebehandlingFoer2027 basert på AnkeITrygderettenbehandlingFoer2027 fra ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}",
             )
-            createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+            createNewAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(ankeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug(
                     "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
@@ -266,7 +299,7 @@ class BehandlingAvslutningService(
             logger.debug(
                 "Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id}",
             )
-            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandlingFoer2027(ankeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug(
                     "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
@@ -314,6 +347,94 @@ class BehandlingAvslutningService(
                 !ankeITrygderettenbehandling.ignoreGosysOppgave
             ) {
                 logger.debug("AnkeITrygderetten med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = ankeITrygderettenbehandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+        }
+    }
+
+    private fun handleAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingEtter2027) {
+        if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
+            logger.debug(
+                "Oppretter ny AnkebehandlingEtter2027 basert på AnkeITrygderettenbehandlingEtter2027 fra ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}",
+            )
+            createNewAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandling)
+            if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
+                )
+                val kommentar =
+                    if (ankeITrygderettenbehandling.nyAnkebehandlingKA != null) {
+                        "Klageinstansen har opprettet ny behandling i Kabal."
+                    } else if (ankeITrygderettenbehandling.utfall == Utfall.HENVIST) {
+                        "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten har henvist saken."
+                    } else {
+                        error("Ugyldig tilstand for å opprette ny ankebehandling fra anke i Trygderetten")
+                    }
+
+                gosysOppgaveService.addKommentar(
+                    behandling = ankeITrygderettenbehandling,
+                    kommentar = kommentar,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        } else if (ankeITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevet()) {
+            logger.debug(
+                "Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id}",
+            )
+            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandling)
+            if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
+                )
+                val kommentar =
+                    "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
+
+                gosysOppgaveService.addKommentar(
+                    behandling = ankeITrygderettenbehandling,
+                    kommentar = kommentar,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
+            logger.debug(
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd. Har blitt oppdatert av bruker, fortsetter.",
+            )
+        } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug(
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
+        } else if (ankeITrygderettenbehandling.isImpliedArenaCase()) {
+            logger.debug(
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
+            )
+        } else if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
+            logger.debug(
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
+            )
+            createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
+        } else if (ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
+            logger.debug(
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.",
+            )
+        } else {
+            throw BehandlingAvsluttetException(
+                "Ugyldig tilstand på ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}. Undersøk.",
+            )
+        }
+
+        if (ankeITrygderettenbehandling.gosysOppgaveRequired && ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
+            if (ankeITrygderettenbehandling.gosysOppgaveId != null && ankeITrygderettenbehandling.gosysOppgaveUpdate != null &&
+                !ankeITrygderettenbehandling.ignoreGosysOppgave
+            ) {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
+                )
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = ankeITrygderettenbehandling,
                     systemContext = true,
@@ -617,19 +738,38 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027) {
-        logger.debug("Creating ankebehandling based on behandling with id {}", ankeITrygderettenbehandling.id)
-        ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+    private fun createNewAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(
+        ankeITrygderettenbehandlingFoer2027: AnkeITrygderettenbehandlingFoer2027,
+    ) {
+        logger.debug("Creating ankebehandlingFoer2027 based on behandling with id {}", ankeITrygderettenbehandlingFoer2027.id)
+        ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(ankeITrygderettenbehandlingFoer2027)
     }
 
-    private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(
-        ankeITrygderettenbehandling: AnkeITrygderettenbehandlingFoer2027,
+    private fun createNewAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(
+        ankeITrygderettenbehandlingEtter2027: AnkeITrygderettenbehandlingEtter2027,
+    ) {
+        logger.debug("Creating ankebehandlingEtter2027 based on behandling with id {}", ankeITrygderettenbehandlingEtter2027.id)
+        ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandlingEtter2027)
+    }
+
+    private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandlingFoer2027(
+        ankeITrygderettenbehandlingFoer2027: AnkeITrygderettenbehandlingFoer2027,
     ) {
         logger.debug(
             "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
-            ankeITrygderettenbehandling.id,
+            ankeITrygderettenbehandlingFoer2027.id,
         )
-        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
+        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandlingFoer2027)
+    }
+
+    private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandlingEtter2027(
+        ankeITrygderettenbehandlingEtter2027: AnkeITrygderettenbehandlingEtter2027,
+    ) {
+        logger.debug(
+            "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
+            ankeITrygderettenbehandlingEtter2027.id,
+        )
+        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandlingEtter2027)
     }
 
     private fun createNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
@@ -656,10 +796,17 @@ class BehandlingAvslutningService(
         )
     }
 
-    private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
-        logger.debug("Creating ankeITrygderettenbehandling based on behandling with id {}", behandling.id)
-        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+    private fun createAnkeITrygderettenbehandlingFoer2027(behandling: Behandling) {
+        logger.debug("Creating ankeITrygderettenbehandlingFoer2027 based on behandling with id {}", behandling.id)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(
             behandling.createAnkeITrygderettenbehandlingFoer2027Input(),
+        )
+    }
+
+    private fun createAnkeITrygderettenbehandlingEtter2027(behandling: AnkebehandlingEtter2027) {
+        logger.debug("Creating ankeITrygderettenbehandlingEtter2027 based on behandling with id {}", behandling.id)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(
+            behandling.createAnkeITrygderettenbehandlingEtter2027Input(),
         )
     }
 

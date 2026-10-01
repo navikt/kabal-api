@@ -57,6 +57,7 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
@@ -899,6 +900,7 @@ class BehandlingService(
 
             if (!systemUserContext) {
                 checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
+                checkAnkeTypeAfter2027Access(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandlingType = behandling.type)
             }
 
             if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
@@ -980,8 +982,8 @@ class BehandlingService(
                     input = null,
                 )
             }
-
-            if (behandling is BehandlingWithKvalitetsvurdering) {
+// TODO: Juster når kvalitetsvurderingsgreier er landet
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling !is AnkebehandlingEtter2027) {
                 kakaApiGateway.deleteKvalitetsvurdering(
                     kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                     kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
@@ -2460,6 +2462,19 @@ class BehandlingService(
         )
     }
 
+    private fun checkAnkeTypeAfter2027Access(
+        tildeltSaksbehandlerIdent: String,
+        behandlingType: Type,
+    ) {
+        when (behandlingType) {
+            Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                tilgangService.verifySaksbehandlersIsAnketeam(saksbehandlerIdent = tildeltSaksbehandlerIdent)
+            }
+
+            else -> {}
+        }
+    }
+
     // TODO: Se om ansvar for sjekk av medunderskriver/rol og finalize kan deles opp.
     private fun verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling: Behandling) {
         tilgangService.verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling)
@@ -3318,11 +3333,14 @@ class BehandlingService(
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
                         Utfall.INNSTILLING_STADFESTELSE,
+                        Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+                        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
                     ),
                 excludedTypes =
                     listOf(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
                         Type.ANKE_ETTER_2027,
                     ),
             ).filter {
@@ -3340,14 +3358,20 @@ class BehandlingService(
         behandlingRepository
             .getAnkemuligheter(
                 partIdValue = partIdValue,
-                excludedFagsystems = emptyList(),
+                excludedFagsystems = listOf(Fagsystem.IT01),
                 utfallWithoutAnkemulighet =
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
                         Utfall.INNSTILLING_STADFESTELSE,
+                        Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+                        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
                     ),
                 excludedTypes =
-                    Type.entries - Type.KLAGE,
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                    ),
             ).filter {
                 try {
                     checkReadAccessToSak(

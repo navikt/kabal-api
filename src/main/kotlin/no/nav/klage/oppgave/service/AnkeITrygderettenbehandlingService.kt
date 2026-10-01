@@ -9,6 +9,8 @@ import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingFoer2027Input
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -27,6 +29,7 @@ import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.exceptions.ValidationSection
+import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingEtter2027Repository
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingFoer2027Repository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -44,6 +47,7 @@ import java.util.UUID
 @Transactional
 class AnkeITrygderettenbehandlingService(
     private val ankeITrygderettenbehandlingFoer2027Repository: AnkeITrygderettenbehandlingFoer2027Repository,
+    private val ankeITrygderettenbehandlingEtter2027Repository: AnkeITrygderettenbehandlingEtter2027Repository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kafkaEventRepository: KafkaEventRepository,
@@ -59,7 +63,7 @@ class AnkeITrygderettenbehandlingService(
         private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
-    fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingFoer2027Input): AnkeITrygderettenbehandlingFoer2027 {
+    fun createAnkeITrygderettenbehandlingFoer2027(input: AnkeITrygderettenbehandlingFoer2027Input): AnkeITrygderettenbehandlingFoer2027 {
         val ankeITrygderettenbehandling =
             ankeITrygderettenbehandlingFoer2027Repository.save(
                 AnkeITrygderettenbehandlingFoer2027(
@@ -92,7 +96,116 @@ class AnkeITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)
+        logger.debug("Created ankeITrygderettenbehandlingFoer2027 {}", ankeITrygderettenbehandling.id)
+
+        behandlingService.washAndSetRegistreringshjemler(
+            registreringsHjemmelSet = input.registreringsHjemmelSet,
+            ytelse = input.ytelse,
+            behandlingId = ankeITrygderettenbehandling.id,
+        )
+
+        if (input.saksdokumenter.isNotEmpty()) {
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = ankeITrygderettenbehandling.id,
+                journalfoertDokumentReferenceSet =
+                    input.saksdokumenter
+                        .map {
+                            JournalfoertDokumentReference(
+                                journalpostId = it.journalpostId,
+                                dokumentInfoId = it.dokumentInfoId,
+                            )
+                        }.toSet(),
+                saksbehandlerIdent = systembrukerIdent,
+                systemUserContext = true,
+                ignoreCheckSkrivetilgang = true,
+            )
+        }
+
+        applicationEventPublisher.publishEvent(
+            BehandlingChangedEvent(
+                behandling = ankeITrygderettenbehandling,
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = ankeITrygderettenbehandling.id,
+                        ),
+                    ),
+            ),
+        )
+
+        if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
+            // Publiser Kafka-event, infomelding om opprettelse
+            val behandlingEvent =
+                BehandlingEvent(
+                    eventId = UUID.randomUUID(),
+                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
+                    kabalReferanse = ankeITrygderettenbehandling.id.toString(),
+                    type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
+                    detaljer =
+                        BehandlingDetaljer(
+                            ankeITrygderettenbehandlingOpprettet =
+                                AnkeITrygderettenbehandlingOpprettetDetaljer(
+                                    sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
+                                    utfall = input.ankebehandlingUtfall,
+                                ),
+                        ),
+                )
+
+            kafkaEventRepository.save(
+                KafkaEvent(
+                    id = UUID.randomUUID(),
+                    behandlingId = ankeITrygderettenbehandling.id,
+                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
+                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    jsonPayload = jacksonObjectMapper.writeValueAsString(behandlingEvent),
+                    type = EventType.BEHANDLING_EVENT,
+                ),
+            )
+        }
+
+        return ankeITrygderettenbehandling
+    }
+
+    fun createAnkeITrygderettenbehandlingEtter2027(input: AnkeITrygderettenbehandlingEtter2027Input): AnkeITrygderettenbehandlingEtter2027 {
+        val ankeITrygderettenbehandling =
+            ankeITrygderettenbehandlingEtter2027Repository.save(
+                AnkeITrygderettenbehandlingEtter2027(
+                    klager = input.klager.copy(),
+                    sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
+                    prosessfullmektig = input.prosessfullmektig,
+                    ytelse = input.ytelse,
+                    type = input.type,
+                    kildeReferanse = input.kildeReferanse,
+                    dvhReferanse = input.dvhReferanse,
+                    fagsystem = input.fagsystem,
+                    fagsakId = input.fagsakId,
+                    mottattKlageinstans = input.sakMottattKlageinstans,
+                    tildeling = null,
+                    hjemler =
+                        if (input.innsendingsHjemler.isNullOrEmpty()) {
+                            mutableSetOf(Hjemmel.MANGLER)
+                        } else {
+                            input.innsendingsHjemler
+                        },
+                    sendtTilTrygderetten = input.sendtTilTrygderetten,
+                    paaanketVedtaksdato = input.paaanketVedtaksdato,
+                    forsterketRett = input.forsterketRett,
+                    kjennelseMottatt = null,
+                    previousSaksbehandlerident = input.previousSaksbehandlerident,
+                    gosysOppgaveId = input.gosysOppgaveId,
+                    tilbakekreving = input.tilbakekreving,
+                    gosysOppgaveRequired = input.gosysOppgaveRequired,
+                    initiatingSystem = input.initiatingSystem,
+                    previousBehandlingId = input.previousBehandlingId,
+                    trygderettenSaksnummer = input.trygderettenSaksnummer,
+                ),
+            )
+        logger.debug("Created ankeITrygderettenbehandlingEtter2027 {}", ankeITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
@@ -172,7 +285,7 @@ class AnkeITrygderettenbehandlingService(
         val inputDocuments =
             dokumentService.createSaksdokumenterFromJournalpostIdList(input.tilknyttedeJournalposter.map { it.journalpostId })
         val ankeITrygderettenbehandling =
-            createAnkeITrygderettenbehandling(
+            createAnkeITrygderettenbehandlingFoer2027(
                 input.createAnkeITrygderettenbehandlingFoer2027Input(inputDocuments),
             )
 
@@ -235,7 +348,7 @@ class AnkeITrygderettenbehandlingService(
         mottakService.validateAnkeITrygderettenFromArena(input)
         input.validate()
         val newAnkeITrygderettenbehandling =
-            createAnkeITrygderettenbehandling(
+            createAnkeITrygderettenbehandlingFoer2027(
                 input.toAnkeITrygderettenbehandlingFoer2027Input(),
             )
         gosysOppgaveService.addKommentar(

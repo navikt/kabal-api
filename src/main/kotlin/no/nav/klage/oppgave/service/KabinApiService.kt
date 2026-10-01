@@ -301,7 +301,7 @@ class KabinApiService(
     }
 
     private fun getCreatedBehandlingStatusForKabin(behandling: Behandling): CreatedBehandlingStatusForKabin {
-        if (behandling !is BehandlingWithMottakDokument || behandling !is BehandlingWithVarsletBehandlingstid) {
+        if (behandling !is BehandlingWithMottakDokument) {
             error("Unsupported type")
         }
         val dokumentUnderArbeid =
@@ -318,6 +318,8 @@ class KabinApiService(
             } else {
                 null
             }
+
+        val behandlingHasVarsletFrist = behandling is BehandlingWithVarsletBehandlingstid
 
         return CreatedBehandlingStatusForKabin(
             typeId = behandling.type.id,
@@ -352,9 +354,14 @@ class KabinApiService(
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
             mottattVedtaksinstans = null,
             frist = behandling.frist!!,
-            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
-            varsletFristUnits = behandling.varsletBehandlingstid?.varsletBehandlingstidUnits,
-            varsletFristUnitTypeId = behandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+            varsletFrist = if (behandlingHasVarsletFrist) behandling.varsletBehandlingstid?.varsletFrist else null,
+            varsletFristUnits = if (behandlingHasVarsletFrist) behandling.varsletBehandlingstid?.varsletBehandlingstidUnits else null,
+            varsletFristUnitTypeId =
+                if (behandlingHasVarsletFrist) {
+                    behandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id
+                } else {
+                    null
+                },
             fagsakId = behandling.fagsakId,
             fagsystemId = behandling.fagsystem.id,
             // Null when the behandling was created based on an uploaded document instead of an existing journalpost.
