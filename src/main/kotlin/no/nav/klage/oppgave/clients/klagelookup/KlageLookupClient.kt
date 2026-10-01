@@ -384,6 +384,32 @@ class KlageLookupClient(
         }
 
     @Retryable
+    fun getRepresentasjonsforhold(ident: String): RepresentasjonsforholdResponse =
+        runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+            klageLookupWebClient
+                .post()
+                .uri("/internal/representasjon/representasjonsforhold")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                ).contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(IdentRequest(ident = ident))
+                .exchangeToMono { response ->
+                    if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getRepresentasjonsforhold.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<RepresentasjonsforholdResponse>()
+                    }
+                }.block() ?: throw RuntimeException("Could not get representasjonsforhold. Response was null.")
+        }
+
+    @Retryable
     fun getPostadresse(ident: String): PostadresseResponse? {
         val token = getCorrectBearerToken()
         return runWithTimingAndLogging {
