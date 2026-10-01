@@ -1188,6 +1188,12 @@ class BehandlingMapper(
                     status = BehandlingDetaljerView.PartStatus.Status.RESERVERT_I_KRR,
                 )
         }
+        if (klageLookupGateway.getRepresentasjonsforhold(ident = person.foedselsnr).fullmakt.isNotEmpty()) {
+            statusList +=
+                BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.FULLMAKT,
+                )
+        }
 
         return statusList
     }

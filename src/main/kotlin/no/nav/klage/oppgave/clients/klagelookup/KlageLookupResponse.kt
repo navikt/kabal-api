@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.kodeverk.Tema
 import java.time.LocalDate
 
 data class UsersResponse(
@@ -105,6 +106,28 @@ data class PersongalleriResponse(
 data class PostadresseResponse(
     val navn: String?,
     val adresse: Postadresse?,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class RepresentasjonsforholdResponse(
+    val fullmakt: List<FullmaktsforholdResponse>,
+    val vergemaal: List<VergemaalsforholdResponse>,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class FullmaktsforholdResponse(
+    val fullmaktsgiver: String,
+    val fullmektig: String,
+    val leserettigheter: Set<Tema>,
+    val skriverettigheter: Set<Tema>,
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class VergemaalsforholdResponse(
+    val vergehaver: String,
+    val verge: String,
+    val leserettigheter: Set<Tema>,
+    val skriverettigheter: Set<Tema>,
 )
 
 data class Postadresse(
