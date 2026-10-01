@@ -122,6 +122,7 @@ interface BehandlingRepository :
         includedTypes: List<Type> =
             listOf(
                 Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
             ),
     ): List<Behandling>

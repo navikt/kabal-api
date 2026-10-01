@@ -3333,11 +3333,14 @@ class BehandlingService(
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
                         Utfall.INNSTILLING_STADFESTELSE,
+                        Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+                        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
                     ),
                 excludedTypes =
                     listOf(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
                         Type.ANKE_ETTER_2027,
                     ),
             ).filter {
@@ -3355,14 +3358,20 @@ class BehandlingService(
         behandlingRepository
             .getAnkemuligheter(
                 partIdValue = partIdValue,
-                excludedFagsystems = emptyList(),
+                excludedFagsystems = listOf(Fagsystem.IT01),
                 utfallWithoutAnkemulighet =
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
                         Utfall.INNSTILLING_STADFESTELSE,
+                        Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+                        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
                     ),
                 excludedTypes =
-                    Type.entries - Type.KLAGE,
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                    ),
             ).filter {
                 try {
                     checkReadAccessToSak(
