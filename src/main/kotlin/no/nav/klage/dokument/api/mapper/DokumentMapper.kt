@@ -25,6 +25,7 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.clients.saf.graphql.SkjermingType
 import no.nav.klage.oppgave.clients.saf.graphql.Utsendingsinfo
 import no.nav.klage.oppgave.clients.saf.graphql.Variantformat
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -502,8 +503,10 @@ class DokumentMapper(
                     filtype = variant.filtype.toFiltype(),
                     hasAccess = variant.saksbehandlerHarTilgang,
                     skjerming =
-                        variant.skjerming?.let {
-                            DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
+                        when (variant.skjerming) {
+                            SkjermingType.POL -> DokumentReferanse.Variant.SkjermingType.POL
+                            SkjermingType.FEIL, SkjermingType.ARK -> DokumentReferanse.Variant.SkjermingType.FEIL
+                            null -> null
                         },
                 )
             }
