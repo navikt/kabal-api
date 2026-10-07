@@ -144,8 +144,11 @@ data class Dokumentvariant(
 enum class SkjermingType {
     POL, // Indikerer at det er fattet et vedtak etter personopplysningsloven (GDPR - brukers rett til å bli glemt).
 
-    // Indikerer at det har blitt gjort en feil under mottak, journalføring eller brevproduksjon, slik at journalposten eller dokumentene er markert for sletting.
+    // Indikerer at det har blitt gjort en feil under mottak, journalføring eller brevproduksjon, slik at journalposten eller dokumentene er markert for sletting. Utfaset, erstattet av ARK.
     FEIL,
+
+    // Indikerer at det er fattet et vedtak etter arkivloven. Det skjer fordi det har blitt gjort en feil under mottak, journalføring eller brevproduksjon, slik at journalposten eller dokumentene er markert for sletting.
+    ARK,
 }
 
 enum class Variantformat {
