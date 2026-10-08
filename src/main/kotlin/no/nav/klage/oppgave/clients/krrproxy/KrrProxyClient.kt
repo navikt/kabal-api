@@ -31,7 +31,7 @@ class KrrProxyClient(
             getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR. Returning null. See team-logs for more details.")
-            teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
+            teamLogger.error("Error from KRR for fnr $fnr: ${krrProxyResponse.feil[fnr]}")
             return null
         } else {
             return krrProxyResponse?.personer?.get(fnr)
@@ -44,7 +44,7 @@ class KrrProxyClient(
             getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR. Returning null. See team-logs for more details.")
-            teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
+            teamLogger.error("Error from KRR for fnr $fnr: ${krrProxyResponse.feil[fnr]}")
             return null
         } else {
             return krrProxyResponse?.personer?.get(fnr)
