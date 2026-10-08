@@ -397,4 +397,9 @@ class DokumentUnderArbeidController(
     fun ekspedisjonsbrevTilTrygderettenIsSent(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): Boolean = dokumentUnderArbeidService.ekspedisjonsbrevTilTrygderettenIsSent(behandlingId = behandlingId)
+
+    @GetMapping("/ekspedisjonsbrev-til-trygderetten-should-be-sent-but-is-not")
+    fun ekspedisjonsbrevTilTrygderettenShouldBeSentButIsNot(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): Boolean = dokumentUnderArbeidService.ekspedisjonsbrevTilTrygderettenShouldBeSentButIsNot(behandlingId = behandlingId)
 }

@@ -61,6 +61,8 @@ import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
@@ -2161,14 +2163,25 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
     }
 
-    fun ekspedisjonsbrevTilTrygderettenIsSent(behandlingId: UUID): Boolean {
-        behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
-        return dokumentUnderArbeidRepository.findByBehandlingId(behandlingId).any {
+    fun ekspedisjonsbrevTilTrygderettenShouldBeSentButIsNot(behandlingId: UUID): Boolean {
+        val shouldBeSentToTrygderetten =
+            when (val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)) {
+                is AnkebehandlingEtter2027 -> true
+                is AnkebehandlingFoer2027 -> behandling.shouldBeSentToTrygderetten()
+                else -> false
+            }
+
+        val ekspedisjonsbrevTilTrygderettenIsSent = ekspedisjonsbrevTilTrygderettenIsSent(behandlingId = behandlingId)
+
+        return shouldBeSentToTrygderetten && !ekspedisjonsbrevTilTrygderettenIsSent
+    }
+
+    fun ekspedisjonsbrevTilTrygderettenIsSent(behandlingId: UUID): Boolean =
+        dokumentUnderArbeidRepository.findByBehandlingId(behandlingId).any {
             it is DokumentUnderArbeidAsHoveddokument &&
                 it.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
                 it.erMarkertFerdig()
         }
-    }
 
     fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
         // Sjekker tilgang på behandlingsnivå:
