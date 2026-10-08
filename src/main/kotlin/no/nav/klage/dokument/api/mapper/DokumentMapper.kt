@@ -506,6 +506,7 @@ class DokumentMapper(
                             }
                         },
                     filtype = variant.filtype.toFiltype(),
+                    filstoerrelse = variant.filstoerrelse,
                     hasAccess = variant.saksbehandlerHarTilgang,
                     skjerming =
                         when (variant.skjerming) {

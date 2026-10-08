@@ -839,13 +839,30 @@ class DokumentMapperTest {
                 originalJournalpostId = null,
             )
 
+        private fun createVariant(
+            variantformat: Variantformat,
+            filtype: String = "PDF",
+            filstoerrelse: Int? = null,
+            saksbehandlerHarTilgang: Boolean = true,
+        ) = Dokumentvariant(
+            variantformat = variantformat,
+            filtype = filtype,
+            filstoerrelse = filstoerrelse,
+            saksbehandlerHarTilgang = saksbehandlerHarTilgang,
+            skjerming = null,
+        )
+
         @Test
         fun `should include FULLVERSJON variant`() {
             val result =
                 dokumentMapper.getVarianter(
                     createDokumentInfo(
-                        Dokumentvariant(variantformat = Variantformat.ARKIV, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
-                        Dokumentvariant(variantformat = Variantformat.FULLVERSJON, filtype = "PDF", saksbehandlerHarTilgang = false, skjerming = null),
+                        createVariant(variantformat = Variantformat.ARKIV),
+                        createVariant(
+                            variantformat = Variantformat.FULLVERSJON,
+                            filstoerrelse = 12345,
+                            saksbehandlerHarTilgang = false,
+                        ),
                     ),
                 )
 
@@ -855,6 +872,8 @@ class DokumentMapperTest {
             )
             assertThat(result.last().hasAccess).isFalse()
             assertThat(result.last().filtype).isEqualTo(DokumentReferanse.Filtype.PDF)
+            assertThat(result.last().filstoerrelse).isEqualTo(12345)
+            assertThat(result.first().filstoerrelse).isNull()
         }
 
         @Test
@@ -862,9 +881,9 @@ class DokumentMapperTest {
             val result =
                 dokumentMapper.getVarianter(
                     createDokumentInfo(
-                        Dokumentvariant(variantformat = Variantformat.ORIGINAL, filtype = "JSON", saksbehandlerHarTilgang = true, skjerming = null),
-                        Dokumentvariant(variantformat = Variantformat.PRODUKSJON, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
-                        Dokumentvariant(variantformat = Variantformat.SLADDET, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
+                        createVariant(variantformat = Variantformat.ORIGINAL, filtype = "JSON"),
+                        createVariant(variantformat = Variantformat.PRODUKSJON),
+                        createVariant(variantformat = Variantformat.SLADDET),
                     ),
                 )
 
