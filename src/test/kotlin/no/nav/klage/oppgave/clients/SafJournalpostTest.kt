@@ -118,6 +118,7 @@ internal class SafJournalpostTest {
                 {
                   "variantformat": "ARKIV",
                   "filtype": "PDF",
+                  "filstoerrelse": 12345,
                   "saksbehandlerHarTilgang": true,
                   "skjerming": null
                 }

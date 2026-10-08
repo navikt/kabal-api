@@ -137,7 +137,7 @@ data class LogiskVedlegg(
 data class Dokumentvariant(
     val variantformat: Variantformat,
     val filtype: String?,
-    val filstoerrelse: Int?,
+    val filstoerrelse: Int,
     val saksbehandlerHarTilgang: Boolean,
     val skjerming: SkjermingType?,
 )
