@@ -59,6 +59,7 @@ data class DokumentReferanse(
         enum class Format {
             ARKIV,
             SLADDET,
+            FULLVERSJON,
         }
 
         enum class SkjermingType {

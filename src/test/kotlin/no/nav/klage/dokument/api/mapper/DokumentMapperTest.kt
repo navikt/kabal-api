@@ -12,14 +12,17 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.clients.saf.graphql.AvsenderMottaker
 import no.nav.klage.oppgave.clients.saf.graphql.Bruker
 import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
+import no.nav.klage.oppgave.clients.saf.graphql.Dokumentvariant
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalposttype
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.clients.saf.graphql.Sak
 import no.nav.klage.oppgave.clients.saf.graphql.Tema
+import no.nav.klage.oppgave.clients.saf.graphql.Variantformat
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -819,6 +822,53 @@ class DokumentMapperTest {
             assertThat(result[3].journalpostMetadataList[1].type).isEqualTo(Type.U)
             assertThat(result[3].journalpostMetadataList[1].avsenderMottaker).isEqualTo("Grouped Sender 2")
             assertThat(result[3].journalpostMetadataList[1].dato).isEqualTo(LocalDate.of(2024, 2, 20))
+        }
+    }
+
+    @Nested
+    inner class GetVarianterTest {
+        private fun createDokumentInfo(vararg varianter: Dokumentvariant) =
+            DokumentInfo(
+                dokumentInfoId = "1",
+                tittel = "Søknad",
+                brevkode = null,
+                skjerming = null,
+                logiskeVedlegg = null,
+                dokumentvarianter = varianter.toList(),
+                datoFerdigstilt = null,
+                originalJournalpostId = null,
+            )
+
+        @Test
+        fun `should include FULLVERSJON variant`() {
+            val result =
+                dokumentMapper.getVarianter(
+                    createDokumentInfo(
+                        Dokumentvariant(variantformat = Variantformat.ARKIV, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
+                        Dokumentvariant(variantformat = Variantformat.FULLVERSJON, filtype = "PDF", saksbehandlerHarTilgang = false, skjerming = null),
+                    ),
+                )
+
+            assertThat(result.map { it.format }).containsExactly(
+                DokumentReferanse.Variant.Format.ARKIV,
+                DokumentReferanse.Variant.Format.FULLVERSJON,
+            )
+            assertThat(result.last().hasAccess).isFalse()
+            assertThat(result.last().filtype).isEqualTo(DokumentReferanse.Filtype.PDF)
+        }
+
+        @Test
+        fun `should exclude ORIGINAL and PRODUKSJON variants`() {
+            val result =
+                dokumentMapper.getVarianter(
+                    createDokumentInfo(
+                        Dokumentvariant(variantformat = Variantformat.ORIGINAL, filtype = "JSON", saksbehandlerHarTilgang = true, skjerming = null),
+                        Dokumentvariant(variantformat = Variantformat.PRODUKSJON, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
+                        Dokumentvariant(variantformat = Variantformat.SLADDET, filtype = "PDF", saksbehandlerHarTilgang = true, skjerming = null),
+                    ),
+                )
+
+            assertThat(result.map { it.format }).containsExactly(DokumentReferanse.Variant.Format.SLADDET)
         }
     }
 }
