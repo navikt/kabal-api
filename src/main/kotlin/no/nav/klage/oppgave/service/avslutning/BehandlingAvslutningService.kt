@@ -188,6 +188,7 @@ class BehandlingAvslutningService(
         }
     }
 
+    // TODO: Gå gjennom det som skal skje i kommunikasjon med vedtaksinstans og Infotrygd, med tanke på at vi alltid får en anke i TR i Kabal etter fullføring. Spesifikt der vi tidligere avsluttet i KA.
     private fun handleAnkebehandlingFoer2027(ankebehandling: AnkebehandlingFoer2027) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug(
@@ -356,6 +357,7 @@ class BehandlingAvslutningService(
         }
     }
 
+    // TODO: Gå gjennom håndtering av ankerITR som følger etter anker som tidligere ble avsluttet i KA.
     private fun handleAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingEtter2027) {
         if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
             logger.debug(
