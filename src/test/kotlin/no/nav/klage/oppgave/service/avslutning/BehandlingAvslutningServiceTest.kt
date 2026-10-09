@@ -9,6 +9,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
@@ -138,8 +139,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -192,8 +193,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -283,8 +284,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -343,8 +344,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -389,8 +390,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -443,8 +444,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -528,8 +529,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -577,8 +578,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -623,8 +624,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -671,8 +672,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -718,8 +719,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -767,8 +768,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -814,8 +815,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -860,8 +861,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -914,8 +915,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -968,6 +969,519 @@ class BehandlingAvslutningServiceTest {
     }
 
     @Nested
+    inner class AnkeITrygderettenbehandlingEtter2027Test {
+        val behandling =
+            mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true) {
+                every { id } returns behandlingId
+                every { ferdigstilling } returns
+                    Ferdigstilling(
+                        avsluttet = null,
+                        avsluttetAvSaksbehandler = now,
+                        navIdent = "",
+                        navn = "",
+                    )
+                every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+                every { kildeReferanse } returns "kildereferanse"
+                every { nyAnkebehandlingKA } returns null
+                every { shouldCreateNewAnkebehandling() } answers { callOriginal() }
+                every { shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+                every { shouldNotCreateNewBehandling() } answers { callOriginal() }
+            }
+
+        @BeforeEach
+        fun before() {
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modernized fagsystem with utfall HENVIST creates new AnkebehandlingEtter2027`() {
+            every { behandling.utfall } returns Utfall.HENVIST
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with utfall HENVIST and gosysOppgaveId creates new AnkebehandlingEtter2027 and notifies GosysOppgave`() {
+            every { behandling.utfall } returns Utfall.HENVIST
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns mockk<GosysOppgaveUpdate>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 1) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten har henvist saken.",
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modernized fagsystem tagged with nyAnkebehandlingKA creates new AnkebehandlingEtter2027`() {
+            every { behandling.nyAnkebehandlingKA } returns now
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd tagged with nyAnkebehandlingKA and gosysOppgaveId creates new AnkebehandlingEtter2027 and notifies GosysOppgave`() {
+            every { behandling.nyAnkebehandlingKA } returns now
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 1) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = "Klageinstansen har opprettet ny behandling i Kabal.",
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modernized fagsystem with utfall Opphevet and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet`() {
+            every { behandling.nyBehandlingEtterTROpphevet } returns now
+            every { behandling.utfall } returns Utfall.OPPHEVET
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with utfall Opphevet, gosysOppgaveId and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet and notifies GosysOppgave`() {
+            every { behandling.nyBehandlingEtterTROpphevet } returns now
+            every { behandling.utfall } returns Utfall.OPPHEVET
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 1) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken.",
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modern fagsystem with utfall Opphevet but no nyBehandling tag sends Kafka event to fagsystem`() {
+            every { behandling.nyBehandlingEtterTROpphevet } returns null
+            every { behandling.utfall } returns Utfall.OPPHEVET
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 1) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modern fagsystem with different utfall sends Kafka event to fagsystem`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 1) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with different utfall does not update Infotrygd, only GosysOppgave`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = null,
+                    oppgaveUpdateKommentar = "",
+                )
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from modern fagsystem requiring GosysOppgave goes back to vedtaksinstans without Kafka event`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = null,
+                    oppgaveUpdateKommentar = "",
+                )
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any(),
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+    }
+
+    @Nested
     inner class OmgjoeringskravbehandlingTest {
         val behandling =
             mockk<Omgjoeringskravbehandling>(relaxed = true) {
@@ -1005,8 +1519,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1051,8 +1565,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1103,8 +1617,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1154,8 +1668,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1218,8 +1732,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1286,8 +1800,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1340,8 +1854,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1443,8 +1957,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1508,8 +2022,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1563,8 +2077,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1611,8 +2125,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1666,8 +2180,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1714,8 +2228,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1789,8 +2303,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1844,8 +2358,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1893,8 +2407,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1949,8 +2463,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -1999,8 +2513,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2055,8 +2569,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2104,8 +2618,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2159,8 +2673,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2205,8 +2719,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
@@ -2253,8 +2767,8 @@ class BehandlingAvslutningServiceTest {
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
                 behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
                     any(),
