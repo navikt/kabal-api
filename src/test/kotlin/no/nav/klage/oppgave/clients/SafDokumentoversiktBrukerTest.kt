@@ -122,6 +122,7 @@ internal class SafDokumentoversiktBrukerTest {
                         {
                           "variantformat": "ARKIV",
                           "filtype": "PDF",
+                          "filstoerrelse": 12345,
                           "saksbehandlerHarTilgang": false,
                           "skjerming": null
                         }

@@ -53,12 +53,14 @@ data class DokumentReferanse(
     data class Variant(
         val format: Format,
         val filtype: Filtype,
+        val filstoerrelse: Int,
         val hasAccess: Boolean,
         val skjerming: SkjermingType?,
     ) {
         enum class Format {
             ARKIV,
             SLADDET,
+            FULLVERSJON,
         }
 
         enum class SkjermingType {
