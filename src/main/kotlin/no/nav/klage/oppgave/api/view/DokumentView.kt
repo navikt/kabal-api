@@ -53,7 +53,6 @@ data class DokumentReferanse(
     data class Variant(
         val format: Format,
         val filtype: Filtype,
-        val filstoerrelse: Int?,
         val hasAccess: Boolean,
         val skjerming: SkjermingType?,
     ) {

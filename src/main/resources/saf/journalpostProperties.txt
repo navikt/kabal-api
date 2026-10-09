@@ -72,7 +72,6 @@ dokumenter {
     dokumentvarianter {
         variantformat
         filtype
-        filstoerrelse
         saksbehandlerHarTilgang
         skjerming
     }
