@@ -483,7 +483,6 @@ class DokumentMapper(
                     listOf(
                         Variantformat.ARKIV,
                         Variantformat.SLADDET,
-                        Variantformat.FULLVERSJON,
                     )
             }.map { variant ->
                 DokumentReferanse.Variant(
@@ -495,10 +494,6 @@ class DokumentMapper(
 
                             Variantformat.SLADDET -> {
                                 DokumentReferanse.Variant.Format.SLADDET
-                            }
-
-                            Variantformat.FULLVERSJON -> {
-                                DokumentReferanse.Variant.Format.FULLVERSJON
                             }
 
                             else -> {
