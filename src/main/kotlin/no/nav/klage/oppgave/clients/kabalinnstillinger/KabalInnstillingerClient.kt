@@ -92,6 +92,7 @@ class KabalInnstillingerClient(
     fun getHjemmelIdsForYtelse(
         ytelse: Ytelse,
         includeSE: Boolean,
+        onlyAnketeam: Boolean,
     ): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
         return kabalInnstillingerWebClient
@@ -101,6 +102,7 @@ class KabalInnstillingerClient(
                     .path("/hjemler")
                     .queryParam("ytelseId", ytelse.id)
                     .queryParam("includeSE", includeSE)
+                    .queryParam("onlyAnketeam", onlyAnketeam)
                     .build()
             }.header(
                 HttpHeaders.AUTHORIZATION,
