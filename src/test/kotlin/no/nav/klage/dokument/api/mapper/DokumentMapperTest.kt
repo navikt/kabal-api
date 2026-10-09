@@ -842,7 +842,7 @@ class DokumentMapperTest {
         private fun createVariant(
             variantformat: Variantformat,
             filtype: String = "PDF",
-            filstoerrelse: Int = 1000,
+            filstoerrelse: Int? = null,
             saksbehandlerHarTilgang: Boolean = true,
         ) = Dokumentvariant(
             variantformat = variantformat,
@@ -873,7 +873,7 @@ class DokumentMapperTest {
             assertThat(result.last().hasAccess).isFalse()
             assertThat(result.last().filtype).isEqualTo(DokumentReferanse.Filtype.PDF)
             assertThat(result.last().filstoerrelse).isEqualTo(12345)
-            assertThat(result.first().filstoerrelse).isEqualTo(1000)
+            assertThat(result.first().filstoerrelse).isNull()
         }
 
         @Test
