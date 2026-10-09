@@ -24,7 +24,6 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
-import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
@@ -395,11 +394,11 @@ class MockDataController(
                             innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
                             sendtTilTrygderetten = LocalDateTime.now(),
                             registreringsHjemmelSet = registreringsHjemmelSet,
-                            ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
+                            ankebehandlingUtfall = ExternalUtfall.INNSTILLING_STADFESTELSE,
                             previousSaksbehandlerident = null,
                             gosysOppgaveId = null,
                             tilbakekreving = false,
-                            gosysOppgaveRequired = false,
+                            gosysOppgaveRequired = oversendtSak.fagsystem == Fagsystem.IT01,
                             initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
                             previousBehandlingId = null,
                         )
