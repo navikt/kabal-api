@@ -483,6 +483,7 @@ class DokumentMapper(
                     listOf(
                         Variantformat.ARKIV,
                         Variantformat.SLADDET,
+                        Variantformat.FULLVERSJON,
                     )
             }.map { variant ->
                 DokumentReferanse.Variant(
@@ -496,11 +497,16 @@ class DokumentMapper(
                                 DokumentReferanse.Variant.Format.SLADDET
                             }
 
+                            Variantformat.FULLVERSJON -> {
+                                DokumentReferanse.Variant.Format.FULLVERSJON
+                            }
+
                             else -> {
                                 throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
                             }
                         },
                     filtype = variant.filtype.toFiltype(),
+                    filstoerrelse = variant.filstoerrelse,
                     hasAccess = variant.saksbehandlerHarTilgang,
                     skjerming =
                         when (variant.skjerming) {
