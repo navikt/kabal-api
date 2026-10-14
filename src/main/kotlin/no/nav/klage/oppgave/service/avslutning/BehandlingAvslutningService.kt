@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttet
+import no.nav.klage.oppgave.domain.kafka.AnkeITrygderettenbehandlingAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.AnkebehandlingAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer
@@ -764,7 +765,12 @@ class BehandlingAvslutningService(
                             error("Unknown Behandling subtype: ${behandling::class.java.name}")
                         }
                     },
-                detaljer = getBehandlingDetaljer(behandling, hoveddokumenter),
+                detaljer =
+                    getBehandlingDetaljer(
+                        behandling = behandling,
+                        hoveddokumenter = hoveddokumenter,
+                        markAnkeITrygderettenbehandlingAsAnkebehandling = markAnkeITrygderettenbehandlingAsAnkebehandling,
+                    ),
             )
         kafkaEventRepository.save(
             KafkaEvent(
@@ -908,6 +914,7 @@ class BehandlingAvslutningService(
     private fun getBehandlingDetaljer(
         behandling: Behandling,
         hoveddokumenter: List<DokumentUnderArbeidAsHoveddokument>,
+        markAnkeITrygderettenbehandlingAsAnkebehandling: Boolean,
     ): BehandlingDetaljer =
         when (behandling) {
             is Klagebehandling -> {
@@ -927,7 +934,6 @@ class BehandlingAvslutningService(
             is AnkebehandlingFoer2027,
             is AnkebehandlingEtter2027,
             is AnkeITrygderettenbehandlingFoer2027,
-            is AnkeITrygderettenbehandlingEtter2027,
             -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet =
@@ -942,7 +948,36 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is BehandlingEtterTrygderettenOpphevet -> {
+            is AnkeITrygderettenbehandlingEtter2027 -> {
+                if (markAnkeITrygderettenbehandlingAsAnkebehandling) {
+                    BehandlingDetaljer(
+                        ankebehandlingAvsluttet =
+                            AnkebehandlingAvsluttetDetaljer(
+                                avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                                utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                                journalpostReferanser =
+                                    hoveddokumenter
+                                        .flatMap { it.dokarkivReferences }
+                                        .map { it.journalpostId },
+                            ),
+                    )
+                } else {
+                    BehandlingDetaljer(
+                        ankeITrygderettenbehandlingAvsluttet =
+                            AnkeITrygderettenbehandlingAvsluttetDetaljer(
+                                avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                                utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                                journalpostReferanser =
+                                    hoveddokumenter
+                                        .flatMap { it.dokarkivReferences }
+                                        .map { it.journalpostId },
+                            ),
+                    )
+                }
+            }
+
+            is BehandlingEtterTrygderettenOpphevet,
+            -> {
                 BehandlingDetaljer(
                     behandlingEtterTrygderettenOpphevetAvsluttet =
                         BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
