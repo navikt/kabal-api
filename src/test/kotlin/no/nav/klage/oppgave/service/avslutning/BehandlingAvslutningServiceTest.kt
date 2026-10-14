@@ -3,10 +3,12 @@ package no.nav.klage.oppgave.service.avslutning
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
@@ -24,6 +26,9 @@ import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
+import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
+import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
@@ -35,12 +40,14 @@ import no.nav.klage.oppgave.service.GjenopptaksbehandlingService
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.service.KlankeService
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.context.ApplicationEventPublisher
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -496,6 +503,121 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+    }
+
+    @Nested
+    inner class AnkebehandlingEtter2027Test {
+        val behandling =
+            mockk<AnkebehandlingEtter2027>(relaxed = true) {
+                every { id } returns behandlingId
+                every { ferdigstilling } returns
+                    Ferdigstilling(
+                        avsluttet = null,
+                        avsluttetAvSaksbehandler = now,
+                        navIdent = "",
+                        navn = "",
+                    )
+                every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+                every { kildeReferanse } returns "kildereferanse"
+                every { shouldBeSentToTrygderetten() } answers { callOriginal() }
+            }
+
+        @BeforeEach
+        fun before() {
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 from Infotrygd sent to Trygderetten updates Infotrygd and creates AnkeITrygderettenEtter2027`() {
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
+            val followOnInput = mockk<no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input>()
+            every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns followOnInput
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(followOnInput)
+            }
+            verify(exactly = 1) {
+                klankeService.setToFinishedWithAppAccess(
+                    sakId = "kildereferanse",
+                    input =
+                        SakFinishedInput(
+                            status = SakFinishedInput.Status.VIDERESENDT_TR,
+                            nivaa = SakFinishedInput.Nivaa.KA,
+                            typeResultat = SakFinishedInput.TypeResultat.INNSTILLING_2,
+                            utfall = SakFinishedInput.Utfall.AVSLAG,
+                            mottaker = SakFinishedInput.Mottaker.TRYGDERETTEN,
+                            saksbehandlerIdent = "ident",
+                        ),
+                )
+            }
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 from modern fagsystem sent to Trygderetten does not notify Infotrygd and creates AnkeITrygderettenEtter2027`() {
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
+            val followOnInput = mockk<no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input>()
+            every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns followOnInput
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(followOnInput)
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 from modern fagsystem not sent to Trygderetten creates AnkeITrygderettenEtter2027 and kafka event`() {
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.gosysOppgaveRequired } returns false
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            val followOnInput = mockk<no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input>()
+            every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns followOnInput
+            val savedKafkaEvent = slot<KafkaEvent>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(followOnInput)
+            }
+            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
+            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
+            assertEquals(BehandlingEventType.ANKEBEHANDLING_AVSLUTTET, event.type)
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 with Gosys task not sent to Trygderetten creates AnkeITrygderettenEtter2027 and updates Gosys`() {
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns mockk<GosysOppgaveUpdate>()
+            val followOnInput = mockk<no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input>()
+            every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns followOnInput
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(followOnInput)
+            }
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = behandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
         }
     }
 
@@ -1375,7 +1497,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with different utfall does not update Infotrygd, only GosysOppgave`() {
+        fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with different utfall finishes in Infotrygd and updates GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -1418,8 +1540,26 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
-            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 1) {
+                klankeService.getSakWithAppAccess(
+                    sakId = "kildereferanse",
+                    input = GetSakAppAccessInput(saksbehandlerIdent = "ident"),
+                )
+            }
+            verify(exactly = 1) {
+                klankeService.setToFinishedWithAppAccess(
+                    sakId = "kildereferanse",
+                    input =
+                        SakFinishedInput(
+                            status = SakFinishedInput.Status.RETURNERT_TK,
+                            nivaa = SakFinishedInput.Nivaa.TR,
+                            typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
+                            utfall = SakFinishedInput.Utfall.AVSLAG,
+                            mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
+                            saksbehandlerIdent = "ident",
+                        ),
+                )
+            }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any(),
@@ -1480,6 +1620,48 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 is emitted as ankebehandling when previous treatment was sent to Trygderetten`() {
+            val previousBehandlingId = UUID.randomUUID()
+            val previousBehandling = mockk<AnkebehandlingEtter2027>(relaxed = true)
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.gosysOppgaveRequired } returns false
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.previousBehandlingId } returns previousBehandlingId
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(previousBehandlingId) } returns previousBehandling
+            every { previousBehandling.shouldBeSentToTrygderetten() } returns true
+            val savedKafkaEvent = slot<KafkaEvent>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
+            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
+            assertEquals(BehandlingEventType.ANKEBEHANDLING_AVSLUTTET, event.type)
+            assertEquals("kildereferanse", event.kildeReferanse)
+            assertEquals(behandlingId.toString(), event.kabalReferanse)
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 is emitted as anke i Trygderetten when previous treatment was not sent there`() {
+            val previousBehandlingId = UUID.randomUUID()
+            val previousBehandling = mockk<AnkebehandlingEtter2027>(relaxed = true)
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.gosysOppgaveRequired } returns false
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.previousBehandlingId } returns previousBehandlingId
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(previousBehandlingId) } returns previousBehandling
+            every { previousBehandling.shouldBeSentToTrygderetten() } returns false
+            val savedKafkaEvent = slot<KafkaEvent>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
+            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
+            assertEquals(BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET, event.type)
+            assertEquals("kildereferanse", event.kildeReferanse)
+            assertEquals(behandlingId.toString(), event.kabalReferanse)
         }
     }
 
