@@ -46,3 +46,7 @@ data class SaksbehandlerAccess(
 data class TildelteYtelserResponse(
     val ytelseIdList: List<String>,
 )
+
+data class HjemmelKonfigurasjon(
+    val hjemmelIds: Set<String>,
+)

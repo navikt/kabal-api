@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.kabalinnstillinger
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.HjemmelKonfigurasjon
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
@@ -117,6 +118,34 @@ class KabalInnstillingerClient(
             }.bodyToMono<Set<String>>()
             .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
     }
+
+    @Retryable
+    fun getHjemmelKonfigurasjonerForYtelse(
+        ytelse: Ytelse,
+        includeSE: Boolean,
+        onlyAnketeam: Boolean,
+    ): List<HjemmelKonfigurasjon> =
+        kabalInnstillingerWebClient
+            .get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/hjemler/konfigurasjoner")
+                    .queryParam("ytelseId", ytelse.id)
+                    .queryParam("includeSE", includeSE)
+                    .queryParam("onlyAnketeam", onlyAnketeam)
+                    .build()
+            }.header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getHjemmelKonfigurasjonerForYtelse.name,
+                    classLogger = logger,
+                )
+            }.bodyToMono<List<HjemmelKonfigurasjon>>()
+            .block() ?: throw RuntimeException("Could not get hjemmelkonfigurasjoner for ytelse")
 
     @Retryable
     fun searchMedunderskrivere(input: MedunderskrivereInput): Medunderskrivere {

@@ -4,7 +4,13 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnheter
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -14,10 +20,13 @@ import no.nav.slackposter.SlackClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 
 internal class AdminServiceTest {
     private val klageLookupGateway = mockk<KlageLookupGateway>()
     private val slackClient = mockk<SlackClient>(relaxed = true)
+    private val kabalInnstillingerService = mockk<KabalInnstillingerService>()
 
     private val adminService =
         AdminService(
@@ -38,7 +47,7 @@ internal class AdminServiceTest {
             personService = mockk(relaxed = true),
             minsideMicrofrontendService = mockk(relaxed = true),
             slackClient = slackClient,
-            kabalInnstillingerService = mockk(relaxed = true),
+            kabalInnstillingerService = kabalInnstillingerService,
             applicationEventPublisher = mockk(relaxed = true),
             entityManager = mockk(relaxed = true),
             schedulerHealthGate = mockk(relaxed = true),
@@ -52,6 +61,125 @@ internal class AdminServiceTest {
         ).apply {
             klageBackendGroupId = "klage-backend-group-id"
         }
+
+    @Test
+    fun `no single saksbehandler has all behandling hjemler`() {
+        val unavailable = behandling(setOf(Hjemmel.FVL_11, Hjemmel.FVL_12))
+        val available = behandling(setOf(Hjemmel.FVL_11))
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns setOf(setOf(Hjemmel.FVL_11), setOf(Hjemmel.FVL_12))
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(unavailable, available))
+
+        assertThat(report).contains("Behandling-id: ${unavailable.id}, Hjemler:")
+        assertThat(report).doesNotContain("Behandling-id: ${available.id}, Hjemler:")
+        verify(exactly = 1) {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        }
+    }
+
+    @Test
+    fun `behandling is available when one saksbehandler has all hjemler`() {
+        val available = behandling(setOf(Hjemmel.FVL_11, Hjemmel.FVL_12))
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns setOf(setOf(Hjemmel.FVL_11, Hjemmel.FVL_12, Hjemmel.FVL_14))
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(available))
+
+        assertThat(report).doesNotContain("Behandling-id: ${available.id}, Hjemler:")
+    }
+
+    @Test
+    fun `unregistered hjemmel is reported even when another is registered`() {
+        val behandling = behandling(setOf(Hjemmel.FVL_11, Hjemmel.FVL_12))
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns setOf(setOf(Hjemmel.FVL_11))
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(behandling))
+
+        assertThat(report).contains("Utilgjengelige behandlinger på grunn av hjemler: \nBehandling-id: ${behandling.id}")
+        assertThat(
+            report,
+        ).contains("Behandlinger med hjemler som ikke fins i innstillinger: \nBehandling-id: ${behandling.id}, Hjemler: [FVL_12]")
+    }
+
+    @Test
+    fun `anketeam lookup is independent of ordinary lookup for the same ytelse`() {
+        val anke = behandling(hjemler = setOf(element = Hjemmel.FVL_11), anke = true)
+        val klage = behandling(setOf(Hjemmel.FVL_11))
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = true)
+        } returns emptySet()
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns setOf(setOf(Hjemmel.FVL_11))
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(anke, klage))
+
+        assertThat(report).contains("Behandling-id: ${anke.id}, Hjemler:")
+        assertThat(report).doesNotContain("Behandling-id: ${klage.id}, Hjemler:")
+        verify(exactly = 1) {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = true)
+        }
+        verify(exactly = 1) {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        }
+    }
+
+    @Test
+    fun `assigned to enhet remains a candidate while assigned to saksbehandler does not`() {
+        val enhetOnly = behandling(hjemler = setOf(Hjemmel.FVL_11), saksbehandlerident = null)
+        val assigned = behandling(hjemler = setOf(Hjemmel.FVL_11), saksbehandlerident = "Z123456")
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns emptySet()
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(enhetOnly, assigned))
+
+        assertThat(report).contains("Behandling-id: ${enhetOnly.id}, Hjemler:")
+        assertThat(report).doesNotContain("Behandling-id: ${assigned.id}, Hjemler:")
+    }
+
+    @Test
+    fun `empty hjemler are unavailable and lookup failure is reported without declaring availability`() {
+        val empty = behandling(emptySet())
+        val failed = behandling(hjemler = setOf(element = Hjemmel.FVL_11), ytelse = Ytelse.OMS_PLS)
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_OMP, includeSE = false, onlyAnketeam = false)
+        } returns setOf(setOf(Hjemmel.FVL_11))
+        every {
+            kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(ytelse = Ytelse.OMS_PLS, includeSE = false, onlyAnketeam = false)
+        } throws IllegalStateException("Settings unavailable")
+
+        val report = adminService.checkForUnavailableDueToHjemler(listOf(empty, failed))
+
+        assertThat(report).contains("Behandling-id: ${empty.id}, Hjemler:")
+        assertThat(report).doesNotContain("Behandling-id: ${failed.id}, Hjemler:")
+        assertThat(report).contains("Kunne ikke sjekke hjemler for ytelser:")
+        assertThat(report).contains("Ytelse: ${Ytelse.OMS_PLS}, kun anketeam: false")
+    }
+
+    private fun behandling(
+        hjemler: Set<Hjemmel>,
+        ytelse: Ytelse = Ytelse.OMS_OMP,
+        anke: Boolean = false,
+        saksbehandlerident: String? = null,
+    ): Behandling {
+        val behandling: Behandling = if (anke) mockk<AnkebehandlingEtter2027>() else mockk<Klagebehandling>()
+        every { behandling.id } returns UUID.randomUUID()
+        every { behandling.ytelse } returns ytelse
+        every { behandling.hjemler } returns hjemler
+        every { behandling.tildeling } returns
+            Tildeling(
+                saksbehandlerident = saksbehandlerident,
+                enhet = "4291",
+                tidspunkt = LocalDateTime.now(),
+            )
+        return behandling
+    }
 
     @Test
     fun `user with a single allowed enhet is kept`() {

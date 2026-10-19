@@ -89,4 +89,14 @@ class KabalInnstillingerService(
         val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse = ytelse, includeSE = includeSE, onlyAnketeam = onlyAnketeam)
         return hjemler.map { Hjemmel.of(it) }.toSet()
     }
+
+    fun getRegisteredHjemmelSetsForYtelse(
+        ytelse: Ytelse,
+        includeSE: Boolean,
+        onlyAnketeam: Boolean,
+    ): Set<Set<Hjemmel>> =
+        kabalInnstillingerClient
+            .getHjemmelKonfigurasjonerForYtelse(ytelse = ytelse, includeSE = includeSE, onlyAnketeam = onlyAnketeam)
+            .map { konfigurasjon -> konfigurasjon.hjemmelIds.map(Hjemmel::of).toSet() }
+            .toSet()
 }
