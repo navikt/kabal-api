@@ -433,39 +433,51 @@ class AdminService(
         val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<Behandling>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
-        val ytelseToHjemlerMap = mutableMapOf<Ytelse, Set<Hjemmel>>()
+        val candidates =
+            unfinishedBehandlinger.filter { behandling ->
+                behandling.tildeling?.saksbehandlerident == null &&
+                    when (behandling) {
+                        is Klagebehandling,
+                        is AnkebehandlingFoer2027,
+                        is AnkebehandlingEtter2027,
+                        is Omgjoeringskravbehandling,
+                        is BehandlingEtterTrygderettenOpphevet,
+                        is Gjenopptaksbehandling,
+                        -> true
 
-        unfinishedBehandlinger.forEach { behandling ->
-            when (behandling) {
-                is Klagebehandling, is AnkebehandlingFoer2027, is AnkebehandlingEtter2027, is Omgjoeringskravbehandling -> {
-                    if (behandling.tildeling == null) {
-                        val hjemlerForYtelseInInnstillinger =
-                            ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
-                                kabalInnstillingerService.getRegisteredHjemlerForYtelse(
-                                    ytelse = behandling.ytelse,
-                                    includeSE = false,
-                                    onlyAnketeam = behandling is AnkebehandlingEtter2027,
-                                )
-                            }
-                        if (behandling.hjemler.all {
-                                it !in hjemlerForYtelseInInnstillinger
-                            }
-                        ) {
-                            unavailableBehandlinger.add(behandling)
-                        } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
-                            missingHjemmelInRegistryBehandling.add(
-                                Pair(
-                                    first = behandling.id,
-                                    second = behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet(),
-                                ),
-                            )
-                        }
+                        else -> false
                     }
-                }
+            }
+        val hjemmelSetsByYtelseAndAnketeam = mutableMapOf<Pair<Ytelse, Boolean>, Set<Set<Hjemmel>>>()
+        val failedLookups = mutableSetOf<Pair<Ytelse, Boolean>>()
 
-                else -> {
-                    null
+        candidates
+            .map { it.ytelse to (it is AnkebehandlingEtter2027) }
+            .distinct()
+            .forEach { (ytelse, onlyAnketeam) ->
+                try {
+                    hjemmelSetsByYtelseAndAnketeam[ytelse to onlyAnketeam] =
+                        kabalInnstillingerService.getRegisteredHjemmelSetsForYtelse(
+                            ytelse = ytelse,
+                            includeSE = false,
+                            onlyAnketeam = onlyAnketeam,
+                        )
+                } catch (e: Exception) {
+                    failedLookups.add(ytelse to onlyAnketeam)
+                    logger.warn("Kunne ikke hente hjemmelkonfigurasjoner for ytelse {} (onlyAnketeam={})", ytelse, onlyAnketeam, e)
                 }
+            }
+
+        candidates.forEach { behandling ->
+            val key = behandling.ytelse to (behandling is AnkebehandlingEtter2027)
+            val hjemmelSets = hjemmelSetsByYtelseAndAnketeam[key] ?: return@forEach
+            if (behandling.hjemler.isEmpty() || hjemmelSets.none { it.containsAll(behandling.hjemler) }) {
+                unavailableBehandlinger.add(behandling)
+            }
+            val registeredHjemler = hjemmelSets.flatten().toSet()
+            val missingHjemler = behandling.hjemler - registeredHjemler
+            if (missingHjemler.isNotEmpty()) {
+                missingHjemmelInRegistryBehandling.add(behandling.id to missingHjemler)
             }
         }
 
@@ -476,6 +488,12 @@ class AdminService(
         errorLog += "Behandlinger med hjemler som ikke fins i innstillinger: \n"
         missingHjemmelInRegistryBehandling.forEach {
             errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
+        }
+        if (failedLookups.isNotEmpty()) {
+            errorLog += "Kunne ikke sjekke hjemler for ytelser: \n"
+            failedLookups.forEach { (ytelse, onlyAnketeam) ->
+                errorLog += "Ytelse: $ytelse, kun anketeam: $onlyAnketeam \n"
+            }
         }
 
         val end = System.currentTimeMillis()
