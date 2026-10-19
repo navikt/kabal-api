@@ -26,8 +26,8 @@ import no.nav.klage.oppgave.domain.kafka.AnkebehandlingAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
+import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.GJENOPPTAKSBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
@@ -741,7 +741,7 @@ class BehandlingAvslutningService(
                             if (markAnkeITrygderettenbehandlingAsAnkebehandling) {
                                 ANKEBEHANDLING_AVSLUTTET
                             } else {
-                                BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET
+                                ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET
                             }
                         }
 
