@@ -130,6 +130,21 @@ class MottakServiceSakstypeTest {
     }
 
     @Test
+    fun `klage from kabin on generell sak without arkivsaksnummer is rejected`() {
+        assertThrows<OversendtKlageNotValidException> {
+            mottakService.createKlageMottakFromKabinInput(
+                klageInput(fagsakId = null, sakstypeId = Sakstype.GENERELL_SAK.id, arkivsaksnummer = null),
+            )
+        }
+        assertThrows<OversendtKlageNotValidException> {
+            mottakService.createKlageMottakFromKabinInput(
+                klageInput(fagsakId = null, sakstypeId = Sakstype.GENERELL_SAK.id, arkivsaksnummer = " "),
+            )
+        }
+        verify(exactly = 0) { createBehandlingFromMottak.createBehandling(any()) }
+    }
+
+    @Test
     fun `klage from kabin on arkivsak or unknown sakstype is rejected`() {
         assertThrows<OversendtKlageNotValidException> {
             mottakService.createKlageMottakFromKabinInput(

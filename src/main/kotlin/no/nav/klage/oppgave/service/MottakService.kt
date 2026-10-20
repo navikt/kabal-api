@@ -522,7 +522,7 @@ class MottakService(
     }
 
     fun CreateKlageBasedOnKabinInput.validate() {
-        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId)
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) },
@@ -542,7 +542,7 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
-        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId)
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateAnkeType(typeId = typeId)
         validateTrygderettenSaksnummer(
             trygderettenSaksnummer = trygderettenSaksnummer,
@@ -570,10 +570,11 @@ class MottakService(
         )
     }
 
-    /** Sakstype from kabin. Null means FAGSAK. GENERELL_SAK has no fagsakId. ARKIVSAK is not supported. */
+    /** Sakstype from kabin. Null means FAGSAK. GENERELL_SAK has no fagsakId, but must have arkivsaksnummer. ARKIVSAK is not supported. */
     private fun validateSak(
         sakstypeId: String?,
         fagsakId: String?,
+        arkivsaksnummer: String?,
     ) {
         val sakstype =
             try {
@@ -591,6 +592,9 @@ class MottakService(
             Sakstype.GENERELL_SAK -> {
                 if (fagsakId != null) {
                     throw OversendtKlageNotValidException("Generell sak skal ikke ha fagsakId.")
+                }
+                if (arkivsaksnummer.isNullOrBlank()) {
+                    throw OversendtKlageNotValidException("Generell sak må ha arkivsaksnummer.")
                 }
             }
 
@@ -631,7 +635,7 @@ class MottakService(
     }
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
-        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId)
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateTrygderettenSaksnummer(trygderettenSaksnummer = trygderettenSaksnummer, type = Type.of(typeId!!))
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
