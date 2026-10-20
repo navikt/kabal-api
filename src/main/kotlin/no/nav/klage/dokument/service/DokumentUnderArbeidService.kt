@@ -657,7 +657,7 @@ class DokumentUnderArbeidService(
         dokumentInfoId: String,
     ): String =
         journalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
-            ?: error("can't be null")
+            ?: error("Dokument uten tittel kan ikke brukes som vedlegg.")
 
     fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid =
         dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
@@ -1213,11 +1213,13 @@ class DokumentUnderArbeidService(
     }
 
     fun updateDokumentTitle(
-        behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         dokumentTitle: String,
         innloggetIdent: String,
     ): DokumentUnderArbeid {
+        if (dokumentTitle.isBlank()) {
+            throw IllegalArgumentException("Tittelen må ha innhold")
+        }
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)

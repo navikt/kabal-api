@@ -184,7 +184,7 @@ class DokumentService(
                 ).first()
 
         return journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
-            ?: throw RuntimeException("Document/title not found in Dokarkiv")
+            ?: "Tittel ikke funnet i SAF"
     }
 
     fun getJournalfoertDokumentMetadata(
@@ -204,8 +204,8 @@ class DokumentService(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title =
-                dokumentInfo?.tittel
-                    ?: throw RuntimeException("Document/title not found in Dokarkiv"),
+                dokumentInfo!!.tittel
+                    ?: "Tittel ikke funnet i SAF",
             harTilgangTilArkivvariant = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo),
             hasAccess = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo),
             varianter = dokumentMapper.getVarianter(dokumentInfo = dokumentInfo),
@@ -366,8 +366,7 @@ class DokumentService(
                         .find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
                         .dokumenter
                         ?.find { it.dokumentInfoId == journalfoertDokumentReference.dokumentInfoId }
-                        ?.tittel
-                        ?: throw RuntimeException("Document/title not found in Dokarkiv")
+                        ?.tittel ?: "Tittel ikke funnet i SAF"
                 } + truncatedMessage
     }
 
@@ -548,6 +547,9 @@ class DokumentService(
         dokumentInfoId: String,
         title: String,
     ) {
+        if (title.isBlank()) {
+            throw IllegalArgumentException("Tittelen må ha innhold")
+        }
         dokarkivClient.updateDocumentTitlesOnBehalfOf(
             journalpostId = journalpostId,
             input =
