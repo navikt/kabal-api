@@ -341,7 +341,6 @@ class DokumentUnderArbeidController(
             modified =
                 dokumentUnderArbeidService
                     .updateDokumentTitle(
-                        behandlingId = behandlingId,
                         dokumentId = dokumentId,
                         dokumentTitle = input.title,
                         innloggetIdent = ident,
