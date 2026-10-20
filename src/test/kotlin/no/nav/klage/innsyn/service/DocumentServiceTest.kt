@@ -18,6 +18,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -221,6 +222,8 @@ internal class DocumentServiceTest {
             dvhReferanse = null,
             fagsystem = Fagsystem.K9,
             fagsakId = "",
+            sakstype = Sakstype.FAGSAK,
+            arkivsaksnummer = null,
             mottattKlageinstans = LocalDateTime.now(),
             frist = LocalDate.now(),
             tildeling = null,

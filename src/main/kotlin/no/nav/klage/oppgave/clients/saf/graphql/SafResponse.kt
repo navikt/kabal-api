@@ -177,6 +177,8 @@ data class Sak(
     val datoOpprettet: LocalDateTime?,
     val fagsakId: String?,
     val fagsaksystem: String?,
+    val sakstype: String?,
+    val arkivsaksnummer: String?,
 )
 
 enum class Tema {

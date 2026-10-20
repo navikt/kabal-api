@@ -228,20 +228,21 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState,
     ): StatistikkTilDVH {
+        val fagsakId = behandling.fagsakId
         val behandlingId =
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.fagsystem == Fagsystem.IT01 && fagsakId != null) {
                 try {
-                    behandling.fagsakId.substring(startIndex = 0, endIndex = 4) + "-" +
-                        behandling.fagsakId.substring(
+                    fagsakId.substring(startIndex = 0, endIndex = 4) + "-" +
+                        fagsakId.substring(
                             startIndex = 4,
                             endIndex = 5,
-                        ) + "-" + behandling.fagsakId.substring(5)
+                        ) + "-" + fagsakId.substring(5)
                 } catch (e: Exception) {
                     logger.error(
-                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
+                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId $fagsakId",
                         e,
                     )
-                    behandling.fagsakId
+                    fagsakId
                 }
             } else {
                 behandling.dvhReferanse ?: behandling.kildeReferanse

@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.verify
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -511,6 +512,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                         mottattKlageinstans = now,
                         fagsystem = fagsystem,
                         fagsakId = saksId,
+                        sakstype = Sakstype.FAGSAK,
+                        arkivsaksnummer = null,
                         kildeReferanse = "abc",
                         mottattVedtaksinstans = LocalDate.now(),
                         avsenderEnhetFoersteinstans = "enhet",
@@ -558,6 +561,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                         mottattKlageinstans = now,
                         fagsystem = fagsystem,
                         fagsakId = saksId,
+                        sakstype = Sakstype.FAGSAK,
+                        arkivsaksnummer = null,
                         kildeReferanse = "abc",
                         kakaKvalitetsvurderingId = UUID.randomUUID(),
                         kakaKvalitetsvurderingVersion = 2,
@@ -603,6 +608,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                         mottattKlageinstans = now,
                         fagsystem = fagsystem,
                         fagsakId = saksId,
+                        sakstype = Sakstype.FAGSAK,
+                        arkivsaksnummer = null,
                         kildeReferanse = "abc",
                         utfall = Utfall.STADFESTELSE,
                         extraUtfallSet = emptySet(),
@@ -644,6 +651,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                         mottattKlageinstans = now,
                         fagsystem = Fagsystem.K9,
                         fagsakId = "123",
+                        sakstype = Sakstype.FAGSAK,
+                        arkivsaksnummer = null,
                         kildeReferanse = "abc",
                         utfall = Utfall.STADFESTELSE,
                         extraUtfallSet = emptySet(),

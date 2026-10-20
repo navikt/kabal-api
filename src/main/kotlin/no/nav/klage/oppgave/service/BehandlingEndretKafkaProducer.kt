@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.UserNotFoundException
@@ -35,12 +36,17 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
 
+        val fagsakId = behandling.fagsakId
         val persongalleriFnrList =
-            sakPersongalleriRepository
-                .findByFagsystemAndFagsakId(
-                    fagsystem = behandling.fagsystem,
-                    fagsakId = behandling.fagsakId,
-                ).map { it.foedselsnummer }
+            if (behandling.sakstype == Sakstype.GENERELL_SAK || fagsakId == null) {
+                emptyList()
+            } else {
+                sakPersongalleriRepository
+                    .findByFagsystemAndFagsakId(
+                        fagsystem = behandling.fagsystem,
+                        fagsakId = fagsakId,
+                    ).map { it.foedselsnummer }
+            }
 
         val allFnr = (persongalleriFnrList + behandling.sakenGjelder.partId.value).distinct()
 

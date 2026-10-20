@@ -44,6 +44,8 @@ class KlagebehandlingService(
                     dvhReferanse = mottak.dvhReferanse,
                     fagsystem = mottak.fagsystem,
                     fagsakId = mottak.fagsakId,
+                    sakstype = mottak.sakstype,
+                    arkivsaksnummer = mottak.arkivsaksnummer,
                     mottattVedtaksinstans = mottak.brukersKlageMottattVedtaksinstans!!,
                     avsenderEnhetFoersteinstans = mottak.forrigeBehandlendeEnhet,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,

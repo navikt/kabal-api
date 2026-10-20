@@ -5,6 +5,7 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -63,7 +64,9 @@ class AnkeITrygderettenbehandlingFoer2027(
     kildeReferanse: String,
     dvhReferanse: String? = null,
     fagsystem: Fagsystem,
-    fagsakId: String,
+    fagsakId: String?,
+    sakstype: Sakstype,
+    arkivsaksnummer: String?,
     mottattKlageinstans: LocalDateTime,
     // TODO: Trenger denne være nullable? Den blir da alltid satt i createKlagebehandlingFromMottak?
     frist: LocalDate? = null,
@@ -111,6 +114,8 @@ class AnkeITrygderettenbehandlingFoer2027(
         tildeling = tildeling,
         frist = frist,
         fagsakId = fagsakId,
+        sakstype = sakstype,
+        arkivsaksnummer = arkivsaksnummer,
         fagsystem = fagsystem,
         dvhReferanse = dvhReferanse,
         saksdokumenter = saksdokumenter,
@@ -174,7 +179,9 @@ data class AnkeITrygderettenbehandlingFoer2027Input(
     val kildeReferanse: String,
     val dvhReferanse: String?,
     val fagsystem: Fagsystem,
-    val fagsakId: String,
+    val fagsakId: String?,
+    val sakstype: Sakstype,
+    val arkivsaksnummer: String?,
     val sakMottattKlageinstans: LocalDateTime,
     val saksdokumenter: MutableSet<Saksdokument>,
     val innsendingsHjemler: Set<Hjemmel>?,

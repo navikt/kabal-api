@@ -363,6 +363,7 @@ class KabinApiService(
                     null
                 },
             fagsakId = behandling.fagsakId,
+            arkivsaksnummer = behandling.arkivsaksnummer,
             fagsystemId = behandling.fagsystem.id,
             // Null when the behandling was created based on an uploaded document instead of an existing journalpost.
             journalpost =
@@ -436,6 +437,7 @@ class KabinApiService(
                     null
                 },
             fagsakId = fagsakId,
+            arkivsaksnummer = arkivsaksnummer,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,
             klageBehandlendeEnhet = tildeling!!.enhet!!,

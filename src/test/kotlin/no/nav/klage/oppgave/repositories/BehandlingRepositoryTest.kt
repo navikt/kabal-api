@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -139,6 +140,45 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     }
 
     @Test
+    fun `behandling on generell sak without fagsakId is persisted and read back`() {
+        val klagebehandling =
+            getKlagebehandling(
+                fagsakId = null,
+                sakstype = Sakstype.GENERELL_SAK,
+                arkivsaksnummer = "140411735",
+            )
+
+        behandlingRepository.save(klagebehandling)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val stored = behandlingRepository.findById(klagebehandling.id).get()
+        assertThat(stored.sakstype).isEqualTo(Sakstype.GENERELL_SAK)
+        assertThat(stored.fagsakId).isNull()
+        assertThat(stored.arkivsaksnummer).isEqualTo("140411735")
+    }
+
+    @Test
+    fun `sakstype column defaults to FAGSAK for existing rows`() {
+        val klagebehandling = getKlagebehandling(sakstype = Sakstype.GENERELL_SAK)
+
+        behandlingRepository.save(klagebehandling)
+        testEntityManager.flush()
+
+        testEntityManager.entityManager
+            .createNativeQuery("UPDATE klage.behandling SET sak_sakstype_id = DEFAULT WHERE id = :id")
+            .setParameter("id", klagebehandling.id)
+            .executeUpdate()
+        testEntityManager.clear()
+
+        val stored = behandlingRepository.findById(klagebehandling.id).get()
+        assertThat(stored.sakstype).isEqualTo(Sakstype.FAGSAK)
+        assertThat(stored.fagsakId).isEqualTo("123")
+        assertThat(stored.arkivsaksnummer).isNull()
+    }
+
+    @Test
     fun `enhet based query works`() {
         val klageTildeltEnhet1 = getKlagebehandling()
         klageTildeltEnhet1.tildeling =
@@ -198,39 +238,44 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 getGjenopptakITrygderettenbehandling(),
             )
 
-        private fun getKlagebehandling() =
-            Klagebehandling(
-                klager =
-                    Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                sakenGjelder =
-                    SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                prosessfullmektig = null,
-                ytelse = Ytelse.OMS_OMP,
-                type = Type.KLAGE,
-                frist = LocalDate.now(),
-                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-                mottattKlageinstans = LocalDateTime.now(),
-                fagsystem = Fagsystem.K9,
-                fagsakId = "123",
-                kildeReferanse = "abc",
-                avsenderEnhetFoersteinstans = "0101",
-                mottattVedtaksinstans = LocalDate.now(),
-                kakaKvalitetsvurderingVersion = 2,
-                kakaKvalitetsvurderingId = UUID.randomUUID(),
-                previousSaksbehandlerident = "C78901",
-                gosysOppgaveId = null,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = false,
-                initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                previousBehandlingId = null,
-            )
+        private fun getKlagebehandling(
+            fagsakId: String? = "123",
+            sakstype: Sakstype = Sakstype.FAGSAK,
+            arkivsaksnummer: String? = null,
+        ) = Klagebehandling(
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.KLAGE,
+            frist = LocalDate.now(),
+            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+            mottattKlageinstans = LocalDateTime.now(),
+            fagsystem = Fagsystem.K9,
+            fagsakId = fagsakId,
+            sakstype = sakstype,
+            arkivsaksnummer = arkivsaksnummer,
+            kildeReferanse = "abc",
+            avsenderEnhetFoersteinstans = "0101",
+            mottattVedtaksinstans = LocalDate.now(),
+            kakaKvalitetsvurderingVersion = 2,
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            previousSaksbehandlerident = "C78901",
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 
         private fun getAnkebehandling() =
             AnkebehandlingFoer2027(
@@ -252,6 +297,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klageBehandlendeEnhet = "4219",
                 kakaKvalitetsvurderingVersion = 2,
@@ -287,6 +334,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klageBehandlendeEnhet = "4219",
                 kakaKvalitetsvurderingVersion = 2,
@@ -321,6 +370,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klageBehandlendeEnhet = "4219",
                 kakaKvalitetsvurderingVersion = 2,
@@ -355,6 +406,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 sendtTilTrygderetten = LocalDateTime.now(),
                 paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
@@ -386,6 +439,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 sendtTilTrygderetten = LocalDateTime.now(),
                 paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
@@ -417,6 +472,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 kakaKvalitetsvurderingVersion = 2,
                 kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -451,6 +508,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klageBehandlendeEnhet = "4219",
                 kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -486,6 +545,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = LocalDateTime.now(),
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klageBehandlendeEnhet = "4219",
                 kakaKvalitetsvurderingId = UUID.randomUUID(),

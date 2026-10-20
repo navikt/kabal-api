@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -67,6 +68,8 @@ fun OversendtAnkeITrygderettenFromArena.toAnkeITrygderettenbehandlingFoer2027Inp
         dvhReferanse = null,
         fagsystem = Fagsystem.AO01,
         fagsakId = fagsakId,
+        sakstype = Sakstype.FAGSAK,
+        arkivsaksnummer = null,
         sakMottattKlageinstans = LocalDate.parse(sakMottattKlageinstans).atStartOfDay(),
         saksdokumenter = mutableSetOf(),
         innsendingsHjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),

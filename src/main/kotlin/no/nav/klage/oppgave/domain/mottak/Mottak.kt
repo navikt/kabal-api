@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.mottak
 
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -19,7 +20,9 @@ data class Mottak(
     val prosessfullmektig: Prosessfullmektig?,
     val sakenGjelder: SakenGjelder?,
     val fagsystem: Fagsystem,
-    val fagsakId: String,
+    val fagsakId: String?,
+    val sakstype: Sakstype = Sakstype.FAGSAK,
+    val arkivsaksnummer: String?,
     val kildeReferanse: String,
     val dvhReferanse: String?,
     val hjemler: Set<Hjemmel>,

@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.view
 
 import io.swagger.v3.oas.annotations.media.Schema
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -86,6 +87,8 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingFoer2027Input(
         dvhReferanse = dvhReferanse,
         fagsystem = fagsak.fagsystem,
         fagsakId = fagsak.fagsakId,
+        sakstype = Sakstype.FAGSAK,
+        arkivsaksnummer = null,
         sakMottattKlageinstans = sakMottattKaTidspunkt,
         saksdokumenter = inputDocuments,
         innsendingsHjemler = hjemler,

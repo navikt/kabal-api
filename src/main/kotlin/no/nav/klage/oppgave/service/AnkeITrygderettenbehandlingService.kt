@@ -76,6 +76,8 @@ class AnkeITrygderettenbehandlingService(
                     dvhReferanse = input.dvhReferanse,
                     fagsystem = input.fagsystem,
                     fagsakId = input.fagsakId,
+                    sakstype = input.sakstype,
+                    arkivsaksnummer = input.arkivsaksnummer,
                     mottattKlageinstans = input.sakMottattKlageinstans,
                     tildeling = null,
                     hjemler =
@@ -184,6 +186,8 @@ class AnkeITrygderettenbehandlingService(
                     dvhReferanse = input.dvhReferanse,
                     fagsystem = input.fagsystem,
                     fagsakId = input.fagsakId,
+                    sakstype = input.sakstype,
+                    arkivsaksnummer = input.arkivsaksnummer,
                     mottattKlageinstans = input.sakMottattKlageinstans,
                     tildeling = null,
                     hjemler =
