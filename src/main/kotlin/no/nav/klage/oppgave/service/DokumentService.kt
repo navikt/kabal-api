@@ -548,7 +548,7 @@ class DokumentService(
         title: String,
     ) {
         if (title.isBlank()) {
-            throw IllegalArgumentException("Tittelen må ha innhold")
+            throw IllegalArgumentException("Dokumentnavn kan ikke være tomt")
         }
         dokarkivClient.updateDocumentTitlesOnBehalfOf(
             journalpostId = journalpostId,

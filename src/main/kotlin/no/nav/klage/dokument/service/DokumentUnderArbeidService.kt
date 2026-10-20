@@ -1218,7 +1218,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String,
     ): DokumentUnderArbeid {
         if (dokumentTitle.isBlank()) {
-            throw IllegalArgumentException("Tittelen må ha innhold")
+            throw IllegalArgumentException("Dokumentnavn kan ikke være tomt")
         }
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
