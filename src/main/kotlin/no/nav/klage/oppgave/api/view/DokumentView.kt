@@ -183,7 +183,7 @@ data class DokumentReferanse(
         val fagsaksystem: String?,
         val fagsystemId: String?,
         /** Fagsak gir fagsakId. Generell sak og arkivsak gir arkivsaksnummer. */
-        val saksnummer: String?,
+        val saksnummer: String,
     )
 
     data class TimelineItem(
