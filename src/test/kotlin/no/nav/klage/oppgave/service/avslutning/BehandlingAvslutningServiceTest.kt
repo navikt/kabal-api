@@ -7,7 +7,9 @@ import io.mockk.slot
 import io.mockk.verify
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.typeToUtfall
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -42,10 +44,13 @@ import no.nav.klage.oppgave.service.KlankeService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.context.ApplicationEventPublisher
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
@@ -138,6 +143,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -274,6 +280,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -394,7 +401,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `AnkebehandlingFoer2027 with utfall not going to Trygderetten from modern fagsystem creates kafka event`() {
-            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.utfall } returns Utfall.MEDHOLD
             every { behandling.fagsystem } returns Fagsystem.FS36
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -525,6 +532,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -576,7 +584,7 @@ class BehandlingAvslutningServiceTest {
         fun `AnkebehandlingEtter2027 from modern fagsystem not sent to Trygderetten creates AnkeITrygderettenEtter2027 and kafka event`() {
             every { behandling.fagsystem } returns Fagsystem.FS36
             every { behandling.gosysOppgaveRequired } returns false
-            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.utfall } returns Utfall.MEDHOLD
             val followOnInput = mockk<no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input>()
             every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns followOnInput
             val savedKafkaEvent = slot<KafkaEvent>()
@@ -643,6 +651,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -979,52 +988,6 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandlingFoer2027 from modern fagsystem with different utfall sends Kafka event to fagsystem`() {
-            every { behandling.utfall } returns Utfall.STADFESTELSE
-            every { behandling.fagsystem } returns Fagsystem.FS36
-
-            behandlingAvslutningService.avsluttBehandling(behandlingId)
-
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) {
-                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
-                    any(),
-                )
-            }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
-                    any(),
-                )
-            }
-            verify(exactly = 0) {
-                gosysOppgaveService.addKommentar(
-                    behandling = any(),
-                    kommentar = any(),
-                    systemContext = any(),
-                    throwExceptionIfFerdigstilt = any(),
-                )
-            }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
-            verify(exactly = 0) {
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = any(),
-                    systemContext = any(),
-                    throwExceptionIfFerdigstilt = any(),
-                )
-            }
-            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
-            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
-            verify(exactly = 1) {
-                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
-                    any(),
-                )
-            }
-            verify(exactly = 1) { kafkaEventRepository.save(any()) }
-        }
-
-        @Test
         fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd with different utfall updates Infotrygd`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
@@ -1114,6 +1077,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -1451,52 +1415,6 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandlingEtter2027 from modern fagsystem with different utfall sends Kafka event to fagsystem`() {
-            every { behandling.utfall } returns Utfall.STADFESTELSE
-            every { behandling.fagsystem } returns Fagsystem.FS36
-
-            behandlingAvslutningService.avsluttBehandling(behandlingId)
-
-            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
-            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
-            verify(exactly = 0) {
-                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
-                    any(),
-                )
-            }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
-                    any(),
-                )
-            }
-            verify(exactly = 0) {
-                gosysOppgaveService.addKommentar(
-                    behandling = any(),
-                    kommentar = any(),
-                    systemContext = any(),
-                    throwExceptionIfFerdigstilt = any(),
-                )
-            }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
-            verify(exactly = 0) {
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = any(),
-                    systemContext = any(),
-                    throwExceptionIfFerdigstilt = any(),
-                )
-            }
-            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
-            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
-            verify(exactly = 1) {
-                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
-                    any(),
-                )
-            }
-            verify(exactly = 1) { kafkaEventRepository.save(any()) }
-        }
-
-        @Test
         fun `AnkeITrygderettenbehandlingEtter2027 from Infotrygd with different utfall finishes in Infotrygd and updates GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
@@ -1623,15 +1541,10 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandlingEtter2027 is emitted as ankebehandling when previous treatment was sent to Trygderetten`() {
-            val previousBehandlingId = UUID.randomUUID()
-            val previousBehandling = mockk<AnkebehandlingEtter2027>(relaxed = true)
+        fun `AnkeITrygderettenbehandlingEtter2027 from modern fagsystem is emitted as ANKEBEHANDLING_AVSLUTTET`() {
             every { behandling.fagsystem } returns Fagsystem.FS36
             every { behandling.gosysOppgaveRequired } returns false
-            every { behandling.utfall } returns Utfall.STADFESTELSE
-            every { behandling.previousBehandlingId } returns previousBehandlingId
-            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(previousBehandlingId) } returns previousBehandling
-            every { previousBehandling.shouldBeSentToTrygderetten() } returns true
+            every { behandling.utfall } returns Utfall.MEDHOLD
             val savedKafkaEvent = slot<KafkaEvent>()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -1639,27 +1552,6 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
             val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
             assertEquals(BehandlingEventType.ANKEBEHANDLING_AVSLUTTET, event.type)
-            assertEquals("kildereferanse", event.kildeReferanse)
-            assertEquals(behandlingId.toString(), event.kabalReferanse)
-        }
-
-        @Test
-        fun `AnkeITrygderettenbehandlingEtter2027 is emitted as anke i Trygderetten when previous treatment was not sent there`() {
-            val previousBehandlingId = UUID.randomUUID()
-            val previousBehandling = mockk<AnkebehandlingEtter2027>(relaxed = true)
-            every { behandling.fagsystem } returns Fagsystem.FS36
-            every { behandling.gosysOppgaveRequired } returns false
-            every { behandling.utfall } returns Utfall.STADFESTELSE
-            every { behandling.previousBehandlingId } returns previousBehandlingId
-            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(previousBehandlingId) } returns previousBehandling
-            every { previousBehandling.shouldBeSentToTrygderetten() } returns false
-            val savedKafkaEvent = slot<KafkaEvent>()
-
-            behandlingAvslutningService.avsluttBehandling(behandlingId)
-
-            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
-            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
-            assertEquals(BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET, event.type)
             assertEquals("kildereferanse", event.kildeReferanse)
             assertEquals(behandlingId.toString(), event.kabalReferanse)
         }
@@ -1685,6 +1577,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -1974,12 +1867,13 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
         @Test
         fun `BehandlingEtterTrygderettenOpphevet from modern fagsystem creates kafka event`() {
-            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.utfall } returns Utfall.MEDHOLD
             every { behandling.fagsystem } returns Fagsystem.FS36
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -2112,6 +2006,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -2181,7 +2076,6 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        @Disabled
         fun `GjenopptaksbehandlingBasedOnKabalBehandling with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
             val behandling =
                 mockk<GjenopptaksbehandlingBasedOnKabalBehandling>(relaxed = true) {
@@ -2201,6 +2095,7 @@ class BehandlingAvslutningServiceTest {
                     every { shouldBeSentToTrygderetten() } answers { callOriginal() }
                     every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
                     every { shouldBeCompletedInKA() } answers { callOriginal() }
+                    every { shouldNotifyVedtaksinstans() } answers { callOriginal() }
                 }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
@@ -2475,6 +2370,7 @@ class BehandlingAvslutningServiceTest {
 
         @BeforeEach
         fun before() {
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
         }
 
@@ -2687,7 +2583,6 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        @Disabled
         fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall opphevet new behandling VL sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
@@ -2793,7 +2688,6 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        @Disabled
         fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
@@ -3093,6 +2987,270 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verifyHandledLikeArena()
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    inner class KafkaEventPerUtfall {
+        private val expectedKafkaEventsByType =
+            mapOf(
+                Type.KLAGE to
+                    mapOf(
+                        Utfall.TRUKKET to true,
+                        Utfall.RETUR to true,
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.STADFESTELSE to true,
+                        Utfall.AVVIST to true,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to true,
+                    ),
+                Type.ANKE_FOER_2027 to
+                    mapOf(
+                        Utfall.TRUKKET to false,
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.INNSTILLING_STADFESTELSE to false,
+                        Utfall.INNSTILLING_AVVIST to false,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to false,
+                    ),
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027 to
+                    mapOf(
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.STADFESTELSE to false,
+                        Utfall.AVVIST to false,
+                        Utfall.HEVET to false,
+                        Utfall.HENVIST to false,
+                    ),
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET to
+                    mapOf(
+                        Utfall.TRUKKET to false,
+                        Utfall.RETUR to true,
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.STADFESTELSE to false,
+                        Utfall.AVVIST to false,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to false,
+                    ),
+                Type.OMGJOERINGSKRAV to
+                    mapOf(
+                        Utfall.MEDHOLD_ETTER_FVL_35 to true,
+                        Utfall.BESLUTNING_IKKE_OMGJOERE to false,
+                        Utfall.STADFESTET_ANNEN_BEGRUNNELSE to false,
+                        Utfall.TRUKKET to false,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to false,
+                    ),
+                Type.BEGJAERING_OM_GJENOPPTAK to
+                    mapOf(
+                        Utfall.MEDHOLD_ETTER_FVL_35 to true,
+                        Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES to false,
+                        Utfall.INNSTILLING_GJENOPPTAS_IKKE to false,
+                        Utfall.INNSTILLING_AVVIST to false,
+                        Utfall.TRUKKET to false,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to false,
+                    ),
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN to
+                    mapOf(
+                        Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD to true,
+                        Utfall.GJENOPPTATT_OPPHEVET to true,
+                        Utfall.GJENOPPTATT_STADFESTET to false,
+                        Utfall.IKKE_GJENOPPTATT to false,
+                        Utfall.AVVIST to false,
+                        Utfall.HEVET to false,
+                    ),
+                Type.ANKE_ETTER_2027 to
+                    mapOf(
+                        Utfall.TRUKKET to false,
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.INNSTILLING_STADFESTELSE to false,
+                        Utfall.INNSTILLING_AVVIST to false,
+                        Utfall.UGUNST to true,
+                        Utfall.HENLAGT to false,
+                    ),
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027 to
+                    mapOf(
+                        Utfall.OPPHEVET to true,
+                        Utfall.MEDHOLD to true,
+                        Utfall.DELVIS_MEDHOLD to true,
+                        Utfall.STADFESTELSE to false,
+                        Utfall.AVVIST to false,
+                        Utfall.HEVET to false,
+                        Utfall.HENVIST to false,
+                    ),
+            )
+
+        fun kafkaEventCases(): List<Arguments> =
+            expectedKafkaEventsByType.flatMap { (type, outcomes) ->
+                outcomes.map { (outcome, expectedKafkaEvent) ->
+                    Arguments.of(type, outcome, expectedKafkaEvent)
+                }
+            }
+
+        @Test
+        fun `hard-coded outcome table exactly matches typeToUtfall`() {
+            assertEquals(typeToUtfall.keys, expectedKafkaEventsByType.keys)
+            typeToUtfall.forEach { (type, outcomes) ->
+                assertEquals(outcomes, expectedKafkaEventsByType[type]?.keys)
+            }
+        }
+
+        @ParameterizedTest(name = "{0} / {1}: Kafka event expected = {2}")
+        @MethodSource("kafkaEventCases")
+        fun `only listed treatment outcomes create Kafka events`(
+            type: Type,
+            outcome: Utfall,
+            expectedKafkaEvent: Boolean,
+        ) {
+            val behandling = createBehandling(type, outcome)
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = if (expectedKafkaEvent) 1 else 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingFoer2027 with DELVIS_MEDHOLD creates Trygderetten treatment and Kafka event`() {
+            val behandling = createBehandling(Type.ANKE_FOER_2027, Utfall.DELVIS_MEDHOLD)
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+            val savedKafkaEvent = slot<KafkaEvent>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
+            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
+            assertEquals(BehandlingEventType.ANKEBEHANDLING_AVSLUTTET, event.type)
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 with DELVIS_MEDHOLD creates Trygderetten treatment and Kafka event`() {
+            val behandling = createBehandling(Type.ANKE_ETTER_2027, Utfall.DELVIS_MEDHOLD)
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+            val savedKafkaEvent = slot<KafkaEvent>()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(any()) }
+            verify(exactly = 1) { kafkaEventRepository.save(capture(savedKafkaEvent)) }
+            val event = jacksonObjectMapper().readValue(savedKafkaEvent.captured.jsonPayload, BehandlingEvent::class.java)
+            assertEquals(BehandlingEventType.ANKEBEHANDLING_AVSLUTTET, event.type)
+        }
+
+        @Test
+        fun `Gjenopptaksbehandling with UGUNST and Gosys task updates Gosys without Kafka event`() {
+            val behandling = createBehandling(Type.BEGJAERING_OM_GJENOPPTAK, Utfall.UGUNST, gosysOppgaveRequired = true)
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = behandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        private fun createBehandling(
+            type: Type,
+            utfall: Utfall,
+            gosysOppgaveRequired: Boolean = false,
+        ): Behandling {
+            val behandling =
+                when (type) {
+                    Type.KLAGE -> mockk<Klagebehandling>(relaxed = true)
+                    Type.ANKE_FOER_2027 -> mockk<AnkebehandlingFoer2027>(relaxed = true)
+                    Type.ANKE_ETTER_2027 -> mockk<AnkebehandlingEtter2027>(relaxed = true)
+                    Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> mockk<AnkeITrygderettenbehandlingFoer2027>(relaxed = true)
+                    Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true)
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true)
+                    Type.OMGJOERINGSKRAV -> mockk<Omgjoeringskravbehandling>(relaxed = true)
+                    Type.BEGJAERING_OM_GJENOPPTAK -> mockk<Gjenopptaksbehandling>(relaxed = true)
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> mockk<GjenopptakITrygderettenbehandling>(relaxed = true)
+                }
+
+            every { behandling.id } returns behandlingId
+            every { behandling.type } returns type
+            every { behandling.utfall } returns utfall
+            every { behandling.fagsystem } returns Fagsystem.FS36
+            every { behandling.kildeReferanse } returns "kildereferanse"
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
+            every { behandling.gosysOppgaveRequired } returns gosysOppgaveRequired
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.gosysOppgaveId } returns if (gosysOppgaveRequired) 123L else null
+            every { behandling.gosysOppgaveUpdate } returns if (gosysOppgaveRequired) mockk<GosysOppgaveUpdate>() else null
+            every { behandling.ferdigstilling } returns
+                Ferdigstilling(
+                    avsluttet = null,
+                    avsluttetAvSaksbehandler = now,
+                    navIdent = "",
+                    navn = "",
+                )
+            every { behandling.tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+
+            when (behandling) {
+                is AnkebehandlingFoer2027 -> {
+                    every { behandling.shouldBeSentToTrygderetten() } answers { callOriginal() }
+                    every { behandling.createAnkeITrygderettenbehandlingFoer2027Input() } returns mockk()
+                }
+
+                is AnkebehandlingEtter2027 -> {
+                    every { behandling.shouldBeSentToTrygderetten() } answers { callOriginal() }
+                    every { behandling.createAnkeITrygderettenbehandlingEtter2027Input() } returns mockk()
+                }
+
+                is AnkeITrygderettenbehandlingFoer2027 -> {
+                    every { behandling.nyAnkebehandlingKA } returns null
+                    every { behandling.nyBehandlingEtterTROpphevet } returns null
+                    every { behandling.shouldCreateNewAnkebehandling() } answers { callOriginal() }
+                    every { behandling.shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+                    every { behandling.shouldNotCreateNewBehandling() } answers { callOriginal() }
+                }
+
+                is AnkeITrygderettenbehandlingEtter2027 -> {
+                    every { behandling.nyAnkebehandlingKA } returns null
+                    every { behandling.nyBehandlingEtterTROpphevet } returns null
+                    every { behandling.shouldCreateNewAnkebehandling() } answers { callOriginal() }
+                    every { behandling.shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+                    every { behandling.shouldNotCreateNewBehandling() } answers { callOriginal() }
+                }
+
+                is Omgjoeringskravbehandling -> {
+                    every { behandling.shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+                    every { behandling.shouldBeCompletedInKA() } answers { callOriginal() }
+                }
+
+                is Gjenopptaksbehandling -> {
+                    every { behandling.shouldBeSentToTrygderetten() } answers { callOriginal() }
+                    every { behandling.shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+                    every { behandling.shouldBeCompletedInKA() } answers { callOriginal() }
+                }
+
+                is GjenopptakITrygderettenbehandling -> {
+                    every { behandling.nyGjenopptaksbehandlingKA } returns null
+                    every { behandling.nyBehandlingEtterTROpphevet } returns null
+                    every { behandling.shouldCreateNewGjenopptaksbehandling() } answers { callOriginal() }
+                    every { behandling.shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+                    every { behandling.shouldBeCompletedInKA() } answers { callOriginal() }
+                }
+            }
+
+            return behandling
         }
     }
 }

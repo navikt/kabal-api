@@ -15,10 +15,6 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer202
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.kafka.AnkeITrygderettenbehandlingOpprettetDetaljer
-import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
-import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.BehandlingType
 import no.nav.klage.oppgave.domain.kafka.EventType
@@ -139,37 +135,6 @@ class AnkeITrygderettenbehandlingService(
             ),
         )
 
-        if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
-            // Publiser Kafka-event, infomelding om opprettelse
-            val behandlingEvent =
-                BehandlingEvent(
-                    eventId = UUID.randomUUID(),
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                    kabalReferanse = ankeITrygderettenbehandling.id.toString(),
-                    type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
-                    detaljer =
-                        BehandlingDetaljer(
-                            ankeITrygderettenbehandlingOpprettet =
-                                AnkeITrygderettenbehandlingOpprettetDetaljer(
-                                    sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
-                                    utfall = input.ankebehandlingUtfall,
-                                ),
-                        ),
-                )
-
-            kafkaEventRepository.save(
-                KafkaEvent(
-                    id = UUID.randomUUID(),
-                    behandlingId = ankeITrygderettenbehandling.id,
-                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    jsonPayload = jacksonObjectMapper.writeValueAsString(behandlingEvent),
-                    type = EventType.BEHANDLING_EVENT,
-                ),
-            )
-        }
-
         return ankeITrygderettenbehandling
     }
 
@@ -249,37 +214,6 @@ class AnkeITrygderettenbehandlingService(
                     ),
             ),
         )
-
-        if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
-            // Publiser Kafka-event, infomelding om opprettelse
-            val behandlingEvent =
-                BehandlingEvent(
-                    eventId = UUID.randomUUID(),
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                    kabalReferanse = ankeITrygderettenbehandling.id.toString(),
-                    type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
-                    detaljer =
-                        BehandlingDetaljer(
-                            ankeITrygderettenbehandlingOpprettet =
-                                AnkeITrygderettenbehandlingOpprettetDetaljer(
-                                    sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
-                                    utfall = input.ankebehandlingUtfall,
-                                ),
-                        ),
-                )
-
-            kafkaEventRepository.save(
-                KafkaEvent(
-                    id = UUID.randomUUID(),
-                    behandlingId = ankeITrygderettenbehandling.id,
-                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    jsonPayload = jacksonObjectMapper.writeValueAsString(behandlingEvent),
-                    type = EventType.BEHANDLING_EVENT,
-                ),
-            )
-        }
 
         return ankeITrygderettenbehandling
     }

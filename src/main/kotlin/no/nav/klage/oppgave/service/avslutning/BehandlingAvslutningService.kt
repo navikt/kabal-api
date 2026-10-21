@@ -21,13 +21,11 @@ import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttet
-import no.nav.klage.oppgave.domain.kafka.AnkeITrygderettenbehandlingAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.AnkebehandlingAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.GJENOPPTAKSBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
@@ -171,7 +169,7 @@ class BehandlingAvslutningService(
             )
         } else if (!klagebehandling.gosysOppgaveRequired) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(behandling = klagebehandling, markAnkeITrygderettenbehandlingAsAnkebehandling = false)
+            createKafkaEventForModernizedFagsystem(behandling = klagebehandling)
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand på klagebehandling med id ${klagebehandling.id}. Undersøk.")
         }
@@ -212,7 +210,9 @@ class BehandlingAvslutningService(
                 )
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
             }
-            // No need for notifying modernized fagsystem when sending to Trygderetten.
+            if (ankebehandling.isModernizedFagsystemCase()) {
+                createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
+            }
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankebehandling)
@@ -224,7 +224,7 @@ class BehandlingAvslutningService(
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(behandling = ankebehandling, markAnkeITrygderettenbehandlingAsAnkebehandling = false)
+            createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
         } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
         } else {
@@ -265,6 +265,9 @@ class BehandlingAvslutningService(
                 )
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
             }
+            if (ankebehandling.isModernizedFagsystemCase()) {
+                createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
+            }
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (ankebehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
@@ -273,7 +276,7 @@ class BehandlingAvslutningService(
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(behandling = ankebehandling, markAnkeITrygderettenbehandlingAsAnkebehandling = false)
+            createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
         }
 
         if (ankebehandling.gosysOppgaveRequired) {
@@ -352,7 +355,6 @@ class BehandlingAvslutningService(
             )
             createKafkaEventForModernizedFagsystem(
                 behandling = ankeITrygderettenbehandling,
-                markAnkeITrygderettenbehandlingAsAnkebehandling = false,
             )
         } else if (ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
             logger.debug(
@@ -440,21 +442,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
             )
-            val previousBehandling =
-                behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
-                    behandlingId = ankeITrygderettenbehandling.previousBehandlingId!!,
-                )
-            if (previousBehandling.shouldBeSentToTrygderetten()) {
-                createKafkaEventForModernizedFagsystem(
-                    behandling = ankeITrygderettenbehandling,
-                    markAnkeITrygderettenbehandlingAsAnkebehandling = true,
-                )
-            } else {
-                createKafkaEventForModernizedFagsystem(
-                    behandling = ankeITrygderettenbehandling,
-                    markAnkeITrygderettenbehandlingAsAnkebehandling = false,
-                )
-            }
+            createKafkaEventForModernizedFagsystem(
+                behandling = ankeITrygderettenbehandling,
+            )
         } else if (ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.",
@@ -501,7 +491,6 @@ class BehandlingAvslutningService(
             )
             createKafkaEventForModernizedFagsystem(
                 behandling = behandlingEtterTrygderettenOpphevet,
-                markAnkeITrygderettenbehandlingAsAnkebehandling = false,
             )
         } else {
             throw BehandlingAvsluttetException(
@@ -548,7 +537,6 @@ class BehandlingAvslutningService(
                 )
                 createKafkaEventForModernizedFagsystem(
                     behandling = omgjoeringskravbehandling,
-                    markAnkeITrygderettenbehandlingAsAnkebehandling = false,
                 )
             }
         } else if (omgjoeringskravbehandling.shouldBeCompletedInKA()) {
@@ -587,7 +575,6 @@ class BehandlingAvslutningService(
                 )
                 createKafkaEventForModernizedFagsystem(
                     behandling = gjenopptaksbehandling,
-                    markAnkeITrygderettenbehandlingAsAnkebehandling = false,
                 )
             }
         } else if (gjenopptaksbehandling.shouldBeSentToTrygderetten()) {
@@ -683,7 +670,6 @@ class BehandlingAvslutningService(
             )
             createKafkaEventForModernizedFagsystem(
                 behandling = gjenopptakITrygderettenbehandling,
-                markAnkeITrygderettenbehandlingAsAnkebehandling = false,
             )
         } else {
             if (gjenopptakITrygderettenbehandling.gosysOppgaveId != null && gjenopptakITrygderettenbehandling.gosysOppgaveUpdate != null &&
@@ -701,10 +687,16 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun createKafkaEventForModernizedFagsystem(
-        behandling: Behandling,
-        markAnkeITrygderettenbehandlingAsAnkebehandling: Boolean,
-    ) {
+    private fun createKafkaEventForModernizedFagsystem(behandling: Behandling) {
+        if (!behandling.shouldNotifyVedtaksinstans()) {
+            logger.info(
+                "Behandling {} med utfall {} avsluttes i KA uten Kafka-melding til modernisert fagsystem.",
+                behandling.id,
+                behandling.utfall?.name,
+            )
+            return
+        }
+
         val hoveddokumenter =
             dokumentUnderArbeidCommonService
                 .findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -733,16 +725,8 @@ class BehandlingAvslutningService(
                             ANKEBEHANDLING_AVSLUTTET
                         }
 
-                        is AnkeITrygderettenbehandlingFoer2027 -> {
+                        is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
                             ANKEBEHANDLING_AVSLUTTET
-                        }
-
-                        is AnkeITrygderettenbehandlingEtter2027 -> {
-                            if (markAnkeITrygderettenbehandlingAsAnkebehandling) {
-                                ANKEBEHANDLING_AVSLUTTET
-                            } else {
-                                ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET
-                            }
                         }
 
                         is BehandlingEtterTrygderettenOpphevet -> {
@@ -769,7 +753,6 @@ class BehandlingAvslutningService(
                     getBehandlingDetaljer(
                         behandling = behandling,
                         hoveddokumenter = hoveddokumenter,
-                        markAnkeITrygderettenbehandlingAsAnkebehandling = markAnkeITrygderettenbehandlingAsAnkebehandling,
                     ),
             )
         kafkaEventRepository.save(
@@ -911,10 +894,12 @@ class BehandlingAvslutningService(
     private fun Behandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave(): Boolean =
         fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22, Fagsystem.PP01) && gosysOppgaveRequired
 
+    private fun Behandling.isModernizedFagsystemCase(): Boolean =
+        fagsystem != Fagsystem.IT01 && fagsystem != Fagsystem.AO01 && !isImpliedArenaCase() && !gosysOppgaveRequired
+
     private fun getBehandlingDetaljer(
         behandling: Behandling,
         hoveddokumenter: List<DokumentUnderArbeidAsHoveddokument>,
-        markAnkeITrygderettenbehandlingAsAnkebehandling: Boolean,
     ): BehandlingDetaljer =
         when (behandling) {
             is Klagebehandling -> {
@@ -934,6 +919,7 @@ class BehandlingAvslutningService(
             is AnkebehandlingFoer2027,
             is AnkebehandlingEtter2027,
             is AnkeITrygderettenbehandlingFoer2027,
+            is AnkeITrygderettenbehandlingEtter2027,
             -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet =
@@ -946,34 +932,6 @@ class BehandlingAvslutningService(
                                     .map { it.journalpostId },
                         ),
                 )
-            }
-
-            is AnkeITrygderettenbehandlingEtter2027 -> {
-                if (markAnkeITrygderettenbehandlingAsAnkebehandling) {
-                    BehandlingDetaljer(
-                        ankebehandlingAvsluttet =
-                            AnkebehandlingAvsluttetDetaljer(
-                                avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                                utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                                journalpostReferanser =
-                                    hoveddokumenter
-                                        .flatMap { it.dokarkivReferences }
-                                        .map { it.journalpostId },
-                            ),
-                    )
-                } else {
-                    BehandlingDetaljer(
-                        ankeITrygderettenbehandlingAvsluttet =
-                            AnkeITrygderettenbehandlingAvsluttetDetaljer(
-                                avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                                utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                                journalpostReferanser =
-                                    hoveddokumenter
-                                        .flatMap { it.dokarkivReferences }
-                                        .map { it.journalpostId },
-                            ),
-                    )
-                }
             }
 
             is BehandlingEtterTrygderettenOpphevet,
