@@ -418,8 +418,12 @@ abstract class Behandling(
         return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
     }
 
-    /** Saksnummer til visning. Generelle saker har ikke fagsakId, bruk da arkivsaksnummer. */
-    fun saksnummerForView(): String = fagsakId ?: arkivsaksnummer ?: "Uten saksnummer"
+    /** Fagsak bruker fagsakId. Generell sak og arkivsak bruker arkivsaksnummer. */
+    fun getSaksnummer(): String =
+        when (sakstype) {
+            Sakstype.FAGSAK -> fagsakId!!
+            Sakstype.GENERELL_SAK, Sakstype.ARKIVSAK -> arkivsaksnummer!!
+        }
 
     fun createAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input =
         AnkeITrygderettenbehandlingFoer2027Input(

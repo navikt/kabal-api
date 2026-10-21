@@ -48,7 +48,6 @@ data class BehandlingDetaljerView(
     val medunderskriver: CombinedMedunderskriverAndROLView,
     val relevantDocumentIdList: Set<String>,
     val saksnummer: String?,
-    val arkivsaksnummer: String?,
     val arenaSaksnummer: String? = null,
     val saksbehandler: SaksbehandlerView?,
     val previousSaksbehandler: SaksbehandlerView?,

@@ -157,6 +157,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(stored.sakstype).isEqualTo(Sakstype.GENERELL_SAK)
         assertThat(stored.fagsakId).isNull()
         assertThat(stored.arkivsaksnummer).isEqualTo("140411735")
+        assertThat(stored.getSaksnummer()).isEqualTo("140411735")
     }
 
     @Test
@@ -176,6 +177,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(stored.sakstype).isEqualTo(Sakstype.FAGSAK)
         assertThat(stored.fagsakId).isEqualTo("123")
         assertThat(stored.arkivsaksnummer).isNull()
+        assertThat(stored.getSaksnummer()).isEqualTo("123")
     }
 
     @Test

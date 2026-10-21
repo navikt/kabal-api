@@ -123,7 +123,7 @@ class DokumentMapper(
                         tema = behandling.ytelse.toTema().navn,
                         dato = LocalDateTime.now().toLocalDate(),
                         avsenderMottaker = "",
-                        saksnummer = behandling.saksnummerForView(),
+                        saksnummer = behandling.getSaksnummer(),
                         type = type,
                     ),
                 ),
@@ -420,7 +420,7 @@ class DokumentMapper(
                             fagsakId = journalpost.sak.fagsakId,
                             fagsaksystem = journalpost.sak.fagsaksystem,
                             fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(it).id },
-                            arkivsaksnummer = journalpost.sak.arkivsaksnummer,
+                            saksnummer = journalpost.sak.getSaksnummer(),
                         )
                     } else {
                         null

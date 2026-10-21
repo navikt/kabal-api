@@ -214,8 +214,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = klagebehandling.fagsakId,
-            arkivsaksnummer = klagebehandling.arkivsaksnummer,
+            saksnummer = klagebehandling.getSaksnummer(),
             rol = klagebehandling.toROLView(),
             medunderskriver = klagebehandling.toMedunderskriverView(),
             saksbehandler = klagebehandling.toSaksbehandlerView(),
@@ -303,8 +302,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = omgjoeringskravbehandling.fagsakId,
-            arkivsaksnummer = omgjoeringskravbehandling.arkivsaksnummer,
+            saksnummer = omgjoeringskravbehandling.getSaksnummer(),
             rol = omgjoeringskravbehandling.toROLView(),
             medunderskriver = omgjoeringskravbehandling.toMedunderskriverView(),
             saksbehandler = omgjoeringskravbehandling.toSaksbehandlerView(),
@@ -442,8 +440,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = ankebehandling.fagsakId,
-            arkivsaksnummer = ankebehandling.arkivsaksnummer,
+            saksnummer = ankebehandling.getSaksnummer(),
             rol = ankebehandling.toROLView(),
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
@@ -526,8 +523,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = ankebehandling.fagsakId,
-            arkivsaksnummer = ankebehandling.arkivsaksnummer,
+            saksnummer = ankebehandling.getSaksnummer(),
             rol = ankebehandling.toROLView(),
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
@@ -612,8 +608,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = behandling.fagsakId,
-            arkivsaksnummer = behandling.arkivsaksnummer,
+            saksnummer = behandling.getSaksnummer(),
             rol = behandling.toROLView(),
             medunderskriver = behandling.toMedunderskriverView(),
             saksbehandler = behandling.toSaksbehandlerView(),
@@ -704,8 +699,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = behandlingEtterTrygderettenOpphevet.fagsakId,
-            arkivsaksnummer = behandlingEtterTrygderettenOpphevet.arkivsaksnummer,
+            saksnummer = behandlingEtterTrygderettenOpphevet.getSaksnummer(),
             rol = behandlingEtterTrygderettenOpphevet.toROLView(),
             medunderskriver = behandlingEtterTrygderettenOpphevet.toMedunderskriverView(),
             saksbehandler = behandlingEtterTrygderettenOpphevet.toSaksbehandlerView(),
@@ -798,8 +792,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = gjenopptaksbehandling.fagsakId,
-            arkivsaksnummer = gjenopptaksbehandling.arkivsaksnummer,
+            saksnummer = gjenopptaksbehandling.getSaksnummer(),
             rol = gjenopptaksbehandling.toROLView(),
             medunderskriver = gjenopptaksbehandling.toMedunderskriverView(),
             saksbehandler = gjenopptaksbehandling.toSaksbehandlerView(),
@@ -1254,8 +1247,7 @@ class BehandlingMapper(
             sattPaaVent = behandling.toSattPaaVent(),
             feilregistrert = behandling.feilregistrering?.registered,
             fagsystemId = behandling.fagsystem.id,
-            saksnummer = behandling.fagsakId,
-            arkivsaksnummer = behandling.arkivsaksnummer,
+            saksnummer = behandling.getSaksnummer(),
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is BehandlingITrygderetten) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist =

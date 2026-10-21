@@ -89,7 +89,7 @@ class MeldingService(
                 utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                 tildeltSaksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!,
                 behandlingType = behandling.type,
-                saksnummer = behandling.saksnummerForView(),
+                saksnummer = behandling.getSaksnummer(),
                 ytelse = behandling.ytelse,
             )
         }
@@ -147,7 +147,7 @@ class MeldingService(
                     utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     tildeltSaksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!,
                     behandlingType = behandling.type,
-                    saksnummer = behandling.saksnummerForView(),
+                    saksnummer = behandling.getSaksnummer(),
                     ytelse = behandling.ytelse,
                 )
             }
