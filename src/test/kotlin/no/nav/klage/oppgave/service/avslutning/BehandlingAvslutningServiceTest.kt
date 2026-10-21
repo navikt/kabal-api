@@ -3008,7 +3008,7 @@ class BehandlingAvslutningServiceTest {
             outcome: Utfall,
             expectedKafkaEvent: Boolean,
         ) {
-            val behandling = createBehandling(type, outcome)
+            val behandling = createBehandling(type = type, utfall = outcome)
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -3018,7 +3018,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `AnkebehandlingFoer2027 with DELVIS_MEDHOLD creates Trygderetten treatment and Kafka event`() {
-            val behandling = createBehandling(Type.ANKE_FOER_2027, Utfall.DELVIS_MEDHOLD)
+            val behandling = createBehandling(type = Type.ANKE_FOER_2027, utfall = Utfall.DELVIS_MEDHOLD)
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
             val savedKafkaEvent = slot<KafkaEvent>()
 
@@ -3032,7 +3032,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `AnkebehandlingEtter2027 with DELVIS_MEDHOLD creates Trygderetten treatment and Kafka event`() {
-            val behandling = createBehandling(Type.ANKE_ETTER_2027, Utfall.DELVIS_MEDHOLD)
+            val behandling = createBehandling(type = Type.ANKE_ETTER_2027, utfall = Utfall.DELVIS_MEDHOLD)
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
             val savedKafkaEvent = slot<KafkaEvent>()
 
@@ -3046,7 +3046,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `Gjenopptaksbehandling with UGUNST and Gosys task updates Gosys without Kafka event`() {
-            val behandling = createBehandling(Type.BEGJAERING_OM_GJENOPPTAK, Utfall.UGUNST, gosysOppgaveRequired = true)
+            val behandling = createBehandling(type = Type.BEGJAERING_OM_GJENOPPTAK, utfall = Utfall.UGUNST, gosysOppgaveRequired = true)
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
