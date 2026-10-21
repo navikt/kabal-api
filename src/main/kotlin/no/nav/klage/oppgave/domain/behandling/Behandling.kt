@@ -338,6 +338,8 @@ abstract class Behandling(
 
     fun shouldBeSentToTrygderetten(): Boolean = utfall in utfallToTrygderetten
 
+    fun shouldNotifyVedtaksinstans(): Boolean = this is Klagebehandling || utfall in utfallToNotifyVedtaksinstans
+
     fun isFerdigstiltOrFeilregistrert(): Boolean = ferdigstilling != null || feilregistrering != null
 
     fun getRoleInBehandling(innloggetIdent: String): BehandlingRole {
@@ -491,6 +493,19 @@ val utfallToTrygderetten =
         Utfall.INNSTILLING_STADFESTELSE,
         Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
         Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+    )
+
+// Utfall som skal formidles til modernisert fagsystem. Klagebehandling formidles alltid, uavhengig av utfall.
+val utfallToNotifyVedtaksinstans =
+    setOf(
+        Utfall.OPPHEVET,
+        Utfall.MEDHOLD,
+        Utfall.DELVIS_MEDHOLD,
+        Utfall.UGUNST,
+        Utfall.RETUR,
+        Utfall.MEDHOLD_ETTER_FVL_35,
+        Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD,
+        Utfall.GJENOPPTATT_OPPHEVET,
     )
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
