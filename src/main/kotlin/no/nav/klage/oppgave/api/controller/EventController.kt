@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration
+import no.nav.klage.oppgave.config.SseShutdownSignal
 import no.nav.klage.oppgave.config.getGauge
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
@@ -32,6 +33,7 @@ class EventController(
     private val aivenKafkaClientCreator: AivenKafkaClientCreator,
     meterRegistry: MeterRegistry,
     private val behandlingService: BehandlingService,
+    private val sseShutdownSignal: SseShutdownSignal,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -77,10 +79,13 @@ class EventController(
 
         val emitFirstHeartbeat = getFirstHeartbeat()
 
+        // The stream never ends on its own, so complete it when the application shuts down
+        // (the client then reconnects, normally to another pod).
         return behandlingEventPublisher
             .mergeWith(emitFirstHeartbeat)
             .mergeWith(heartbeatStream)
             .mergeWith(identityEventPublisher)
+            .takeUntilOther(sseShutdownSignal.asMono())
     }
 
     private fun getBehandlingEventPublisher(behandlingId: UUID): Flux<ServerSentEvent<JsonNode>> {
@@ -100,11 +105,11 @@ class EventController(
                     } else {
                         null
                     }
+                }.doOnSubscribe {
+                    gaugeBehandling.incrementAndGet()
                 }.doFinally { _ ->
                     gaugeBehandling.decrementAndGet()
                 }
-
-        gaugeBehandling.incrementAndGet()
 
         return flux
     }
@@ -126,11 +131,11 @@ class EventController(
                     } else {
                         null
                     }
+                }.doOnSubscribe {
+                    gaugeIdentity.incrementAndGet()
                 }.doFinally { _ ->
                     gaugeIdentity.decrementAndGet()
                 }
-
-        gaugeIdentity.incrementAndGet()
 
         return flux
     }
@@ -150,11 +155,11 @@ class EventController(
                 .interval(Duration.ofSeconds(10))
                 .map {
                     toHeartBeatServerSentEvent()
+                }.doOnSubscribe {
+                    gaugeBehandlingHeartbeat.incrementAndGet()
                 }.doFinally { _ ->
                     gaugeBehandlingHeartbeat.decrementAndGet()
                 }
-
-        gaugeBehandlingHeartbeat.incrementAndGet()
 
         return heartbeatStream
     }
