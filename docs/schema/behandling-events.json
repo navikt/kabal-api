@@ -25,16 +25,13 @@
       "type": "string",
       "enum": [
         "KLAGEBEHANDLING_AVSLUTTET",
-        "ANKEBEHANDLING_OPPRETTET",
         "ANKEBEHANDLING_AVSLUTTET",
-        "ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET",
-        "ANKE_I_TRYGDERETTENBEHANDLING_AVSLUTTET",
         "BEHANDLING_FEILREGISTRERT",
         "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET",
         "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET",
         "GJENOPPTAKSBEHANDLING_AVSLUTTET"
       ],
-      "description": "Typen event som har skjedd. Matcher et av feltene i BehandlingDetaljer, typen her vil vise hvilket felt som ikke er null. Kan og vil utvides med flere verdier på sikt."
+      "description": "Typen event som har skjedd. Matcher et av feltene i BehandlingDetaljer, typen her vil vise hvilket felt som ikke er null. Kan og vil utvides med flere verdier på sikt. KLAGEBEHANDLING_AVSLUTTET sendes for alle utfall. De andre *_AVSLUTTET-typene sendes bare når utfallet skal formidles til vedtaksinstansen, se utfall-feltet for hver type. Andre utfall avsluttes i Klageinstansen uten melding."
     },
     "detaljer": {
       "$ref": "#/definitions/BehandlingDetaljer"
@@ -56,17 +53,8 @@
         "klagebehandlingAvsluttet": {
           "$ref": "#/definitions/KlagebehandlingAvsluttetDetaljer"
         },
-        "ankebehandlingOpprettet": {
-          "$ref": "#/definitions/AnkebehandlingOpprettetDetaljer"
-        },
         "ankebehandlingAvsluttet": {
           "$ref": "#/definitions/AnkebehandlingAvsluttetDetaljer"
-        },
-        "ankeITrygderettenbehandlingOpprettet": {
-          "$ref": "#/definitions/AnkeITrygderettenbehandlingOpprettetDetaljer"
-        },
-        "ankeITrygderettenbehandlingAvsluttet": {
-          "$ref": "#/definitions/AnkeITrygderettenbehandlingAvsluttetDetaljer"
         },
         "behandlingFeilregistrert": {
           "$ref": "#/definitions/BehandlingFeilregistrertDetaljer"
@@ -119,19 +107,6 @@
         "journalpostReferanser"
       ]
     },
-    "AnkebehandlingOpprettetDetaljer": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "mottattKlageinstans": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "mottattKlageinstans"
-      ]
-    },
     "AnkebehandlingAvsluttetDetaljer": {
       "type": "object",
       "additionalProperties": false,
@@ -143,75 +118,12 @@
         "utfall": {
           "type": "string",
           "enum": [
-            "TRUKKET",
             "OPPHEVET",
             "MEDHOLD",
             "DELVIS_MEDHOLD",
-            "STADFESTELSE",
-            "UGUNST",
-            "AVVIST",
-            "HEVET",
-            "HENVIST",
-            "HENLAGT"
+            "UGUNST"
           ],
-          "description": "Utfallet av behandlingen."
-        },
-        "journalpostReferanser": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "JournalpostIder til dokumenter som er journalført i behandlingen. Inkluderer alle vedtak og andre typer dokumenter som er direkte knyttet til utfallet, ekskluderer mer generelle brev som er sendt til bruker."
-        }
-      },
-      "required": [
-        "avsluttet",
-        "utfall",
-        "journalpostReferanser"
-      ]
-    },
-    "AnkeITrygderettenbehandlingOpprettetDetaljer": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "sendtTilTrygderetten": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "utfall": {
-          "type": "string",
-          "enum": [
-            "DELVIS_MEDHOLD",
-            "INNSTILLING_STADFESTELSE",
-            "INNSTILLING_AVVIST"
-          ],
-          "description": "Utfallet av ankebehandlingen som førte til oversendelse til Trygderetten."
-        }
-      },
-      "required": [
-        "sendtTilTrygderetten"
-      ]
-    },
-    "AnkeITrygderettenbehandlingAvsluttetDetaljer": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "avsluttet": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "utfall": {
-          "type": "string",
-          "enum": [
-            "OPPHEVET",
-            "MEDHOLD",
-            "DELVIS_MEDHOLD",
-            "STADFESTELSE",
-            "AVVIST",
-            "HEVET",
-            "HENVIST"
-          ],
-          "description": "Utfallet av behandlingen."
+          "description": "Utfallet av ankebehandlingen eller av anken i Trygderetten. Ved DELVIS_MEDHOLD i klageinstansen sendes saken også til Trygderetten. Når Trygderetten er ferdig, kan det komme en ny ANKEBEHANDLING_AVSLUTTET for samme kildeReferanse, men med en annen kabalReferanse."
         },
         "journalpostReferanser": {
           "type": "array",
@@ -276,15 +188,11 @@
         "utfall": {
           "type": "string",
           "enum": [
-            "TRUKKET",
             "RETUR",
             "OPPHEVET",
             "MEDHOLD",
             "DELVIS_MEDHOLD",
-            "STADFESTELSE",
-            "UGUNST",
-            "AVVIST",
-            "HENLAGT"
+            "UGUNST"
           ]
         },
         "journalpostReferanser": {
