@@ -186,7 +186,7 @@ class DokumentMapperTest {
                     if (fagsakId !=
                         null
                     ) {
-                        Sak(datoOpprettet = null, fagsakId = fagsakId, fagsaksystem = null, sakstype = null, arkivsaksnummer = null)
+                        Sak(datoOpprettet = null, fagsakId = fagsakId, fagsaksystem = null, sakstype = "FAGSAK", arkivsaksnummer = null)
                     } else {
                         null
                     },

@@ -20,7 +20,7 @@ class SakTest {
     }
 
     private fun sak(
-        sakstype: String?,
+        sakstype: String,
         fagsakId: String? = "fagsak-1",
     ) = Sak(
         datoOpprettet = null,

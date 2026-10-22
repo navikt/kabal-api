@@ -178,7 +178,7 @@ data class Sak(
     val datoOpprettet: LocalDateTime?,
     val fagsakId: String?,
     val fagsaksystem: String?,
-    val sakstype: String?,
+    val sakstype: String,
     val arkivsaksnummer: String?,
 ) {
     /** Fagsak gir fagsakId. Generell sak og arkivsak gir arkivsaksnummer. */
