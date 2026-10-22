@@ -78,7 +78,7 @@ class InnsynService(
             id = "${firstBehandling.fagsystem.id}_${firstBehandling.sakKey()}_${firstBehandling.toBasicType().id}",
             saksnummer = firstBehandling.getSaksnummer(),
             ytelseId = firstBehandling.ytelse.id,
-            innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id ?: "ukjent",
+            innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id,
             events =
                 this
                     .map {
