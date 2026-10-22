@@ -18,7 +18,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnder
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -416,16 +415,6 @@ class DokumentMapper(
                     },
                 sak =
                     if (journalpost.sak != null) {
-                        if (journalpost.sak.sakstype == Sakstype.FAGSAK.navn && journalpost.sak.fagsakId == null) {
-                            logger.warn(
-                                "Sakstype FAGSAK but fagsakId is null. JournalpostId: {}, arkivsaksnummer: {}, fagsaksystem: {}, sakstype: {}",
-                                journalpost.journalpostId,
-                                journalpost.sak.arkivsaksnummer,
-                                journalpost.sak.fagsaksystem,
-                                journalpost.sak.sakstype,
-                            )
-                        }
-
                         DokumentReferanse.Sak(
                             datoOpprettet = journalpost.sak.datoOpprettet,
                             fagsakId = journalpost.sak.fagsakId,
