@@ -415,6 +415,16 @@ class DokumentMapper(
                     },
                 sak =
                     if (journalpost.sak != null) {
+                        if (journalpost.sak.fagsakId == null) {
+                            logger.warn(
+                                "Sakstype FAGSAK but fagsakId is null. JournalpostId: {}, arkivsaksnummer: {}, fagsaksystem: {}, sakstype: {}",
+                                journalpost.journalpostId,
+                                journalpost.sak.arkivsaksnummer,
+                                journalpost.sak.fagsaksystem,
+                                journalpost.sak.sakstype,
+                            )
+                        }
+
                         DokumentReferanse.Sak(
                             datoOpprettet = journalpost.sak.datoOpprettet,
                             fagsakId = journalpost.sak.fagsakId,

@@ -182,11 +182,19 @@ data class Sak(
     val arkivsaksnummer: String?,
 ) {
     /** Fagsak gir fagsakId. Generell sak og arkivsak gir arkivsaksnummer. */
-    fun getSaksnummer(): String =
+    fun getSaksnummer(): String? =
         when (sakstype) {
-            Sakstype.FAGSAK.navn -> fagsakId!!
-            Sakstype.GENERELL_SAK.navn, Sakstype.ARKIVSAK.navn -> arkivsaksnummer!!
-            else -> error("Ukjent sakstype $sakstype")
+            Sakstype.FAGSAK.navn -> {
+                fagsakId
+            }
+
+            Sakstype.GENERELL_SAK.navn, Sakstype.ARKIVSAK.navn -> {
+                arkivsaksnummer
+            }
+
+            else -> {
+                error("Ukjent sakstype $sakstype")
+            }
         }
 }
 
