@@ -71,7 +71,8 @@ internal class SafDokumentoversiktBrukerTest {
                   "sak": {
                     "datoOpprettet": "2020-09-11T07:40:25",
                     "fagsakId": null,
-                    "fagsaksystem": "FS22"
+                    "fagsaksystem": "FS22",
+                    "sakstype": "GENERELL_SAK"
                   },
                   "bruker": {
                     "id": "1000034467123",

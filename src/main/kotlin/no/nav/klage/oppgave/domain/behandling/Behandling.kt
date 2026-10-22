@@ -26,6 +26,8 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FagsystemConverter
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.FlowStateConverter
+import no.nav.klage.kodeverk.Sakstype
+import no.nav.klage.kodeverk.SakstypeConverter
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.Utfall
@@ -162,11 +164,16 @@ abstract class Behandling(
     open var tildeling: Tildeling? = null,
     @Column(name = "frist")
     open var frist: LocalDate? = null,
-    @Column(name = "sak_fagsak_id", nullable = false)
-    open val fagsakId: String,
+    @Column(name = "sak_fagsak_id")
+    open val fagsakId: String?,
     @Column(name = "sak_fagsystem", nullable = false)
     @Convert(converter = FagsystemConverter::class)
     open val fagsystem: Fagsystem,
+    @Column(name = "sak_sakstype_id", nullable = false)
+    @Convert(converter = SakstypeConverter::class)
+    open val sakstype: Sakstype,
+    @Column(name = "sak_arkivsaksnummer")
+    open val arkivsaksnummer: String?,
     @Column(name = "dvh_referanse")
     open val dvhReferanse: String? = null,
     // Liste med dokumenter fra Joark. De dokumentene saksbehandler krysser av for havner her. Kopierer fra forrige når ny behandling opprettes.
@@ -411,6 +418,13 @@ abstract class Behandling(
         return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
     }
 
+    /** Fagsak bruker fagsakId. Generell sak og arkivsak bruker arkivsaksnummer. */
+    fun getSaksnummer(): String =
+        when (sakstype) {
+            Sakstype.FAGSAK -> fagsakId!!
+            Sakstype.GENERELL_SAK, Sakstype.ARKIVSAK -> arkivsaksnummer!!
+        }
+
     fun createAnkeITrygderettenbehandlingFoer2027Input(): AnkeITrygderettenbehandlingFoer2027Input =
         AnkeITrygderettenbehandlingFoer2027Input(
             klager = klager,
@@ -422,6 +436,8 @@ abstract class Behandling(
             dvhReferanse = dvhReferanse,
             fagsystem = fagsystem,
             fagsakId = fagsakId,
+            sakstype = sakstype,
+            arkivsaksnummer = arkivsaksnummer,
             sakMottattKlageinstans = mottattKlageinstans,
             saksdokumenter = saksdokumenter,
             innsendingsHjemler = hjemler,
@@ -449,6 +465,8 @@ abstract class Behandling(
             dvhReferanse = dvhReferanse,
             fagsystem = fagsystem,
             fagsakId = fagsakId,
+            sakstype = sakstype,
+            arkivsaksnummer = arkivsaksnummer,
             sakMottattKlageinstans = mottattKlageinstans,
             saksdokumenter = saksdokumenter,
             innsendingsHjemler = hjemler,

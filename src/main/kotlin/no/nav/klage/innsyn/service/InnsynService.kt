@@ -29,16 +29,19 @@ class InnsynService(
 ) {
     data class GroupByKey(
         val fagsystemId: String,
-        val fagsakId: String,
+        val sakKey: String,
         val type: Type,
     )
 
     private fun Behandling.toGroupByKey(): GroupByKey =
         GroupByKey(
             fagsystemId = fagsystem.id,
-            fagsakId = fagsakId,
+            sakKey = sakKey(),
             type = toBasicType(),
         )
+
+    // Generelle saker har ikke fagsakId. Grupper da på arkivsaksnummer, eller hver behandling for seg.
+    private fun Behandling.sakKey(): String = fagsakId ?: arkivsaksnummer?.let { "arkiv-$it" } ?: "behandling-$id"
 
     fun getJournalpostPdf(journalpostId: String): Pair<Path, String> = documentService.getJournalpostPdf(journalpostId = journalpostId)
 
@@ -72,8 +75,8 @@ class InnsynService(
         val firstBehandling = this.first()
 
         return SakView(
-            id = "${firstBehandling.fagsystem.id}_${firstBehandling.fagsakId}_${firstBehandling.toBasicType().id}",
-            saksnummer = firstBehandling.fagsakId,
+            id = "${firstBehandling.fagsystem.id}_${firstBehandling.sakKey()}_${firstBehandling.toBasicType().id}",
+            saksnummer = firstBehandling.getSaksnummer(),
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id,
             events =

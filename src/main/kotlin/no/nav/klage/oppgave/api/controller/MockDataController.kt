@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel.FTRL_9_10
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
@@ -389,6 +390,8 @@ class MockDataController(
                             dvhReferanse = mockInput?.dvhReferanse ?: UUID.randomUUID().toString(),
                             fagsystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
                             fagsakId = oversendtSak.fagsakId,
+                            sakstype = Sakstype.FAGSAK,
+                            arkivsaksnummer = null,
                             sakMottattKlageinstans = dato,
                             saksdokumenter = mutableSetOf(),
                             innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),

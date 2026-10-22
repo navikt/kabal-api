@@ -167,6 +167,7 @@ class KabalDocumentMapper(
                     temaId = behandling.ytelse.toTema().id,
                     sakFagsakId = behandling.fagsakId,
                     sakFagsystemId = behandling.fagsystem.id,
+                    sakstypeId = behandling.sakstype.id,
                     kildeReferanse = behandling.id.toString(),
                     // TODO: Fjerne behandling.tildeling når på plass.
                     enhet = hovedDokument.journalfoerendeEnhetId ?: behandling.tildeling!!.enhet!!,

@@ -2,8 +2,10 @@ package no.nav.klage.oppgave.service
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -171,9 +173,22 @@ class TilgangServiceTest {
         assertThat(access.access).isFalse()
         assertThat(access.reason).isEqualTo("Kode 6")
     }
+
+    @Test
+    fun `persongalleri for generell sak i FS36 er kun saken gjelder`() {
+        val klagebehandling = getKlagebehandling(fagsystem = Fagsystem.FS36, fagsakId = null, sakstype = Sakstype.GENERELL_SAK)
+
+        assertThat(tilgangService.getPersongalleriToCheckForBehandling(klagebehandling))
+            .containsExactly(klagebehandling.sakenGjelder.partId.value)
+        verify(exactly = 0) { sakPersongalleriRepository.findByFagsystemAndFagsakId(fagsystem = any(), fagsakId = any()) }
+    }
 }
 
-fun getKlagebehandling(): Klagebehandling =
+fun getKlagebehandling(
+    fagsystem: Fagsystem = Fagsystem.K9,
+    fagsakId: String? = "123",
+    sakstype: Sakstype = Sakstype.FAGSAK,
+): Klagebehandling =
     Klagebehandling(
         klager =
             Klager(
@@ -194,8 +209,10 @@ fun getKlagebehandling(): Klagebehandling =
                 Hjemmel.FTRL_8_7,
             ),
         mottattKlageinstans = LocalDateTime.now(),
-        fagsystem = Fagsystem.K9,
-        fagsakId = "123",
+        fagsystem = fagsystem,
+        fagsakId = fagsakId,
+        sakstype = sakstype,
+        arkivsaksnummer = null,
         kildeReferanse = "abc",
         avsenderEnhetFoersteinstans = "4100",
         mottattVedtaksinstans = LocalDate.now(),

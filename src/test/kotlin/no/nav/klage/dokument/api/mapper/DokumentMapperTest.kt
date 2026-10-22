@@ -10,6 +10,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -72,6 +73,8 @@ class DokumentMapperTest {
             Klagebehandling(
                 fagsystem = Fagsystem.AO01,
                 fagsakId = "123456",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 klager =
                     Klager(
@@ -179,7 +182,14 @@ class DokumentMapperTest {
                 journalposttype = journalposttype,
                 journalstatus = Journalstatus.JOURNALFOERT,
                 tema = tema,
-                sak = if (fagsakId != null) Sak(datoOpprettet = null, fagsakId = fagsakId, fagsaksystem = null) else null,
+                sak =
+                    if (fagsakId !=
+                        null
+                    ) {
+                        Sak(datoOpprettet = null, fagsakId = fagsakId, fagsaksystem = null, sakstype = "FAGSAK", arkivsaksnummer = null)
+                    } else {
+                        null
+                    },
                 bruker = Bruker(id = "12345678910", type = "FNR"),
                 avsenderMottaker =
                     if (avsenderMottakerNavn !=

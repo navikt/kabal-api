@@ -147,5 +147,6 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         gosysOppgaveRequired = false,
         gosysOppgaveId = null,
         trygderettenSaksnummer = null,
+        arkivsaksnummer = null,
     )
 }

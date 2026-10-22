@@ -3184,6 +3184,7 @@ class BehandlingService(
                     null
                 },
             fagsakId = fagsakId,
+            arkivsaksnummer = arkivsaksnummer,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,
             klageBehandlendeEnhet = tildeling!!.enhet!!,

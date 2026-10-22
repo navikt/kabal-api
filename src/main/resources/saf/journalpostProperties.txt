@@ -10,6 +10,8 @@ sak {
     datoOpprettet
     fagsakId
     fagsaksystem
+    sakstype
+    arkivsaksnummer
 }
 bruker {
     id

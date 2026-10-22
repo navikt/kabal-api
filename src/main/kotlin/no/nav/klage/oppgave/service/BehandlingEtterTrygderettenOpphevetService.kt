@@ -49,6 +49,8 @@ class BehandlingEtterTrygderettenOpphevetService(
                     dvhReferanse = behandling.dvhReferanse,
                     fagsystem = behandling.fagsystem,
                     fagsakId = behandling.fagsakId,
+                    sakstype = behandling.sakstype,
+                    arkivsaksnummer = behandling.arkivsaksnummer,
                     mottattKlageinstans = behandling.kjennelseMottatt!!,
                     tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
                     frist = LocalDate.now(),

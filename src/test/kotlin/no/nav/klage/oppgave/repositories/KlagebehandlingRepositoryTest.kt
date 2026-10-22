@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.repositories
 import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -168,6 +169,8 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 dvhReferanse = "abc",
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = LocalDateTime.now(),
                 kakaKvalitetsvurderingId = UUID.randomUUID(),
                 kakaKvalitetsvurderingVersion = 2,
@@ -232,6 +235,8 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
             mottattKlageinstans = LocalDateTime.now(),
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
+            sakstype = Sakstype.FAGSAK,
+            arkivsaksnummer = null,
             kildeReferanse = "abc",
             avsenderEnhetFoersteinstans = "0101",
             mottattVedtaksinstans = LocalDate.now(),

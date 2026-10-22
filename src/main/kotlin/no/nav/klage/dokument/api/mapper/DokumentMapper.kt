@@ -123,7 +123,7 @@ class DokumentMapper(
                         tema = behandling.ytelse.toTema().navn,
                         dato = LocalDateTime.now().toLocalDate(),
                         avsenderMottaker = "",
-                        saksnummer = behandling.fagsakId,
+                        saksnummer = behandling.getSaksnummer(),
                         type = type,
                     ),
                 ),
@@ -153,7 +153,7 @@ class DokumentMapper(
                     tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
                     dato = journalpost.datoSortering.toLocalDate(),
                     avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
-                    saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
+                    saksnummer = journalpost.sak?.fagsakId ?: journalpost.sak?.arkivsaksnummer ?: "Saksnummer ikke funnet i SAF",
                     type =
                         Type.valueOf(
                             journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF"),
@@ -420,6 +420,7 @@ class DokumentMapper(
                             fagsakId = journalpost.sak.fagsakId,
                             fagsaksystem = journalpost.sak.fagsaksystem,
                             fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(it).id },
+                            saksnummer = journalpost.sak.getSaksnummer(),
                         )
                     } else {
                         null
