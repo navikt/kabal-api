@@ -411,16 +411,28 @@ class MockDataController(
                     )
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                     TODO()
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
                     TODO()
                 }
 
-                Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
-                    TODO()
+                Type.ANKE_ETTER_2027 -> {
+                    TODO("Implement support for ANKE_ETTER_2027")
+                }
+
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                    TODO("Implement support for ANKE_I_TRYGDERETTEN_ETTER_2027")
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                    TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                    TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
                 }
             }
         logger.debug("Behandling with id {} was returned", behandling.id)

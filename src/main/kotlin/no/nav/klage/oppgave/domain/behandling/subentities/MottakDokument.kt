@@ -53,16 +53,34 @@ enum class MottakDokumentType {
 
 fun Type.getMottakDokumentType(): MottakDokumentType =
     when (this) {
-        Type.KLAGE -> MottakDokumentType.BRUKERS_KLAGE
+        Type.KLAGE -> {
+            MottakDokumentType.BRUKERS_KLAGE
+        }
 
         // Should anke etter 2027 have another document type?
-        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> MottakDokumentType.BRUKERS_ANKE
+        Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> {
+            MottakDokumentType.BRUKERS_ANKE
+        }
 
-        Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+        Type.OMGJOERINGSKRAV -> {
+            MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+        }
 
-        Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+            MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+        }
 
-        else -> throw IllegalArgumentException("Type $this has no MottakDokumentType.")
+        Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+            TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+        }
+
+        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+            TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
+        }
+
+        else -> {
+            throw IllegalArgumentException("Type $this has no MottakDokumentType.")
+        }
     }
 
 data class MottakDokumentDTO(
