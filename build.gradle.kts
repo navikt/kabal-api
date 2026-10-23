@@ -12,20 +12,20 @@ val springMockkVersion = "5.0.1"
 val springDocVersion = "3.1.1"
 val testContainersVersion = "2.0.5"
 val shedlockVersion = "7.10.1"
-val archunitVersion = "1.5.0"
+val archunitVersion = "1.5.1"
 val logbackSyslog4jVersion = "1.0.0"
 val pdfboxVersion = "3.0.8"
-val tikaVersion = "4.0.0"
-val verapdfVersion = "1.30.2"
+val tikaVersion = "4.1.0"
+val verapdfVersion = "1.30.3"
 val klageKodeverkVersion = "3.4.3"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
-val otelVersion = "1.66.0"
+val otelVersion = "1.67.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.1.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.4.20"
+    val kotlinVersion = "2.4.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
