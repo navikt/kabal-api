@@ -62,6 +62,7 @@ import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
+import no.nav.klage.oppgave.repositories.UnassignedBehandlingWithInngaaendeDokument
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -80,6 +81,8 @@ import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+
+private typealias DokumentRowsForBehandling = List<UnassignedBehandlingWithInngaaendeDokument>
 
 @Service
 @Transactional
@@ -115,6 +118,9 @@ class AdminService(
 ) {
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
+
+    @Value($$"${ORGANISASJONSNUMMER_TRYGDERETTEN}")
+    lateinit var organisasjonsnummerTrygderetten: String
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -375,6 +381,56 @@ class AdminService(
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         teamLogger.debug(resultMessage)
     }
+
+    @Transactional(readOnly = true)
+    @Scheduled(cron = $$"${FIND_UNASSIGNED_ANKE_I_TRYGDERETTEN_WITH_INNGAAENDE_DOKUMENT_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "findUnassignedAnkeITrygderettenWithInngaaendeDokument", lockAtLeastFor = "PT1M")
+    fun logUnassignedAnkeITrygderettenWithInngaaendeDokument() {
+        if (!schedulerHealthGate.isReady()) return
+        val medKjennelse =
+            behandlingRepository
+                .findUnassignedWithKjennelseFraTrygderetten()
+                .groupedByBehandling()
+        val medAnnenInngaaendePost =
+            behandlingRepository
+                .findNotAssignedAfterAnnenInngaaendePostFraTrygderetten(
+                    organisasjonsnummerTrygderetten = organisasjonsnummerTrygderetten,
+                ).groupedByBehandling()
+
+        val resultMessage =
+            "Fullført søk etter åpne behandlinger i Trygderetten som mangler tildeling etter innkommende dokument.\n\n" +
+                "Kjennelse fra Trygderetten er lastet opp, men ingen saksbehandler er tildelt.\n" +
+                "Antall: ${medKjennelse.size}\n" +
+                medKjennelse.toResultLines() +
+                "\n\nAnnen inngående post fra Trygderetten er lastet opp, " +
+                "men ingen saksbehandler har hatt behandlingen etter at dokumentet ble opprettet.\n" +
+                "Antall: ${medAnnenInngaaendePost.size}\n" +
+                medAnnenInngaaendePost.toResultLines()
+
+        logger.debug(resultMessage)
+        if (medKjennelse.isNotEmpty() || medAnnenInngaaendePost.isNotEmpty()) {
+            slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
+        }
+    }
+
+    private fun List<UnassignedBehandlingWithInngaaendeDokument>.groupedByBehandling(): List<DokumentRowsForBehandling> =
+        groupBy { it.behandlingId }
+            .values
+            .sortedBy { rows -> rows.first().behandlingCreated }
+
+    // All rows in a group share the behandling fields, so they are read from the first row.
+    private fun List<DokumentRowsForBehandling>.toResultLines(): String =
+        joinToString(separator = "\n") { rows ->
+            val first = rows.first()
+            val dokumentDatoer =
+                rows
+                    .map { it.dokumentCreated.toLocalDate() }
+                    .sorted()
+                    .joinToString(separator = ", ")
+            "${first.behandlingId} (saksnummer: ${first.fagsakId ?: first.arkivsaksnummer}, " +
+                "behandling opprettet: ${first.behandlingCreated.toLocalDate()}, " +
+                "dokument opprettet: $dokumentDatoer)"
+        }
 
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
         val unfinishedBehandlinger =

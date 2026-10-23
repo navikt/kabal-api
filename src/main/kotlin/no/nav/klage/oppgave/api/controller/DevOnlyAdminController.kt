@@ -196,6 +196,13 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
+    @GetMapping("/log-unassigned-anke-i-trygderetten-with-inngaaende-dokument")
+    fun logUnassignedAnkeITrygderettenWithInngaaendeDokument() {
+        logger.debug("logUnassignedAnkeITrygderettenWithInngaaendeDokument is called")
+        adminService.logUnassignedAnkeITrygderettenWithInngaaendeDokument()
+    }
+
+    @Unprotected
     @GetMapping("/log-inaccessible-skjerming")
     fun logInaccessibleSkjerming() {
         logger.debug("logInaccessibleSkjerming is called")
