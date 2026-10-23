@@ -99,7 +99,7 @@ class KabinApiService(
     fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> =
         behandlingService
             .getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
-            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK) }
+            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027) }
 
     fun createBehandlingFromPreviousKabalBehandling(
         input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,

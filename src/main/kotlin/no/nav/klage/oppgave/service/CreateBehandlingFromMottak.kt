@@ -66,14 +66,22 @@ class CreateBehandlingFromMottak(
                 TODO()
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK -> {
+            Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                 gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
                     mottak = mottak,
                 )
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
                 TODO()
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER2027")
             }
 
             Type.ANKE_ETTER_2027 -> {
