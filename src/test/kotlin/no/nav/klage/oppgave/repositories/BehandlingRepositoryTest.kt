@@ -468,7 +468,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     ),
                 prosessfullmektig = null,
                 ytelse = Ytelse.OMS_OMP,
-                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_FOER_2027,
+                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
                 frist = LocalDate.now(),
                 hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
                 mottattKlageinstans = LocalDateTime.now(),

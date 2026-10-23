@@ -24,7 +24,9 @@ class PreviewService(
     }
 
     fun getSvarbrevPreviewPDF(input: PreviewSvarbrevInput): ByteArray {
-        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
+        if (Type.of(input.typeId) !in
+            listOf(Type.KLAGE, Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
+        ) {
             throw SvarbrevPreviewException(
                 "Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.",
             )
@@ -59,7 +61,9 @@ class PreviewService(
     }
 
     fun getAnonymousSvarbrevPreviewPDF(input: PreviewSvarbrevAnonymousInput): ByteArray {
-        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)) {
+        if (Type.of(input.typeId) !in
+            listOf(Type.KLAGE, Type.ANKE_FOER_2027, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
+        ) {
             throw SvarbrevPreviewException(
                 "Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.",
             )
