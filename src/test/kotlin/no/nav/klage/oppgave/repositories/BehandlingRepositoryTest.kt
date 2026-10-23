@@ -2,6 +2,8 @@ package no.nav.klage.oppgave.repositories
 
 import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Sakstype
@@ -13,6 +15,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer202
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnJournalpost
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnKabalBehandling
@@ -25,6 +28,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
+import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -223,7 +227,186 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(result).isEqualTo(listOf(klageTildeltEnhet1))
     }
 
+    @Test
+    fun `find unassigned behandling i Trygderetten with kjennelse fra Trygderetten`() {
+        val utenTildelingMedKjennelse = getAnkeITrygderettenbehandling()
+        val utenTildelingMedAnnenPost = getAnkeITrygderettenbehandling()
+        val utenTildelingUtenDokument = getAnkeITrygderettenbehandling()
+        val tildeltMedKjennelse = getAnkeITrygderettenbehandling()
+        tildeltMedKjennelse.tildeling =
+            Tildeling(
+                saksbehandlerident = "1",
+                enhet = enhet1,
+                tidspunkt = LocalDateTime.now(),
+            )
+        val ferdigstiltMedKjennelse = getAnkeITrygderettenbehandling()
+        ferdigstiltMedKjennelse.ferdigstilling =
+            Ferdigstilling(
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
+
+        behandlingRepository.saveAll(
+            listOf(
+                utenTildelingMedKjennelse,
+                utenTildelingMedAnnenPost,
+                utenTildelingUtenDokument,
+                tildeltMedKjennelse,
+                ferdigstiltMedKjennelse,
+            ),
+        )
+
+        persistDokument(behandling = utenTildelingMedKjennelse, dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN)
+        persistDokument(
+            behandling = utenTildelingMedAnnenPost,
+            dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+            avsender = ORGNR_TRYGDERETTEN,
+        )
+        persistDokument(behandling = tildeltMedKjennelse, dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN)
+        persistDokument(behandling = ferdigstiltMedKjennelse, dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result = behandlingRepository.findUnassignedWithKjennelseFraTrygderetten()
+
+        assertThat(result.map { it.behandlingId }).containsExactly(utenTildelingMedKjennelse.id)
+        assertThat(result.single().fagsakId).isEqualTo(utenTildelingMedKjennelse.fagsakId)
+    }
+
+    @Test
+    fun `find behandling i Trygderetten not held by saksbehandler after annen inngaaende post`() {
+        val dokumentCreated = LocalDateTime.now().minusDays(10)
+
+        val aldriTildelt = getAnkeITrygderettenbehandling()
+
+        val tildeltFoerOgFradeltEtter = getAnkeITrygderettenbehandling()
+        tildeltFoerOgFradeltEtter.addTildelingHistorikk(ident = "1", tidspunkt = dokumentCreated.minusDays(5))
+        tildeltFoerOgFradeltEtter.addTildelingHistorikk(ident = null, tidspunkt = dokumentCreated.plusDays(2))
+
+        val tildeltOgFradeltFoer = getAnkeITrygderettenbehandling()
+        tildeltOgFradeltFoer.addTildelingHistorikk(ident = "1", tidspunkt = dokumentCreated.minusDays(5))
+        tildeltOgFradeltFoer.addTildelingHistorikk(ident = null, tidspunkt = dokumentCreated.minusDays(2))
+
+        val tildeltOgFradeltEtter = getAnkeITrygderettenbehandling()
+        tildeltOgFradeltEtter.addTildelingHistorikk(ident = null, tidspunkt = tildeltOgFradeltEtter.created)
+        tildeltOgFradeltEtter.addTildelingHistorikk(ident = "1", tidspunkt = dokumentCreated.plusDays(1))
+        tildeltOgFradeltEtter.addTildelingHistorikk(ident = null, tidspunkt = dokumentCreated.plusDays(3))
+
+        val tildeltNaa = getAnkeITrygderettenbehandling()
+        tildeltNaa.tildeling =
+            Tildeling(
+                saksbehandlerident = "1",
+                enhet = enhet1,
+                tidspunkt = dokumentCreated.minusDays(1),
+            )
+
+        val annenPostFraAndre = getAnkeITrygderettenbehandling()
+        val kjennelse = getAnkeITrygderettenbehandling()
+
+        behandlingRepository.saveAll(
+            listOf(
+                aldriTildelt,
+                tildeltFoerOgFradeltEtter,
+                tildeltOgFradeltFoer,
+                tildeltOgFradeltEtter,
+                tildeltNaa,
+                annenPostFraAndre,
+                kjennelse,
+            ),
+        )
+
+        listOf(aldriTildelt, tildeltFoerOgFradeltEtter, tildeltOgFradeltFoer, tildeltOgFradeltEtter, tildeltNaa)
+            .forEach {
+                persistDokument(
+                    behandling = it,
+                    dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+                    avsender = ORGNR_TRYGDERETTEN,
+                    created = dokumentCreated,
+                )
+            }
+        persistDokument(
+            behandling = annenPostFraAndre,
+            dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+            avsender = "123456789",
+            created = dokumentCreated,
+        )
+        persistDokument(
+            behandling = kjennelse,
+            dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN,
+            created = dokumentCreated,
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val result =
+            behandlingRepository.findNotAssignedAfterAnnenInngaaendePostFraTrygderetten(
+                organisasjonsnummerTrygderetten = ORGNR_TRYGDERETTEN,
+            )
+
+        assertThat(result.map { it.behandlingId }).containsExactlyInAnyOrder(
+            aldriTildelt.id,
+            tildeltOgFradeltFoer.id,
+        )
+    }
+
+    private fun Behandling.addTildelingHistorikk(
+        ident: String?,
+        tidspunkt: LocalDateTime,
+    ) {
+        tildelingHistorikk.add(
+            TildelingHistorikk(
+                saksbehandlerident = ident,
+                enhet = ident?.let { enhet1 },
+                hjemmelIdList = null,
+                tidspunkt = tidspunkt,
+                fradelingReason = null,
+                utfoerendeIdent = null,
+                utfoerendeNavn = null,
+            ),
+        )
+    }
+
+    private fun persistDokument(
+        behandling: Behandling,
+        dokumentType: DokumentType,
+        avsender: String? = null,
+        created: LocalDateTime = LocalDateTime.now(),
+    ) {
+        val dokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = created,
+                size = 1001,
+                name = "Dokument.pdf",
+                behandlingId = behandling.id,
+                created = created,
+                dokumentType = dokumentType,
+                creatorIdent = "S123456",
+                creatorRole = BehandlingRole.KABAL_SAKSBEHANDLING,
+                datoMottatt = created.toLocalDate(),
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
+        avsender?.let {
+            dokument.brevmottakere.add(
+                Brevmottaker(
+                    technicalPartId = UUID.randomUUID(),
+                    identifikator = it,
+                    localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
+                    navn = null,
+                ),
+            )
+        }
+        testEntityManager.persist(dokument)
+    }
+
     companion object {
+        private const val ORGNR_TRYGDERETTEN = "974761084"
         private val PAAANKET_VEDTAKSDATO: LocalDate = LocalDate.of(2020, 1, 1)
 
         @JvmStatic

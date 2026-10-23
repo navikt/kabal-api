@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.repositories
 
 import jakarta.persistence.QueryHint
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
@@ -12,8 +13,26 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.jpa.repository.QueryHints
+import java.time.LocalDateTime
 import java.util.UUID
 import java.util.stream.Stream
+
+private val trygderettenTypes =
+    listOf(
+        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+    )
+
+data class UnassignedBehandlingWithInngaaendeDokument(
+    val behandlingId: UUID,
+    val fagsakId: String?,
+    val arkivsaksnummer: String?,
+    val behandlingCreated: LocalDateTime,
+    val dokumentId: UUID,
+    val dokumentCreated: LocalDateTime,
+)
 
 interface BehandlingRepository :
     JpaRepository<Behandling, UUID>,
@@ -60,6 +79,69 @@ interface BehandlingRepository :
         """,
     )
     fun findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler(): List<Behandling>
+
+    @Query(
+        """
+            select distinct new no.nav.klage.oppgave.repositories.UnassignedBehandlingWithInngaaendeDokument(
+                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created
+            )
+            from Behandling b, DokumentUnderArbeidAsHoveddokument d
+            where d.behandlingId = b.id
+            and b.ferdigstilling is null
+            and b.feilregistrering is null
+            and b.tildeling.saksbehandlerident is null
+            and b.type in :types
+            and d.dokumentType = :kjennelseFraTrygderetten
+        """,
+    )
+    fun findUnassignedWithKjennelseFraTrygderetten(
+        types: List<Type> = trygderettenTypes,
+        kjennelseFraTrygderetten: DokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN,
+    ): List<UnassignedBehandlingWithInngaaendeDokument>
+
+    /**
+     * Finds open behandlinger with ANNEN_INNGAAENDE_POST from Trygderetten where no saksbehandler
+     * has held the behandling at any time since the document was created. That is, the behandling
+     * was not assigned when the document was created, and has not been assigned afterwards.
+     * Uses tildelingHistorikk, where each row is the tildeling state from its tidspunkt onwards.
+     */
+    @Query(
+        """
+            select distinct new no.nav.klage.oppgave.repositories.UnassignedBehandlingWithInngaaendeDokument(
+                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created
+            )
+            from Behandling b, DokumentUnderArbeidAsHoveddokument d
+            join d.brevmottakere bm
+            where d.behandlingId = b.id
+            and b.ferdigstilling is null
+            and b.feilregistrering is null
+            and b.tildeling.saksbehandlerident is null
+            and b.type in :types
+            and d.dokumentType = :annenInngaaendePost
+            and bm.identifikator = :organisasjonsnummerTrygderetten
+            and not exists (
+                select h.id
+                from b.tildelingHistorikk h
+                where h.saksbehandlerident is not null
+                and h.tidspunkt >= d.created
+            )
+            and not exists (
+                select h.id
+                from b.tildelingHistorikk h
+                where h.saksbehandlerident is not null
+                and h.tidspunkt = (
+                    select max(h2.tidspunkt)
+                    from b.tildelingHistorikk h2
+                    where h2.tidspunkt < d.created
+                )
+            )
+        """,
+    )
+    fun findNotAssignedAfterAnnenInngaaendePostFraTrygderetten(
+        organisasjonsnummerTrygderetten: String,
+        types: List<Type> = trygderettenTypes,
+        annenInngaaendePost: DokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+    ): List<UnassignedBehandlingWithInngaaendeDokument>
 
     fun findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
 
