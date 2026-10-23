@@ -22,12 +22,12 @@ class MeldingMapper(
                 ),
             notify = melding.notify,
             created = melding.created,
-            modified = melding.modified,
+            modified = melding.modified ?: melding.created,
         )
 
     fun toModifiedView(melding: Melding): MeldingModified =
         MeldingModified(
-            modified = melding.modified ?: throw RuntimeException("modified on melding not set"),
+            modified = melding.modified ?: melding.created,
         )
 
     fun toMeldingerView(meldinger: List<Melding>): List<MeldingView> =
@@ -42,7 +42,7 @@ class MeldingMapper(
                     ),
                 notify = melding.notify,
                 created = melding.created,
-                modified = melding.modified,
+                modified = melding.modified ?: melding.created,
             )
         }
 }
