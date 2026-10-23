@@ -52,8 +52,8 @@ class InnsynService(
             is AnkebehandlingEtter2027, is AnkeITrygderettenbehandlingEtter2027 -> Type.ANKE_ETTER_2027
             is BehandlingEtterTrygderettenOpphevet -> Type.ANKE_FOER_2027
             is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
-            is Gjenopptaksbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
-            is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
+            is Gjenopptaksbehandling -> Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027
+            is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027
             else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
 

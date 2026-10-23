@@ -367,8 +367,8 @@ abstract class Behandling(
         fagsystem == Fagsystem.IT01 && type !in
             listOf(
                 Type.OMGJOERINGSKRAV,
-                Type.BEGJAERING_OM_GJENOPPTAK,
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
             )
 
     fun getTimesPreviouslyExtended(): Int =
@@ -460,7 +460,7 @@ abstract class Behandling(
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
             ytelse = ytelse,
-            type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+            type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
             kildeReferanse = kildeReferanse,
             dvhReferanse = dvhReferanse,
             fagsystem = fagsystem,
