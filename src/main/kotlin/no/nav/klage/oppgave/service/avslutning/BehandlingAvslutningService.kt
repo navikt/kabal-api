@@ -169,7 +169,7 @@ class BehandlingAvslutningService(
             )
         } else if (!klagebehandling.gosysOppgaveRequired) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(klagebehandling)
+            createKafkaEventForModernizedFagsystem(behandling = klagebehandling)
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand på klagebehandling med id ${klagebehandling.id}. Undersøk.")
         }
@@ -188,7 +188,6 @@ class BehandlingAvslutningService(
         }
     }
 
-    // TODO: Gå gjennom det som skal skje i kommunikasjon med vedtaksinstans og Infotrygd, med tanke på at vi alltid får en anke i TR i Kabal etter fullføring. Spesifikt der vi tidligere avsluttet i KA.
     private fun handleAnkebehandlingFoer2027(ankebehandling: AnkebehandlingFoer2027) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug(
@@ -211,7 +210,9 @@ class BehandlingAvslutningService(
                 )
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
             }
-            // No need for notifying modernized fagsystem when sending to Trygderetten.
+            if (ankebehandling.isModernizedFagsystemCase()) {
+                createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
+            }
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankebehandling)
@@ -223,7 +224,7 @@ class BehandlingAvslutningService(
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(ankebehandling)
+            createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
         } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
         } else {
@@ -244,20 +245,40 @@ class BehandlingAvslutningService(
     private fun handleAnkebehandlingEtter2027(ankebehandling: AnkebehandlingEtter2027) {
         createAnkeITrygderettenbehandlingEtter2027(ankebehandling)
 
-        if (ankebehandling.fagsystem == Fagsystem.AO01) {
+        if (ankebehandling.shouldBeSentToTrygderetten()) {
+            logger.debug(
+                "AnkebehandlingEtter2027 med id ${ankebehandling.id} sendes til trygderetten.",
+            )
+            if (ankebehandling.fagsystem == Fagsystem.IT01) {
+                logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
+                klankeService.setToFinishedWithAppAccess(
+                    sakId = ankebehandling.kildeReferanse,
+                    input =
+                        SakFinishedInput(
+                            status = SakFinishedInput.Status.VIDERESENDT_TR,
+                            nivaa = SakFinishedInput.Nivaa.KA,
+                            typeResultat = SakFinishedInput.TypeResultat.INNSTILLING_2,
+                            utfall = SakFinishedInput.Utfall.valueOf(ankeutfallToInfotrygdutfall[ankebehandling.utfall!!]!!),
+                            mottaker = SakFinishedInput.Mottaker.TRYGDERETTEN,
+                            saksbehandlerIdent = ankebehandling.tildeling!!.saksbehandlerident!!,
+                        ),
+                )
+                logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
+            }
+            if (ankebehandling.isModernizedFagsystemCase()) {
+                createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
+            }
+        } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (ankebehandling.isImpliedArenaCase()) {
             logger.debug(
                 "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
-            // TODO: Gå gjennom før prodsetting, må informere VL
             logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
-            createKafkaEventForModernizedFagsystem(ankebehandling)
-        } else {
-            throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandling med id ${ankebehandling.id}. Undersøk.")
+            createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
         }
-        // Tror denne skal endres.
+
         if (ankebehandling.gosysOppgaveRequired) {
             if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
                 logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
@@ -332,7 +353,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
             )
-            createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
+            createKafkaEventForModernizedFagsystem(
+                behandling = ankeITrygderettenbehandling,
+            )
         } else if (ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.",
@@ -357,7 +380,6 @@ class BehandlingAvslutningService(
         }
     }
 
-    // TODO: Gå gjennom håndtering av ankerITR som følger etter anker som tidligere ble avsluttet i KA.
     private fun handleAnkeITrygderettenbehandlingEtter2027(ankeITrygderettenbehandling: AnkeITrygderettenbehandlingEtter2027) {
         if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
             logger.debug(
@@ -405,8 +427,9 @@ class BehandlingAvslutningService(
             }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
             logger.debug(
-                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd. Har blitt oppdatert av bruker, fortsetter.",
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.",
             )
+            setToFinishedInInfotrygd(ankeITrygderettenbehandling)
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.AO01) {
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
@@ -419,7 +442,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
             )
-            createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
+            createKafkaEventForModernizedFagsystem(
+                behandling = ankeITrygderettenbehandling,
+            )
         } else if (ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.",
@@ -464,7 +489,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
             )
-            createKafkaEventForModernizedFagsystem(behandlingEtterTrygderettenOpphevet)
+            createKafkaEventForModernizedFagsystem(
+                behandling = behandlingEtterTrygderettenOpphevet,
+            )
         } else {
             throw BehandlingAvsluttetException(
                 "Ugyldig tilstand på behandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id}. Undersøk.",
@@ -508,7 +535,9 @@ class BehandlingAvslutningService(
                 logger.debug(
                     "Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.",
                 )
-                createKafkaEventForModernizedFagsystem(omgjoeringskravbehandling)
+                createKafkaEventForModernizedFagsystem(
+                    behandling = omgjoeringskravbehandling,
+                )
             }
         } else if (omgjoeringskravbehandling.shouldBeCompletedInKA()) {
             logger.debug(
@@ -544,7 +573,9 @@ class BehandlingAvslutningService(
                 logger.debug(
                     "Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.",
                 )
-                createKafkaEventForModernizedFagsystem(gjenopptaksbehandling)
+                createKafkaEventForModernizedFagsystem(
+                    behandling = gjenopptaksbehandling,
+                )
             }
         } else if (gjenopptaksbehandling.shouldBeSentToTrygderetten()) {
             createGjenopptakITrygderettenbehandling(gjenopptaksbehandling)
@@ -637,7 +668,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.",
             )
-            createKafkaEventForModernizedFagsystem(gjenopptakITrygderettenbehandling)
+            createKafkaEventForModernizedFagsystem(
+                behandling = gjenopptakITrygderettenbehandling,
+            )
         } else {
             if (gjenopptakITrygderettenbehandling.gosysOppgaveId != null && gjenopptakITrygderettenbehandling.gosysOppgaveUpdate != null &&
                 !gjenopptakITrygderettenbehandling.ignoreGosysOppgave
@@ -655,6 +688,15 @@ class BehandlingAvslutningService(
     }
 
     private fun createKafkaEventForModernizedFagsystem(behandling: Behandling) {
+        if (!behandling.shouldNotifyVedtaksinstans()) {
+            logger.info(
+                "Behandling {} med utfall {} avsluttes i KA uten Kafka-melding til modernisert fagsystem.",
+                behandling.id,
+                behandling.utfall?.name,
+            )
+            return
+        }
+
         val hoveddokumenter =
             dokumentUnderArbeidCommonService
                 .findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -675,16 +717,43 @@ class BehandlingAvslutningService(
                 kabalReferanse = behandling.id.toString(),
                 type =
                     when (behandling) {
-                        is Klagebehandling -> KLAGEBEHANDLING_AVSLUTTET
-                        is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> ANKEBEHANDLING_AVSLUTTET
-                        is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> ANKEBEHANDLING_AVSLUTTET
-                        is BehandlingEtterTrygderettenOpphevet -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
-                        is Omgjoeringskravbehandling -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
-                        is Gjenopptaksbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
-                        is GjenopptakITrygderettenbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
-                        else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
+                        is Klagebehandling -> {
+                            KLAGEBEHANDLING_AVSLUTTET
+                        }
+
+                        is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
+                            ANKEBEHANDLING_AVSLUTTET
+                        }
+
+                        is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
+                            ANKEBEHANDLING_AVSLUTTET
+                        }
+
+                        is BehandlingEtterTrygderettenOpphevet -> {
+                            BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
+                        }
+
+                        is Omgjoeringskravbehandling -> {
+                            OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
+                        }
+
+                        is Gjenopptaksbehandling -> {
+                            GJENOPPTAKSBEHANDLING_AVSLUTTET
+                        }
+
+                        is GjenopptakITrygderettenbehandling -> {
+                            GJENOPPTAKSBEHANDLING_AVSLUTTET
+                        }
+
+                        else -> {
+                            error("Unknown Behandling subtype: ${behandling::class.java.name}")
+                        }
                     },
-                detaljer = getBehandlingDetaljer(behandling, hoveddokumenter),
+                detaljer =
+                    getBehandlingDetaljer(
+                        behandling = behandling,
+                        hoveddokumenter = hoveddokumenter,
+                    ),
             )
         kafkaEventRepository.save(
             KafkaEvent(
@@ -822,6 +891,9 @@ class BehandlingAvslutningService(
     private fun Behandling.isImpliedArenaCase(): Boolean =
         fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22) && gosysOppgaveRequired
 
+    private fun Behandling.isModernizedFagsystemCase(): Boolean =
+        fagsystem != Fagsystem.IT01 && fagsystem != Fagsystem.AO01 && !isImpliedArenaCase() && !gosysOppgaveRequired
+
     private fun getBehandlingDetaljer(
         behandling: Behandling,
         hoveddokumenter: List<DokumentUnderArbeidAsHoveddokument>,
@@ -859,7 +931,8 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is BehandlingEtterTrygderettenOpphevet -> {
+            is BehandlingEtterTrygderettenOpphevet,
+            -> {
                 BehandlingDetaljer(
                     behandlingEtterTrygderettenOpphevetAvsluttet =
                         BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
