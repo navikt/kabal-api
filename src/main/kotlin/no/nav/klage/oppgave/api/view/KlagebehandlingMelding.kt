@@ -21,7 +21,7 @@ data class MeldingView(
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
     val created: LocalDateTime,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
-    val modified: LocalDateTime?,
+    val modified: LocalDateTime,
 ) {
     companion object {
         const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
