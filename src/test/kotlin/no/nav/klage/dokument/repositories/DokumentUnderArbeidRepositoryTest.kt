@@ -198,6 +198,31 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
     }
 
     @Test
+    fun `findByIdForUpdate returns document or null`() {
+        val hovedDokument =
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = "Vedtak.pdf",
+                behandlingId = UUID.randomUUID(),
+                dokumentType = DokumentType.BREV,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                datoMottatt = null,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = null,
+            )
+        dokumentUnderArbeidRepository.save(hovedDokument)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(dokumentUnderArbeidRepository.findByIdForUpdate(hovedDokument.id)?.id).isEqualTo(hovedDokument.id)
+        assertThat(dokumentUnderArbeidRepository.findByIdForUpdate(UUID.randomUUID())).isNull()
+    }
+
+    @Test
     fun `document name with exactly max length is allowed`() {
         val behandlingId = UUID.randomUUID()
         val maxLengthName = "a".repeat(DokumentUnderArbeid.MAX_NAME_LENGTH)
