@@ -63,7 +63,7 @@ class KabalJsonToPdfService(
                                 Type.KLAGE -> SvarbrevRequest.Type.KLAGE
                                 Type.ANKE_FOER_2027 -> SvarbrevRequest.Type.ANKE
                                 Type.OMGJOERINGSKRAV -> SvarbrevRequest.Type.OMGJOERINGSKRAV
-                                Type.BEGJAERING_OM_GJENOPPTAK -> SvarbrevRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> SvarbrevRequest.Type.BEGJAERING_OM_GJENOPPTAK
                                 else -> error("Unexpected svarbrev type: ${svarbrev.type}")
                             },
                         initialCustomText = svarbrev.initialCustomText,
@@ -120,7 +120,7 @@ class KabalJsonToPdfService(
                                 Type.KLAGE -> ForlengetBehandlingstidRequest.Type.KLAGE
                                 Type.ANKE_FOER_2027 -> ForlengetBehandlingstidRequest.Type.ANKE
                                 Type.OMGJOERINGSKRAV -> ForlengetBehandlingstidRequest.Type.OMGJOERINGSKRAV
-                                Type.BEGJAERING_OM_GJENOPPTAK -> ForlengetBehandlingstidRequest.Type.BEGJAERING_OM_GJENOPPTAK
+                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> ForlengetBehandlingstidRequest.Type.BEGJAERING_OM_GJENOPPTAK
                                 else -> error("Unexpected svarbrev type: $type")
                             },
                         mottattKlageinstans = mottattKlageinstans,

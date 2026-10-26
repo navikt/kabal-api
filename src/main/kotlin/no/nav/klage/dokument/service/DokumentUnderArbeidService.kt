@@ -110,7 +110,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.BufferedReader
 import java.io.File
@@ -156,6 +158,7 @@ class DokumentUnderArbeidService(
     @Value($$"${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
     @Value($$"${spring.profiles.active:}") private val activeSpringProfile: String,
     private val documentPolicyService: DocumentPolicyService,
+    private val transactionTemplate: TransactionTemplate,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1811,6 +1814,8 @@ class DokumentUnderArbeidService(
         )
     }
 
+    // No transaction: this makes several slow HTTP calls. Updates happen in short transactions inside.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getFysiskDokumentAsResourceOrUrl(
         behandlingId: UUID, // Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
@@ -2453,6 +2458,8 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
+    // No transaction: this makes several slow HTTP calls. Updates happen in short transactions inside.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
@@ -2566,31 +2573,80 @@ class DokumentUnderArbeidService(
         return dokumentService.mergePDFFiles(resourcesToMerge = filesToMerge, title = "Samlet dokument")
     }
 
+    /**
+     * Generates and uploads a new PDF without holding a DB transaction during the HTTP calls,
+     * then stores the reference in a short transaction. The document may have been deleted or
+     * updated by another request in the meantime; in that case the new upload is discarded and
+     * the generated PDF is returned without saving it.
+     */
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid: DokumentUnderArbeid): PDFDocument {
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
+        val previousMellomlagerId = dokumentUnderArbeid.mellomlagerId
+
         val smartDocument = smartEditorApiGateway.getSmartDocumentResponse(dokumentUnderArbeid.smartEditorId)
         val pdfDocument = kabalJsonToPdfService.getPDFDocument(smartDocument.json)
 
-        val mellomlagerId =
+        val newMellomlagerId =
             mellomlagerService.uploadResource(
                 resource = ByteArrayResource(pdfDocument.bytes),
             )
-        val mellomlagretDate = LocalDateTime.now()
 
-        if (dokumentUnderArbeid.mellomlagerId != null) {
-            mellomlagerService.deleteDocument(dokumentUnderArbeid.mellomlagerId!!)
+        val result =
+            try {
+                transactionTemplate.execute {
+                    val current =
+                        dokumentUnderArbeidRepository.findByIdForUpdate(dokumentUnderArbeid.id)
+                            as? DokumentUnderArbeidAsSmartdokument
+                    when {
+                        current == null -> {
+                            MellomlagringResult.DOCUMENT_DELETED
+                        }
+
+                        current.mellomlagerId != previousMellomlagerId -> {
+                            MellomlagringResult.UPDATED_BY_OTHER_REQUEST
+                        }
+
+                        else -> {
+                            val now = LocalDateTime.now()
+                            current.mellomlagerId = newMellomlagerId
+                            current.mellomlagretDate = now
+                            current.size = pdfDocument.bytes.size.toLong()
+                            current.modified = now
+                            current.mellomlagretVersion = smartDocument.version
+                            MellomlagringResult.SAVED
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                mellomlagerService.deleteDocument(newMellomlagerId)
+                throw e
+            }
+
+        when (result) {
+            MellomlagringResult.SAVED -> {
+                previousMellomlagerId?.let { mellomlagerService.deleteDocument(it) }
+            }
+
+            MellomlagringResult.DOCUMENT_DELETED, MellomlagringResult.UPDATED_BY_OTHER_REQUEST -> {
+                logger.debug(
+                    "Did not store new PDF for dokument {}: {}. Discarding uploaded file because a newer version exists.",
+                    dokumentUnderArbeid.id,
+                    result,
+                )
+                mellomlagerService.deleteDocument(newMellomlagerId)
+            }
         }
 
-        dokumentUnderArbeid.mellomlagerId = mellomlagerId
-        dokumentUnderArbeid.mellomlagretDate = mellomlagretDate
-        dokumentUnderArbeid.size = pdfDocument.bytes.size.toLong()
-        dokumentUnderArbeid.modified = LocalDateTime.now()
-        dokumentUnderArbeid.mellomlagretVersion = smartDocument.version
-
         return pdfDocument
+    }
+
+    private enum class MellomlagringResult {
+        SAVED,
+        DOCUMENT_DELETED,
+        UPDATED_BY_OTHER_REQUEST,
     }
 
     private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean =

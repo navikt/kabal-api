@@ -5,8 +5,9 @@ import java.time.LocalDate
 data class JournalfoeringDataInput(
     val sakenGjelder: PartIdInput,
     val temaId: String,
-    val sakFagsakId: String,
+    val sakFagsakId: String?,
     val sakFagsystemId: String,
+    val sakstypeId: String,
     val kildeReferanse: String,
     val enhet: String,
     val behandlingstema: String,

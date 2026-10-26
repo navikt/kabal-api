@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import jakarta.persistence.EntityManagerFactory
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -202,6 +203,8 @@ class DynamicUpdateTest : PostgresIntegrationTestBase() {
             mottattKlageinstans = LocalDateTime.now(),
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
+            sakstype = Sakstype.FAGSAK,
+            arkivsaksnummer = null,
             kildeReferanse = "abc",
             avsenderEnhetFoersteinstans = "0101",
             mottattVedtaksinstans = LocalDate.now(),

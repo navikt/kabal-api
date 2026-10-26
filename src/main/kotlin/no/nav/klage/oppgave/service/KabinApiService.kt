@@ -99,7 +99,7 @@ class KabinApiService(
     fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> =
         behandlingService
             .getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
-            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK) }
+            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027) }
 
     fun createBehandlingFromPreviousKabalBehandling(
         input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,
@@ -363,6 +363,8 @@ class KabinApiService(
                     null
                 },
             fagsakId = behandling.fagsakId,
+            sakstypeId = behandling.sakstype.id,
+            arkivsaksnummer = behandling.arkivsaksnummer,
             fagsystemId = behandling.fagsystem.id,
             // Null when the behandling was created based on an uploaded document instead of an existing journalpost.
             journalpost =
@@ -436,6 +438,8 @@ class KabinApiService(
                     null
                 },
             fagsakId = fagsakId,
+            sakstypeId = sakstype.id,
+            arkivsaksnummer = arkivsaksnummer,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,
             klageBehandlendeEnhet = tildeling!!.enhet!!,

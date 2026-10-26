@@ -5,6 +5,7 @@ import io.mockk.every
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -106,6 +107,8 @@ class BehandlingMapperTest {
         Klagebehandling(
             fagsystem = Fagsystem.AO01,
             fagsakId = "123",
+            sakstype = Sakstype.FAGSAK,
+            arkivsaksnummer = null,
             kildeReferanse = "abc",
             klager =
                 Klager(

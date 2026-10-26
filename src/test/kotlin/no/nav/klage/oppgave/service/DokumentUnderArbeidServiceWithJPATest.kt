@@ -125,6 +125,7 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
                 organisasjonsnummerTrygderetten = "123456789",
                 activeSpringProfile = "dev",
                 documentPolicyService = mockk(),
+                transactionTemplate = mockk(),
             )
 
         val behandlingId = UUID.randomUUID()

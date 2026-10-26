@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.eventlisteners
 
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.domain.SakPersongalleri
@@ -65,24 +66,33 @@ class EnsurePersongalleriAndProtectionEventListener(
     }
 
     private fun populatePersongalleri(behandling: Behandling): List<String> {
+        val fagsakId = behandling.fagsakId
+        if (behandling.sakstype == Sakstype.GENERELL_SAK || fagsakId == null) {
+            logger.debug(
+                "Behandling {} gjelder generell sak eller mangler fagsakId, hopper over persongalleri.",
+                behandling.id,
+            )
+            return emptyList()
+        }
+
         val existingEntries =
             sakPersongalleriRepository.findByFagsystemAndFagsakId(
                 fagsystem = behandling.fagsystem,
-                fagsakId = behandling.fagsakId,
+                fagsakId = fagsakId,
             )
 
         if (existingEntries.isNotEmpty()) {
             logger.debug(
                 "Persongalleri already exists for fagsystem {} and fagsakId {}, skipping",
                 behandling.fagsystem,
-                behandling.fagsakId,
+                fagsakId,
             )
             return emptyList()
         }
 
         val sak =
             Sak(
-                sakId = behandling.fagsakId,
+                sakId = fagsakId,
                 ytelse = behandling.ytelse,
                 fagsystem = behandling.fagsystem,
             )
@@ -93,7 +103,7 @@ class EnsurePersongalleriAndProtectionEventListener(
             sakPersongalleriRepository.save(
                 SakPersongalleri(
                     fagsystem = behandling.fagsystem,
-                    fagsakId = behandling.fagsakId,
+                    fagsakId = fagsakId,
                     foedselsnummer = foedselsnummer,
                 ),
             )

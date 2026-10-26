@@ -4,6 +4,7 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -79,6 +80,8 @@ internal class InnsynServiceTest {
                 kildeReferanse = "abc",
                 fagsystem = Fagsystem.FS36,
                 fagsakId = "sak1",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = klageMottattKA,
                 frist = klageMottattKA.plusWeeks(12).toLocalDate(),
                 hjemler = setOf(),
@@ -127,6 +130,8 @@ internal class InnsynServiceTest {
                 kildeReferanse = "abc",
                 fagsystem = Fagsystem.FS36,
                 fagsakId = "sak1",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = ankeMottattKA,
                 frist = ankeMottattKA.plusWeeks(12).toLocalDate(),
                 hjemler = setOf(),
@@ -174,6 +179,8 @@ internal class InnsynServiceTest {
                 kildeReferanse = "abc",
                 fagsystem = Fagsystem.FS36,
                 fagsakId = "sak1",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = ankeMottattKA,
                 frist = ankeMottattKA.plusWeeks(12).toLocalDate(),
                 hjemler = setOf(),
@@ -223,6 +230,8 @@ internal class InnsynServiceTest {
                 kildeReferanse = "abc",
                 fagsystem = Fagsystem.FS36,
                 fagsakId = "sak1",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = ankeMottattKA,
                 frist = ankeMottattKA.plusWeeks(12).toLocalDate(),
                 hjemler = setOf(),

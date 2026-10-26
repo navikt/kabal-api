@@ -127,5 +127,6 @@ fun OversendtKlageV2.toMottak(): Mottak {
         gosysOppgaveRequired = false,
         gosysOppgaveId = null,
         trygderettenSaksnummer = null,
+        arkivsaksnummer = null,
     )
 }

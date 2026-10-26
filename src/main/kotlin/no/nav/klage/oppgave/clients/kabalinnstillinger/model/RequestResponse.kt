@@ -16,7 +16,7 @@ data class MedunderskrivereInput(
 
 data class SakInput(
     val fnr: String,
-    val sakId: String,
+    val sakId: String?,
     val ytelseId: String,
     val fagsystemId: String,
     val typeId: String,

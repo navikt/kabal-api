@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -83,11 +84,13 @@ class TilgangService(
     fun getPersongalleriToCheckForBehandling(behandling: Behandling): List<String> {
         val persongalleriToCheck = mutableSetOf(behandling.sakenGjelder.partId.value)
 
-        if (behandling.fagsystem == Fagsystem.FS36) {
+        val fagsakId = behandling.fagsakId
+        // Generelle saker har ikke persongalleri; tilgang avgjøres da kun av sakenGjelder.
+        if (behandling.fagsystem == Fagsystem.FS36 && behandling.sakstype != Sakstype.GENERELL_SAK && fagsakId != null) {
             val persongalleri =
                 sakPersongalleriRepository.findByFagsystemAndFagsakId(
                     fagsystem = behandling.fagsystem,
-                    fagsakId = behandling.fagsakId,
+                    fagsakId = fagsakId,
                 )
             persongalleriToCheck += persongalleri.map { it.foedselsnummer }
         }

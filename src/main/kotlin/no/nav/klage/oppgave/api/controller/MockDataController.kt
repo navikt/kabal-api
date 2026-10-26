@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel.FTRL_9_10
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
@@ -389,6 +390,8 @@ class MockDataController(
                             dvhReferanse = mockInput?.dvhReferanse ?: UUID.randomUUID().toString(),
                             fagsystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
                             fagsakId = oversendtSak.fagsakId,
+                            sakstype = Sakstype.FAGSAK,
+                            arkivsaksnummer = null,
                             sakMottattKlageinstans = dato,
                             saksdokumenter = mutableSetOf(),
                             innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
@@ -408,16 +411,28 @@ class MockDataController(
                     )
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
                     TODO()
                 }
 
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
                     TODO()
                 }
 
-                Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.ANKE_ETTER_2027 -> {
-                    TODO()
+                Type.ANKE_ETTER_2027 -> {
+                    TODO("Implement support for ANKE_ETTER_2027")
+                }
+
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                    TODO("Implement support for ANKE_I_TRYGDERETTEN_ETTER_2027")
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                    TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                    TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
                 }
             }
         logger.debug("Behandling with id {} was returned", behandling.id)

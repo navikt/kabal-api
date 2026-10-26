@@ -12,6 +12,7 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -628,6 +629,8 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 mottattKlageinstans = now,
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 kildeReferanse = "abc",
                 mottattVedtaksinstans = now.toLocalDate(),
                 avsenderEnhetFoersteinstans = "enhet",
@@ -696,6 +699,8 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 kildeReferanse = "abc",
                 fagsystem = Fagsystem.K9,
                 fagsakId = "123",
+                sakstype = Sakstype.FAGSAK,
+                arkivsaksnummer = null,
                 mottattKlageinstans = now,
                 frist = now.toLocalDate(),
                 previousSaksbehandlerident = "C78901",

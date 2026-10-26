@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.saf.graphql
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.kodeverk.Sakstype
 import java.time.LocalDateTime
 
 data class DokumentoversiktBrukerResponse(
@@ -177,7 +178,34 @@ data class Sak(
     val datoOpprettet: LocalDateTime?,
     val fagsakId: String?,
     val fagsaksystem: String?,
-)
+    /** Null når saf ikke finner PSAK-saken. */
+    val sakstype: String?,
+    val arkivsaksnummer: String?,
+) {
+    /**
+     * Fagsak gir fagsakId, eller arkivsaksnummer hvis fagsakId mangler (saf utleder FAGSAK kun fra fagsaksystem).
+     * Generell sak og arkivsak gir arkivsaksnummer.
+     * Uten sakstype (PSAK-sak saf ikke fant) gis arkivsaksnummer, som for PSAK er lik fagsakId.
+     */
+    fun getSaksnummer(): String =
+        when (sakstype) {
+            null -> {
+                arkivsaksnummer ?: error("Sak uten sakstype mangler arkivsaksnummer")
+            }
+
+            Sakstype.FAGSAK.navn -> {
+                fagsakId ?: arkivsaksnummer ?: error("Sak med sakstype FAGSAK mangler både fagsakId og arkivsaksnummer")
+            }
+
+            Sakstype.GENERELL_SAK.navn, Sakstype.ARKIVSAK.navn -> {
+                arkivsaksnummer ?: error("Sak med sakstype $sakstype mangler arkivsaksnummer")
+            }
+
+            else -> {
+                error("Ukjent sakstype $sakstype")
+            }
+        }
+}
 
 enum class Tema {
     AAP, // Arbeidsavklaringspenger

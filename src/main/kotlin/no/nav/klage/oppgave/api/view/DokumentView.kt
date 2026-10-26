@@ -182,6 +182,8 @@ data class DokumentReferanse(
         val fagsakId: String?,
         val fagsaksystem: String?,
         val fagsystemId: String?,
+        /** Fagsak, eller arkivsaksnummer hvis fagsakId mangler. */
+        val saksnummer: String,
     )
 
     data class TimelineItem(

@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -521,6 +522,7 @@ class MottakService(
     }
 
     fun CreateKlageBasedOnKabinInput.validate() {
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) },
@@ -540,6 +542,7 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateAnkeType(typeId = typeId)
         validateTrygderettenSaksnummer(
             trygderettenSaksnummer = trygderettenSaksnummer,
@@ -566,6 +569,42 @@ class MottakService(
             prosessfullmektigIdentifikator = fullmektig?.value,
         )
     }
+
+    /** Sakstype from kabin. Null means FAGSAK. GENERELL_SAK has no fagsakId, but must have arkivsaksnummer. ARKIVSAK is not supported. */
+    private fun validateSak(
+        sakstypeId: String?,
+        fagsakId: String?,
+        arkivsaksnummer: String?,
+    ) {
+        val sakstype =
+            try {
+                toSakstype(sakstypeId)
+            } catch (_: IllegalArgumentException) {
+                throw OversendtKlageNotValidException("Ugyldig sakstype: $sakstypeId")
+            }
+        when (sakstype) {
+            Sakstype.FAGSAK -> {
+                if (fagsakId.isNullOrBlank()) {
+                    throw OversendtKlageNotValidException("Fagsak må ha fagsakId.")
+                }
+            }
+
+            Sakstype.GENERELL_SAK -> {
+                if (fagsakId != null) {
+                    throw OversendtKlageNotValidException("Generell sak skal ikke ha fagsakId.")
+                }
+                if (arkivsaksnummer.isNullOrBlank()) {
+                    throw OversendtKlageNotValidException("Generell sak må ha arkivsaksnummer.")
+                }
+            }
+
+            Sakstype.ARKIVSAK -> {
+                throw OversendtKlageNotValidException("Arkivsak støttes ikke.")
+            }
+        }
+    }
+
+    private fun toSakstype(sakstypeId: String?): Sakstype = sakstypeId?.let { Sakstype.of(it) } ?: Sakstype.FAGSAK
 
     /** An anke etter 2027 always comes from Trygderetten, and no other behandling does. */
     private fun validateTrygderettenSaksnummer(
@@ -596,6 +635,7 @@ class MottakService(
     }
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
+        validateSak(sakstypeId = sakstypeId, fagsakId = fagsakId, arkivsaksnummer = arkivsaksnummer)
         validateTrygderettenSaksnummer(trygderettenSaksnummer = trygderettenSaksnummer, type = Type.of(typeId!!))
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
@@ -898,7 +938,7 @@ class MottakService(
                             when (type) {
                                 Type.ANKE_FOER_2027 -> MottakDokumentType.BRUKERS_ANKE
                                 Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
-                                Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
                                 else -> error("Ugyldig type $type")
                             },
                         journalpostId = input.receivedDocumentJournalpostId,
@@ -916,6 +956,8 @@ class MottakService(
             sakenGjelder = sakenGjelder,
             fagsystem = fagsystem,
             fagsakId = fagsakId,
+            sakstype = sakstype,
+            arkivsaksnummer = arkivsaksnummer,
             kildeReferanse = kildeReferanse,
             dvhReferanse = dvhReferanse,
             // Dette er søkehjemler
@@ -993,6 +1035,8 @@ class MottakService(
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
+            sakstype = toSakstype(sakstypeId),
+            arkivsaksnummer = arkivsaksnummer,
             kildeReferanse = kildereferanse,
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
@@ -1076,6 +1120,8 @@ class MottakService(
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
+            sakstype = toSakstype(sakstypeId),
+            arkivsaksnummer = arkivsaksnummer,
             kildeReferanse = kildereferanse,
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
@@ -1163,6 +1209,8 @@ class MottakService(
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
+            sakstype = toSakstype(sakstypeId),
+            arkivsaksnummer = arkivsaksnummer,
             kildeReferanse = kildereferanse,
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),

@@ -375,7 +375,7 @@ class BehandlingService(
                         if (behandling.type in
                             listOf(
                                 Type.ANKE_FOER_2027,
-                                Type.BEGJAERING_OM_GJENOPPTAK,
+                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
                             ) && behandling.shouldBeSentToTrygderetten()
                         ) {
                             if (gosysOppgaveInput.gosysOppgaveUpdate.mappeId == null) {
@@ -3184,6 +3184,7 @@ class BehandlingService(
                     null
                 },
             fagsakId = fagsakId,
+            arkivsaksnummer = arkivsaksnummer,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,
             klageBehandlendeEnhet = tildeling!!.enhet!!,
@@ -3340,7 +3341,7 @@ class BehandlingService(
                     listOf(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
-                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_ETTER_2027,
                     ),
             ).filter {
@@ -3370,7 +3371,7 @@ class BehandlingService(
                     listOf(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
-                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
                     ),
             ).filter {
                 try {

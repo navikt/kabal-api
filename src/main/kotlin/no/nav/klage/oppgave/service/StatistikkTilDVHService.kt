@@ -119,7 +119,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027)
             } -> {
                 BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
             }
@@ -133,7 +133,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_GJENOPPTAKSBEHANDLING_KA &&
-                    type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
+                    type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027
             } -> {
                 BehandlingState.NY_GJENOPPTAKSBEHANDLING_I_KA_UTEN_TR
             }
@@ -148,7 +148,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)
+                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027)
             } -> {
                 BehandlingState.AVSLUTTET
             }
@@ -159,7 +159,7 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027) &&
                     utfall !in utfallToTrygderetten
             } -> {
                 BehandlingState.AVSLUTTET
@@ -167,14 +167,14 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type !in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK)
+                    type !in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
             } -> {
                 BehandlingState.AVSLUTTET
             }
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK) &&
+                    type in listOf(Type.ANKE_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027) &&
                     utfall in utfallToTrygderetten
             } -> {
                 BehandlingState.SENDT_TIL_TR
@@ -207,7 +207,7 @@ class StatistikkTilDVHService(
             } else {
                 TR_ENHET
             }
-        } else if (behandling.type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN && behandlingState in
+        } else if (behandling.type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 && behandlingState in
             listOf(
                 BehandlingState.AVSLUTTET,
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_GJENOPPTAKSBEHANDLING_I_KA,
@@ -228,20 +228,21 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState,
     ): StatistikkTilDVH {
+        val fagsakId = behandling.fagsakId
         val behandlingId =
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.fagsystem == Fagsystem.IT01 && fagsakId != null) {
                 try {
-                    behandling.fagsakId.substring(startIndex = 0, endIndex = 4) + "-" +
-                        behandling.fagsakId.substring(
+                    fagsakId.substring(startIndex = 0, endIndex = 4) + "-" +
+                        fagsakId.substring(
                             startIndex = 4,
                             endIndex = 5,
-                        ) + "-" + behandling.fagsakId.substring(5)
+                        ) + "-" + fagsakId.substring(5)
                 } catch (e: Exception) {
                     logger.error(
-                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
+                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId $fagsakId",
                         e,
                     )
-                    behandling.fagsakId
+                    fagsakId
                 }
             } else {
                 behandling.dvhReferanse ?: behandling.kildeReferanse
@@ -280,8 +281,16 @@ class StatistikkTilDVHService(
                 BehandlingType.ANKE
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+            Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
                 BehandlingType.BEGJAERING_OM_GJENOPPTAK
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
             }
 
             Type.KLAGE -> {

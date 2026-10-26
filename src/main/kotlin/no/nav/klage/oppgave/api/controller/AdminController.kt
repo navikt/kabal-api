@@ -95,6 +95,14 @@ class AdminController(
         adminService.logInaccessibleBehandlinger()
     }
 
+    @GetMapping("/log-unassigned-anke-i-trygderetten-with-inngaaende-dokument")
+    fun logUnassignedAnkeITrygderettenWithInngaaendeDokument() {
+        logger.debug("logUnassignedAnkeITrygderettenWithInngaaendeDokument is called")
+        krevAdminTilgang()
+
+        adminService.logUnassignedAnkeITrygderettenWithInngaaendeDokument()
+    }
+
     @GetMapping("/log-inaccessible-skjerming")
     fun logInaccessibleSkjerming() {
         logger.debug("logInaccessibleSkjerming is called")

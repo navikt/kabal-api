@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.BehandlingFullfoertView
 import no.nav.klage.oppgave.api.view.EnhetView
@@ -213,7 +214,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = klagebehandling.fagsakId,
+            saksnummer = klagebehandling.getSaksnummer(),
             rol = klagebehandling.toROLView(),
             medunderskriver = klagebehandling.toMedunderskriverView(),
             saksbehandler = klagebehandling.toSaksbehandlerView(),
@@ -301,7 +302,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = omgjoeringskravbehandling.fagsakId,
+            saksnummer = omgjoeringskravbehandling.getSaksnummer(),
             rol = omgjoeringskravbehandling.toROLView(),
             medunderskriver = omgjoeringskravbehandling.toMedunderskriverView(),
             saksbehandler = omgjoeringskravbehandling.toSaksbehandlerView(),
@@ -439,7 +440,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = ankebehandling.fagsakId,
+            saksnummer = ankebehandling.getSaksnummer(),
             rol = ankebehandling.toROLView(),
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
@@ -522,7 +523,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = ankebehandling.fagsakId,
+            saksnummer = ankebehandling.getSaksnummer(),
             rol = ankebehandling.toROLView(),
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
@@ -607,7 +608,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = behandling.fagsakId,
+            saksnummer = behandling.getSaksnummer(),
             rol = behandling.toROLView(),
             medunderskriver = behandling.toMedunderskriverView(),
             saksbehandler = behandling.toSaksbehandlerView(),
@@ -698,7 +699,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = behandlingEtterTrygderettenOpphevet.fagsakId,
+            saksnummer = behandlingEtterTrygderettenOpphevet.getSaksnummer(),
             rol = behandlingEtterTrygderettenOpphevet.toROLView(),
             medunderskriver = behandlingEtterTrygderettenOpphevet.toMedunderskriverView(),
             saksbehandler = behandlingEtterTrygderettenOpphevet.toSaksbehandlerView(),
@@ -791,7 +792,7 @@ class BehandlingMapper(
                     .map {
                         it.dokumentInfoId
                     }.toSet(),
-            saksnummer = gjenopptaksbehandling.fagsakId,
+            saksnummer = gjenopptaksbehandling.getSaksnummer(),
             rol = gjenopptaksbehandling.toROLView(),
             medunderskriver = gjenopptaksbehandling.toMedunderskriverView(),
             saksbehandler = gjenopptaksbehandling.toSaksbehandlerView(),
@@ -1015,11 +1016,17 @@ class BehandlingMapper(
     private fun getProtectedFamilyMemberViews(behandling: Behandling): List<BehandlingDetaljerView.ProtectedFamilyMemberView> {
         val sakenGjelderFnr = behandling.sakenGjelder.partId.value
 
+        // Generelle saker har ikke persongalleri. Ikke slå opp på null (ville gitt IS NULL-treff).
+        val fagsakId = behandling.fagsakId
+        if (behandling.sakstype == Sakstype.GENERELL_SAK || fagsakId == null) {
+            return emptyList()
+        }
+
         val persongalleriEntries =
             sakPersongalleriRepository
                 .findByFagsystemAndFagsakId(
                     fagsystem = behandling.fagsystem,
-                    fagsakId = behandling.fagsakId,
+                    fagsakId = fagsakId,
                 ).filter { it.foedselsnummer != sakenGjelderFnr }
 
         return persongalleriEntries.mapNotNull { entry ->
@@ -1240,7 +1247,7 @@ class BehandlingMapper(
             sattPaaVent = behandling.toSattPaaVent(),
             feilregistrert = behandling.feilregistrering?.registered,
             fagsystemId = behandling.fagsystem.id,
-            saksnummer = behandling.fagsakId,
+            saksnummer = behandling.getSaksnummer(),
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is BehandlingITrygderetten) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist =

@@ -4,6 +4,7 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -48,7 +49,9 @@ class GjenopptaksbehandlingBasedOnKabalBehandling(
     kildeReferanse: String,
     dvhReferanse: String? = null,
     fagsystem: Fagsystem,
-    fagsakId: String,
+    fagsakId: String?,
+    sakstype: Sakstype,
+    arkivsaksnummer: String?,
     mottattKlageinstans: LocalDateTime,
     frist: LocalDate,
     tildeling: Tildeling? = null,
@@ -102,6 +105,8 @@ class GjenopptaksbehandlingBasedOnKabalBehandling(
         tildeling = tildeling,
         frist = frist,
         fagsakId = fagsakId,
+        sakstype = sakstype,
+        arkivsaksnummer = arkivsaksnummer,
         fagsystem = fagsystem,
         dvhReferanse = dvhReferanse,
         saksdokumenter = saksdokumenter,
