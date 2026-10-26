@@ -78,7 +78,7 @@ class MeldingService(
             melding = melding,
             utfoerendeIdent = innloggetIdent,
             utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
-            timestamp = melding.modified ?: melding.created,
+            timestamp = melding.modified,
             type = InternalEventType.MESSAGE,
         )
 
@@ -123,7 +123,7 @@ class MeldingService(
             if (melding.notify) {
                 logger.warn("Melding ($meldingId) already has notify=true, skipping setting it again.")
                 return MeldingModified(
-                    modified = melding.modified ?: melding.created,
+                    modified = melding.modified,
                 )
             }
 
@@ -136,7 +136,7 @@ class MeldingService(
                 melding = melding,
                 utfoerendeIdent = innloggetIdent,
                 utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
-                timestamp = melding.modified ?: melding.created,
+                timestamp = melding.modified,
                 type = InternalEventType.MESSAGE,
             )
 
@@ -225,7 +225,7 @@ class MeldingService(
                         actorNavn = utfoerendeName,
                         saksnummer = saksnummer,
                         ytelse = ytelse,
-                        sourceCreatedAt = melding.modified ?: melding.created,
+                        sourceCreatedAt = melding.modified,
                     ),
                 ),
         )

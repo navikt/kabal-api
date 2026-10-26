@@ -20,8 +20,8 @@ class Melding(
     val saksbehandlerident: String,
     @Column(name = "created", nullable = false)
     val created: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "modified")
-    var modified: LocalDateTime? = created,
+    @Column(name = "modified", nullable = false)
+    var modified: LocalDateTime = created,
     @Column(name = "notify", nullable = false)
     var notify: Boolean,
 ) : Comparable<Melding> {
