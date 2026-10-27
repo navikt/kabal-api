@@ -11,7 +11,9 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
@@ -2804,6 +2806,111 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+    }
+
+    @Nested
+    inner class PesysBasedOnJournalpostTest {
+        private val pesysGosysOppgaveUpdate =
+            GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = "",
+            )
+
+        private fun <T : Behandling> T.setupPesys(gosysOppgaveRequired: Boolean): T {
+            val behandling = this
+            every { behandling.id } returns behandlingId
+            every { behandling.ferdigstilling } returns
+                Ferdigstilling(
+                    avsluttet = null,
+                    avsluttetAvSaksbehandler = now,
+                    navIdent = "",
+                    navn = "",
+                )
+            every { behandling.tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+            every { behandling.kildeReferanse } returns "kildereferanse"
+            every { behandling.fagsystem } returns Fagsystem.PP01
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.gosysOppgaveRequired } returns gosysOppgaveRequired
+            every { behandling.gosysOppgaveId } returns if (gosysOppgaveRequired) 123L else null
+            every { behandling.gosysOppgaveUpdate } returns if (gosysOppgaveRequired) pesysGosysOppgaveUpdate else null
+            every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+            return behandling
+        }
+
+        private fun verifyHandledLikeArena() {
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `Klagebehandling from Pesys based on journalpost updates GosysOppgave without Kafka event`() {
+            mockk<Klagebehandling>(relaxed = true).setupPesys(gosysOppgaveRequired = true)
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verifyHandledLikeArena()
+        }
+
+        @Test
+        fun `Klagebehandling from Pesys without GosysOppgave creates Kafka event`() {
+            mockk<Klagebehandling>(relaxed = true).setupPesys(gosysOppgaveRequired = false)
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingFoer2027 from Pesys based on journalpost not going to Trygderetten updates GosysOppgave without Kafka event`() {
+            val behandling = mockk<AnkebehandlingFoer2027>(relaxed = true).setupPesys(gosysOppgaveRequired = true)
+            every { behandling.shouldBeSentToTrygderetten() } returns false
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verifyHandledLikeArena()
+        }
+
+        @Test
+        fun `AnkebehandlingEtter2027 from Pesys based on journalpost creates AnkeITrygderettenbehandlingEtter2027 and updates GosysOppgave`() {
+            mockk<AnkebehandlingEtter2027>(relaxed = true).setupPesys(gosysOppgaveRequired = true)
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingEtter2027(any()) }
+            verifyHandledLikeArena()
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingEtter2027 from Pesys based on journalpost updates GosysOppgave without Kafka event`() {
+            val behandling = mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true).setupPesys(gosysOppgaveRequired = true)
+            every { behandling.nyAnkebehandlingKA } returns null
+            every { behandling.shouldCreateNewAnkebehandling() } answers { callOriginal() }
+            every { behandling.shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+            every { behandling.shouldNotCreateNewBehandling() } answers { callOriginal() }
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(any()) }
+            verifyHandledLikeArena()
+        }
+
+        @Test
+        fun `BehandlingEtterTrygderettenOpphevet from Pesys based on journalpost updates GosysOppgave without Kafka event`() {
+            mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true).setupPesys(gosysOppgaveRequired = true)
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verifyHandledLikeArena()
         }
     }
 }

@@ -163,9 +163,9 @@ class BehandlingAvslutningService(
             setToFinishedInInfotrygd(klagebehandling)
         } else if (klagebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
-        } else if (klagebehandling.isImpliedArenaCase()) {
+        } else if (klagebehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "Klage med id ${klagebehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "Klage med id ${klagebehandling.id} kommer fra ${klagebehandling.fagsystem.beskrivelse} og har Gosys-oppgave, fortsetter.",
             )
         } else if (!klagebehandling.gosysOppgaveRequired) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
@@ -217,9 +217,9 @@ class BehandlingAvslutningService(
             setToFinishedInInfotrygd(ankebehandling)
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
-        } else if (ankebehandling.isImpliedArenaCase()) {
+        } else if (ankebehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra ${ankebehandling.fagsystem.beskrivelse} og har Gosys-oppgave, fortsetter.",
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
@@ -246,9 +246,9 @@ class BehandlingAvslutningService(
 
         if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
-        } else if (ankebehandling.isImpliedArenaCase()) {
+        } else if (ankebehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Arbeidsoppfølgin/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra ${ankebehandling.fagsystem.beskrivelse} og har Gosys-oppgave, fortsetter.",
             )
         } else if (!ankebehandling.gosysOppgaveRequired) {
             // TODO: Gå gjennom før prodsetting, må informere VL
@@ -324,9 +324,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
-        } else if (ankeITrygderettenbehandling.isImpliedArenaCase()) {
+        } else if (ankeITrygderettenbehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra ${ankeITrygderettenbehandling.fagsystem.beskrivelse} og har Gosys-oppgave, fortsetter.",
             )
         } else if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
             logger.debug(
@@ -411,9 +411,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
-        } else if (ankeITrygderettenbehandling.isImpliedArenaCase()) {
+        } else if (ankeITrygderettenbehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra ${ankeITrygderettenbehandling.fagsystem.beskrivelse}. Har blitt oppdatert av bruker, fortsetter.",
             )
         } else if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
             logger.debug(
@@ -456,9 +456,9 @@ class BehandlingAvslutningService(
             logger.debug(
                 "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
             )
-        } else if (behandlingEtterTrygderettenOpphevet.isImpliedArenaCase()) {
+        } else if (behandlingEtterTrygderettenOpphevet.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
             logger.debug(
-                "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arbeidsoppfølging/Arena. Har blitt oppdatert av bruker, fortsetter.",
+                "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra ${behandlingEtterTrygderettenOpphevet.fagsystem.beskrivelse} og har Gosys-oppgave, fortsetter.",
             )
         } else if (!behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired) {
             logger.debug(
@@ -819,8 +819,11 @@ class BehandlingAvslutningService(
         )
     }
 
-    private fun Behandling.isImpliedArenaCase(): Boolean =
-        fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22) && gosysOppgaveRequired
+    /**
+     * We use this method to make sure that we only support what we have agreed upon.
+     */
+    private fun Behandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave(): Boolean =
+        fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22, Fagsystem.PP01) && gosysOppgaveRequired
 
     private fun getBehandlingDetaljer(
         behandling: Behandling,
