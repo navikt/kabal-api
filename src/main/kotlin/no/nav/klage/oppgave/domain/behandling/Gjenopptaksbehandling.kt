@@ -48,7 +48,7 @@ import java.util.UUID
 @DiscriminatorValue("gjenopptak")
 @DynamicUpdate
 @Audited
-abstract class Gjenopptaksbehandling(
+class Gjenopptaksbehandling(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
     @Column(name = "paaanket_vedtaks_dato")

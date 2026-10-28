@@ -36,20 +36,15 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTST
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.PersonProtection
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
-import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
-import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.EventType
@@ -79,7 +74,6 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.UUID
 
 private typealias DokumentRowsForBehandling = List<UnassignedBehandlingWithInngaaendeDokument>
@@ -1096,95 +1090,6 @@ class AdminService(
         }
 
         logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
-    }
-
-    @Transactional
-    fun setPreviousBehandlingId(dryRun: Boolean) {
-        logger.debug("setPreviousBehandlingId is called with dryRun={}", dryRun)
-
-        var updatedCount = 0
-        var skippedCount = 0
-        var nullCount = 0
-        var count = 0
-        val total = behandlingRepository.count()
-
-        behandlingRepository.findAllForAdminStreamed().use { streamed ->
-            streamed.forEach { behandling ->
-                val previousBehandlingId =
-                    when (behandling) {
-                        is Klagebehandling -> {
-                            null
-                        }
-
-                        is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> {
-                            behandling.previousBehandlingId
-                        }
-
-                        is Omgjoeringskravbehandling -> {
-                            when (behandling) {
-                                is OmgjoeringskravbehandlingBasedOnJournalpost -> null
-                                is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.previousBehandlingId
-                                else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
-                            }
-                        }
-
-                        is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
-                            ankebehandlingFoer2027Repository
-                                .findPreviousAnker(
-                                    sakenGjelder = behandling.sakenGjelder.partId.value,
-                                    kildeReferanse = behandling.kildeReferanse,
-                                    dateLimit = behandling.created,
-                                ).firstOrNull()
-                                ?.id
-                        }
-
-                        is BehandlingEtterTrygderettenOpphevet -> {
-                            behandling.previousBehandlingId
-                        }
-
-                        is GjenopptakITrygderettenbehandling -> {
-                            TODO()
-                        }
-
-                        is Gjenopptaksbehandling -> {
-                            TODO()
-                        }
-
-                        else -> {
-                            error("Unknown Behandling subtype: ${behandling::class.java.name}")
-                        }
-                    }
-
-                if (previousBehandlingId != null) {
-                    if (behandling.previousBehandlingId == null) {
-                        logger.debug("Will set previousBehandlingId for behandling ${behandling.id} to $previousBehandlingId")
-                        if (!dryRun) {
-                            behandling.previousBehandlingId = previousBehandlingId
-                            behandling.modified = LocalDateTime.now()
-                            entityManager.flush()
-                        }
-                        updatedCount++
-                    } else if (behandling.previousBehandlingId != previousBehandlingId) {
-                        logger.warn(
-                            "Previous behandling was already set but differs. Behandling: ${behandling.id}, set value: ${behandling.previousBehandlingId}, new value: $previousBehandlingId",
-                        )
-                    } else {
-                        skippedCount++
-                    }
-                } else {
-                    nullCount++
-                }
-                if (count++ % 100 == 0) {
-                    logger.debug("Handled $count behandlinger out of ca. $total")
-                }
-
-                entityManager.detach(behandling)
-            }
-        }
-
-        logger.debug(
-            "setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.",
-        )
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)

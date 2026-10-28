@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -228,16 +227,6 @@ class DevOnlyAdminController(
             logger.warn("Failed to evict all caches", e)
             throw e
         }
-    }
-
-    @Unprotected
-    @GetMapping("/set-previous-behandling-id")
-    @ResponseStatus(HttpStatus.OK)
-    fun setPreviousBehandlingId(
-        @RequestParam(value = "dryRun", required = false, defaultValue = "true") dryRun: Boolean = true,
-    ) {
-        logger.debug("setPreviousBehandlingId is called")
-        adminService.setPreviousBehandlingId(dryRun = dryRun)
     }
 
     @Unprotected

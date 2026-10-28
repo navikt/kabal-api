@@ -21,11 +21,8 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
-import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnJournalpost
-import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
-import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
@@ -1785,9 +1782,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `OmgjoeringskravbehandlingBasedOnJournalpost should not update infotrygd, only Gosys`() {
+        fun `Omgjoeringskravbehandling based on journalpost should not update infotrygd, only Gosys`() {
             val behandling =
-                mockk<OmgjoeringskravbehandlingBasedOnJournalpost>(relaxed = true) {
+                mockk<Omgjoeringskravbehandling>(relaxed = true) {
                     every { id } returns behandlingId
                     every { ferdigstilling } returns
                         Ferdigstilling(
@@ -2011,9 +2008,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptaksbehandlingBasedOnJournalpost with utfall MEDHOLD_ETTER_FVL_35 should update Gosys`() {
+        fun `Gjenopptaksbehandling based on journalpost with utfall MEDHOLD_ETTER_FVL_35 should update Gosys`() {
             val behandling =
-                mockk<GjenopptaksbehandlingBasedOnJournalpost>(relaxed = true) {
+                mockk<Gjenopptaksbehandling>(relaxed = true) {
                     every { id } returns behandlingId
                     every { ferdigstilling } returns
                         Ferdigstilling(
@@ -2078,7 +2075,7 @@ class BehandlingAvslutningServiceTest {
         @Test
         fun `GjenopptaksbehandlingBasedOnKabalBehandling with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
             val behandling =
-                mockk<GjenopptaksbehandlingBasedOnKabalBehandling>(relaxed = true) {
+                mockk<Gjenopptaksbehandling>(relaxed = true) {
                     every { id } returns behandlingId
                     every { ferdigstilling } returns
                         Ferdigstilling(
