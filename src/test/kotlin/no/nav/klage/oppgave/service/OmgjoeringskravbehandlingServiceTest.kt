@@ -91,7 +91,7 @@ class OmgjoeringskravbehandlingServiceTest {
 
         every { kakaVersionUtil.getKakaVersion() } returns 2
         every { kakaApiGateway.createKvalitetsvurdering(2) } returns
-            KakaOutput(kvalitetsvurderingId, 2)
+            KakaOutput(kvalitetsvurderingId = kvalitetsvurderingId, kvalitetsvurderingVersion = 2)
         every { dokumentService.createSaksdokumenterFromJournalpostIdList(listOf(journalpostId)) } returns
             mutableSetOf()
         every { repository.save(any<Omgjoeringskravbehandling>()) } answers { firstArg() }

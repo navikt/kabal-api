@@ -110,7 +110,9 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 assertThat(behandling.forsterketRett).isTrue()
             }
 
-            is Omgjoeringskravbehandling -> assertThat(behandling.klageBehandlendeEnhet).isEqualTo("4219")
+            is Omgjoeringskravbehandling -> {
+                assertThat(behandling.klageBehandlendeEnhet).isEqualTo("4219")
+            }
         }
     }
 
