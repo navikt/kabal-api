@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.behandling
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -43,9 +44,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 @Entity
+@DiscriminatorValue("omgjoeringskrav")
 @DynamicUpdate
 @Audited
-abstract class Omgjoeringskravbehandling(
+class Omgjoeringskravbehandling(
     @Column(name = "klage_behandlende_enhet", nullable = false)
     val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")

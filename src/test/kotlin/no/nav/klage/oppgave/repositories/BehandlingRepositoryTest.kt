@@ -17,11 +17,9 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnJournalpost
-import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingBasedOnKabalBehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
-import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
-import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
@@ -32,14 +30,17 @@ import no.nav.klage.oppgave.domain.behandling.historikk.TildelingHistorikk
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.envers.AuditReaderFactory
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.annotation.Commit
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.transaction.TestTransaction
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -71,6 +72,48 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         testEntityManager.clear()
 
         assertThat(behandlingRepository.findById(behandling.id).get()).isEqualTo(behandling)
+    }
+
+    @ParameterizedTest
+    @MethodSource("consolidatedBehandlingProvider")
+    fun `consolidated treatments round trip through repository and envers`(
+        behandling: Behandling,
+        expectedClass: Class<out Behandling>,
+    ) {
+        behandlingRepository.save(behandling)
+        testEntityManager.flush()
+
+        TestTransaction.flagForCommit()
+        TestTransaction.end()
+        TestTransaction.start()
+        testEntityManager.clear()
+
+        val stored = behandlingRepository.findById(behandling.id).get()
+        assertThat(stored::class.java).isEqualTo(expectedClass)
+        assertConsolidatedData(stored)
+
+        val auditReader = AuditReaderFactory.get(testEntityManager.entityManager)
+        val revisions = auditReader.getRevisions(Behandling::class.java, behandling.id)
+        assertThat(revisions).isNotEmpty()
+
+        val audited = auditReader.find(Behandling::class.java, behandling.id, revisions.last())
+        assertThat(audited).isNotNull
+        assertThat(audited!!::class.java).isEqualTo(expectedClass)
+        assertConsolidatedData(audited)
+    }
+
+    private fun assertConsolidatedData(behandling: Behandling) {
+        assertThat(behandling.kildeReferanse).isEqualTo("abc")
+        when (behandling) {
+            is Gjenopptaksbehandling -> {
+                assertThat(behandling.paaanketVedtaksdato).isEqualTo(PAAANKET_VEDTAKSDATO)
+                assertThat(behandling.forsterketRett).isTrue()
+            }
+
+            is Omgjoeringskravbehandling -> {
+                assertThat(behandling.klageBehandlendeEnhet).isEqualTo("4219")
+            }
+        }
     }
 
     @Test
@@ -416,11 +459,16 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 getAnkebehandling(),
                 getAnkeITrygderettenbehandling(),
                 getBehandlingEtterTrygderettenOpphevet(),
-                getOmgjoeringskravbehandlingBasedOnKabalBehandling(),
-                getOmgjoeringskravbehandlingBasedOnJournalpost(),
-                getGjenopptaksbehandlingBasedOnJournalpost(),
-                getGjenopptaksbehandlingBasedOnKabalBehandling(),
+                getOmgjoeringskravbehandling(),
+                getGjenopptaksbehandling(),
                 getGjenopptakITrygderettenbehandling(),
+            )
+
+        @JvmStatic
+        fun consolidatedBehandlingProvider(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(getOmgjoeringskravbehandling(), Omgjoeringskravbehandling::class.java),
+                Arguments.of(getGjenopptaksbehandling(), Gjenopptaksbehandling::class.java),
             )
 
         private fun getKlagebehandling(
@@ -499,44 +547,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 previousBehandlingId = null,
             )
 
-        private fun getOmgjoeringskravbehandlingBasedOnKabalBehandling() =
-            OmgjoeringskravbehandlingBasedOnKabalBehandling(
-                klager =
-                    Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                sakenGjelder =
-                    SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                prosessfullmektig = null,
-                ytelse = Ytelse.OMS_OMP,
-                type = Type.OMGJOERINGSKRAV,
-                frist = LocalDate.now(),
-                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-                mottattKlageinstans = LocalDateTime.now(),
-                fagsystem = Fagsystem.K9,
-                fagsakId = "123",
-                sakstype = Sakstype.FAGSAK,
-                arkivsaksnummer = null,
-                kildeReferanse = "abc",
-                klageBehandlendeEnhet = "4219",
-                kakaKvalitetsvurderingVersion = 2,
-                kakaKvalitetsvurderingId = UUID.randomUUID(),
-                previousSaksbehandlerident = "C78901",
-                gosysOppgaveId = null,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = false,
-                initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                previousBehandlingId = null,
-                oppgaveId = null,
-            )
-
-        private fun getOmgjoeringskravbehandlingBasedOnJournalpost() =
-            OmgjoeringskravbehandlingBasedOnJournalpost(
+        private fun getOmgjoeringskravbehandling() =
+            Omgjoeringskravbehandling(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
@@ -673,45 +685,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 previousBehandlingId = null,
             )
 
-        private fun getGjenopptaksbehandlingBasedOnJournalpost() =
-            GjenopptaksbehandlingBasedOnJournalpost(
-                klager =
-                    Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                sakenGjelder =
-                    SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                prosessfullmektig = null,
-                ytelse = Ytelse.OMS_OMP,
-                type = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
-                frist = LocalDate.now(),
-                hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-                mottattKlageinstans = LocalDateTime.now(),
-                fagsystem = Fagsystem.K9,
-                fagsakId = "123",
-                sakstype = Sakstype.FAGSAK,
-                arkivsaksnummer = null,
-                kildeReferanse = "abc",
-                klageBehandlendeEnhet = "4219",
-                kakaKvalitetsvurderingId = UUID.randomUUID(),
-                kakaKvalitetsvurderingVersion = 2,
-                paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
-                forsterketRett = true,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                previousSaksbehandlerident = "C78901",
-                gosysOppgaveId = null,
-                gosysOppgaveRequired = false,
-                initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                previousBehandlingId = null,
-            )
-
-        private fun getGjenopptaksbehandlingBasedOnKabalBehandling() =
-            GjenopptaksbehandlingBasedOnKabalBehandling(
+        private fun getGjenopptaksbehandling() =
+            Gjenopptaksbehandling(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
