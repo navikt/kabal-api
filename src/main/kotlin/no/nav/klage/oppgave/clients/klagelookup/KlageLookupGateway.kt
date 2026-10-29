@@ -185,7 +185,15 @@ class KlageLookupGateway(
 
     private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups =
         SaksbehandlerGroups(
-            groups = this.groupIds.map { AzureGroup.of(it) },
+            groups =
+                this.groupIds.mapNotNull { groupId ->
+                    try {
+                        AzureGroup.of(groupId)
+                    } catch (_: IllegalArgumentException) {
+                        logger.warn("No AzureGroup with id {} exists, skipping group from KlageLookup", groupId)
+                        null
+                    }
+                },
         )
 
     private fun PersonResponse.toPerson(): Person =
