@@ -2,18 +2,11 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.kafka.AnkebehandlingOpprettetDetaljer
-import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
-import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType
-import no.nav.klage.oppgave.domain.kafka.EventType
-import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.UUID
 
 @Service
 class CreateBehandlingFromMottak(
@@ -44,10 +37,6 @@ class CreateBehandlingFromMottak(
                     ankebehandlingService.createAnkebehandlingFromMottak(
                         mottak = mottak,
                     )
-
-                if (!ankebehandling.gosysOppgaveRequired) {
-                    publishKafkaEvent(ankebehandling)
-                }
 
                 ankebehandling
             }
@@ -90,10 +79,6 @@ class CreateBehandlingFromMottak(
                         mottak = mottak,
                     )
 
-                if (!ankebehandling.gosysOppgaveRequired) {
-                    publishKafkaEvent(ankebehandling)
-                }
-
                 ankebehandling
             }
 
@@ -101,34 +86,5 @@ class CreateBehandlingFromMottak(
                 TODO()
             }
         }
-    }
-
-    private fun publishKafkaEvent(ankebehandling: Behandling) {
-        // Publiser Kafka-event, infomelding om opprettelse
-        val behandlingEvent =
-            BehandlingEvent(
-                eventId = UUID.randomUUID(),
-                kildeReferanse = ankebehandling.kildeReferanse,
-                kilde = ankebehandling.fagsystem.navn,
-                kabalReferanse = ankebehandling.id.toString(),
-                type = BehandlingEventType.ANKEBEHANDLING_OPPRETTET,
-                detaljer =
-                    BehandlingDetaljer(
-                        ankebehandlingOpprettet =
-                            AnkebehandlingOpprettetDetaljer(
-                                mottattKlageinstans = ankebehandling.mottattKlageinstans,
-                            ),
-                    ),
-            )
-        kafkaEventRepository.save(
-            KafkaEvent(
-                id = UUID.randomUUID(),
-                behandlingId = ankebehandling.id,
-                kilde = ankebehandling.fagsystem.navn,
-                kildeReferanse = ankebehandling.kildeReferanse,
-                jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-                type = EventType.BEHANDLING_EVENT,
-            ),
-        )
     }
 }
