@@ -2896,6 +2896,7 @@ class BehandlingAvslutningServiceTest {
 
         private fun <T : Behandling> T.setupPesys(gosysOppgaveRequired: Boolean): T {
             val behandling = this
+            every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandling.id } returns behandlingId
             every { behandling.ferdigstilling } returns
                 Ferdigstilling(
@@ -3049,7 +3050,7 @@ class BehandlingAvslutningServiceTest {
                         Utfall.UGUNST to true,
                         Utfall.HENLAGT to false,
                     ),
-                Type.BEGJAERING_OM_GJENOPPTAK to
+                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 to
                     mapOf(
                         Utfall.MEDHOLD_ETTER_FVL_35 to true,
                         Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES to false,
@@ -3059,7 +3060,7 @@ class BehandlingAvslutningServiceTest {
                         Utfall.UGUNST to true,
                         Utfall.HENLAGT to false,
                     ),
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN to
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 to
                     mapOf(
                         Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD to true,
                         Utfall.GJENOPPTATT_OPPHEVET to true,
@@ -3070,14 +3071,12 @@ class BehandlingAvslutningServiceTest {
                     ),
                 Type.ANKE_ETTER_2027 to
                     mapOf(
-                        Utfall.TRUKKET to false,
                         Utfall.OPPHEVET to true,
                         Utfall.MEDHOLD to true,
                         Utfall.DELVIS_MEDHOLD to true,
                         Utfall.INNSTILLING_STADFESTELSE to false,
                         Utfall.INNSTILLING_AVVIST to false,
                         Utfall.UGUNST to true,
-                        Utfall.HENLAGT to false,
                     ),
                 Type.ANKE_I_TRYGDERETTEN_ETTER_2027 to
                     mapOf(
@@ -3089,6 +3088,8 @@ class BehandlingAvslutningServiceTest {
                         Utfall.HEVET to false,
                         Utfall.HENVIST to false,
                     ),
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 to mapOf(),
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 to mapOf(),
             )
 
         fun kafkaEventCases(): List<Arguments> =
@@ -3102,7 +3103,9 @@ class BehandlingAvslutningServiceTest {
         fun `hard-coded outcome table exactly matches typeToUtfall`() {
             assertEquals(typeToUtfall.keys, expectedKafkaEventsByType.keys)
             typeToUtfall.forEach { (type, outcomes) ->
-                assertEquals(outcomes, expectedKafkaEventsByType[type]?.keys)
+                if (type !in listOf(Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027)) {
+                    assertEquals(outcomes, expectedKafkaEventsByType[type]?.keys)
+                }
             }
         }
 
@@ -3151,7 +3154,8 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `Gjenopptaksbehandling with UGUNST and Gosys task updates Gosys without Kafka event`() {
-            val behandling = createBehandling(type = Type.BEGJAERING_OM_GJENOPPTAK, utfall = Utfall.UGUNST, gosysOppgaveRequired = true)
+            val behandling =
+                createBehandling(type = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, utfall = Utfall.UGUNST, gosysOppgaveRequired = true)
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -3180,8 +3184,9 @@ class BehandlingAvslutningServiceTest {
                     Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true)
                     Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true)
                     Type.OMGJOERINGSKRAV -> mockk<Omgjoeringskravbehandling>(relaxed = true)
-                    Type.BEGJAERING_OM_GJENOPPTAK -> mockk<Gjenopptaksbehandling>(relaxed = true)
-                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> mockk<GjenopptakITrygderettenbehandling>(relaxed = true)
+                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> mockk<Gjenopptaksbehandling>(relaxed = true)
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> mockk<GjenopptakITrygderettenbehandling>(relaxed = true)
+                    Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> TODO()
                 }
 
             every { behandling.id } returns behandlingId

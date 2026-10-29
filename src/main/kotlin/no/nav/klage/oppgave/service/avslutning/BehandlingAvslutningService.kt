@@ -895,7 +895,8 @@ class BehandlingAvslutningService(
         fagsystem in listOf(Fagsystem.ARBEIDSOPPFOLGING, Fagsystem.FS22, Fagsystem.PP01) && gosysOppgaveRequired
 
     private fun Behandling.isModernizedFagsystemCase(): Boolean =
-        fagsystem != Fagsystem.IT01 && fagsystem != Fagsystem.AO01 && !isImpliedArenaCase() && !gosysOppgaveRequired
+        fagsystem != Fagsystem.IT01 && fagsystem != Fagsystem.AO01 && !isVedtaksinstansNotifiedOnlyThroughGosysOppgave() &&
+            !gosysOppgaveRequired
 
     private fun getBehandlingDetaljer(
         behandling: Behandling,
