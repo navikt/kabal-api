@@ -71,16 +71,6 @@ class SseBrokenPipeLogFilter : TurboFilter() {
             return FilterReply.DENY
         }
 
-        if (level == Level.WARN &&
-            logger?.name == "org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver" &&
-            throwable != null &&
-            throwable.javaClass.name == "java.lang.IllegalStateException" &&
-            format?.contains("JwtTokenUnauthorizedException") == true
-        ) {
-            ourLogger.debug("Suppressing warning log message. This is probably due to lost client during async/SSE operations.")
-            return FilterReply.DENY
-        }
-
         return FilterReply.NEUTRAL
     }
 }

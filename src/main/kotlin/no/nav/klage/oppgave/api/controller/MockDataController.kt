@@ -30,7 +30,6 @@ import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -55,28 +54,24 @@ class MockDataController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Unprotected
     @PostMapping("/doed")
     fun createDoedPerson() {
         createKlagebehandlingForASpecificPerson("14506507686")
     }
 
     // https://dolly.ekstern.dev.nav.no/gruppe/6336
-    @Unprotected
     @PostMapping("/kode6")
     fun createKode6Person() {
         createKlagebehandlingForASpecificPerson("26876597755")
     }
 
     // https://dolly.ekstern.dev.nav.no/gruppe/6335
-    @Unprotected
     @PostMapping("/kode7")
     fun createKode7Person() {
         createKlagebehandlingForASpecificPerson("17855999285")
     }
 
     // https://dolly.ekstern.dev.nav.no/gruppe/6334
-    @Unprotected
     @PostMapping("/egenansatt")
     fun createEgenAnsattBehandling() {
         createKlagebehandlingForASpecificPerson("12518812945")
@@ -125,7 +120,6 @@ class MockDataController(
         )
     }
 
-    @Unprotected
     @PostMapping("/fullmakt")
     fun createPersonWithFullmakt() {
         val fnr = "28497037273"
@@ -190,19 +184,16 @@ class MockDataController(
         )
     }
 
-    @Unprotected
     @PostMapping("/randomklage")
     fun sendInnRandomKlage(
         @RequestBody(required = false) input: MockInput? = null,
     ): MockDataResponse = createKlanke(type = Type.KLAGE, mockInput = input)
 
-    @Unprotected
     @PostMapping("/randomanke")
     fun sendInnRandomAnke(
         @RequestBody(required = false) input: MockInput? = null,
     ): MockDataResponse = createKlanke(type = Type.ANKE_FOER_2027, mockInput = input)
 
-    @Unprotected
     @PostMapping("/randomankeitrygderetten")
     fun sendInnRandomAnkeITrygderetten(
         @RequestBody(required = false) input: MockInput? = null,

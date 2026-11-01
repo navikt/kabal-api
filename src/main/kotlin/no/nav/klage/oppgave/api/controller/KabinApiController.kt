@@ -17,14 +17,12 @@ import no.nav.klage.oppgave.api.view.kabin.GetCompletedBehandlingerInput
 import no.nav.klage.oppgave.api.view.kabin.GosysOppgaveIsDuplicateInput
 import no.nav.klage.oppgave.api.view.kabin.Mulighet
 import no.nav.klage.oppgave.api.view.kabin.SearchUsedJournalpostIdInput
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KabinApiService
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -35,7 +33,6 @@ import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/api/internal")
 class KabinApiController(
     private val behandlingService: BehandlingService,

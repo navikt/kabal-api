@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
 import no.nav.klage.dokument.service.PreviewService
-import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "kabal-api-dokumenter")
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class PreviewController(
     private val previewService: PreviewService,
 ) {

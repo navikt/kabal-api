@@ -5,13 +5,11 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.GosysOppgaveSearchInput
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/gosysoppgaver")
 class GosysOppgaveController(
     private val gosysOppgaveService: GosysOppgaveService,

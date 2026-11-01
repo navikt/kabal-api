@@ -5,7 +5,6 @@ import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -22,7 +21,6 @@ class UnprotectedDataFeeder(
         private val teamLogger = getTeamLogger()
     }
 
-    @Unprotected
     @PostMapping("/internal/manualfeed")
     fun sendInnKlageV3(
         @Valid @RequestBody oversendtKlage: OversendtKlageAnkeV3,

@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.IdentifikatorInput
 import no.nav.klage.oppgave.api.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.oppgave.api.view.SearchSaksnummerResponse
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.EnhetService
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -16,7 +15,6 @@ import no.nav.klage.oppgave.service.OppgaveService
 import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -26,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 class SearchController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val partSearchService: PartSearchService,

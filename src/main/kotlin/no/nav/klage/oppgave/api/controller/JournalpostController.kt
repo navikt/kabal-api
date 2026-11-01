@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.api.view.LogiskVedleggResponse
 import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
 import no.nav.klage.oppgave.api.view.ReferenceToMergedDocumentsResponse
 import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.buildFilename
@@ -19,7 +18,6 @@ import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -44,7 +42,6 @@ import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/journalposter")
 class JournalpostController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,

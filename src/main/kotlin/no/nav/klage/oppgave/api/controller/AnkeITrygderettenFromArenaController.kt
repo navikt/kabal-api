@@ -4,10 +4,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -15,7 +13,6 @@ import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 class AnkeITrygderettenFromArenaController(
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
 ) {

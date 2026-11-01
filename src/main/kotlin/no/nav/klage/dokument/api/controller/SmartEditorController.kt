@@ -11,9 +11,7 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentIn
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
 import no.nav.klage.dokument.service.SmartDocumentService
-import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -27,7 +25,6 @@ import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api-smartdokumenter")
-@ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/smartdokumenter")
 class SmartEditorController(
     private val smartDocumentService: SmartDocumentService,

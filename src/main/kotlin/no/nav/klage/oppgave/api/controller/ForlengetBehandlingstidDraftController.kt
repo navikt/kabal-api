@@ -13,12 +13,10 @@ import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidTitleInput
 import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarselTypeIsOriginal
 import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
 import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
-import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.ForlengetBehandlingstidDraftService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -34,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/forlenget-behandlingstid-draft")
 class ForlengetBehandlingstidDraftController(
     private val forlengetBehandlingstidDraftService: ForlengetBehandlingstidDraftService,
