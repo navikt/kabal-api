@@ -16,8 +16,8 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
@@ -105,7 +105,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     private fun assertConsolidatedData(behandling: Behandling) {
         assertThat(behandling.kildeReferanse).isEqualTo("abc")
         when (behandling) {
-            is Gjenopptaksbehandling -> {
+            is GjenopptaksbehandlingFoer2027 -> {
                 assertThat(behandling.paaanketVedtaksdato).isEqualTo(PAAANKET_VEDTAKSDATO)
                 assertThat(behandling.forsterketRett).isTrue()
             }
@@ -468,7 +468,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         fun consolidatedBehandlingProvider(): Stream<Arguments> =
             Stream.of(
                 Arguments.of(getOmgjoeringskravbehandling(), Omgjoeringskravbehandling::class.java),
-                Arguments.of(getGjenopptaksbehandling(), Gjenopptaksbehandling::class.java),
+                Arguments.of(getGjenopptaksbehandling(), GjenopptaksbehandlingFoer2027::class.java),
             )
 
         private fun getKlagebehandling(
@@ -617,7 +617,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             )
 
         private fun getGjenopptakITrygderettenbehandling() =
-            GjenopptakITrygderettenbehandling(
+            GjenopptakITrygderettenbehandlingFoer2027(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),
@@ -686,7 +686,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             )
 
         private fun getGjenopptaksbehandling() =
-            Gjenopptaksbehandling(
+            GjenopptaksbehandlingFoer2027(
                 klager =
                     Klager(
                         id = UUID.randomUUID(),

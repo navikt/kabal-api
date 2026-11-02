@@ -31,8 +31,10 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
@@ -95,7 +97,11 @@ class BehandlingMapper(
                 )
             }
 
-            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027, is GjenopptakITrygderettenbehandling -> {
+            is AnkeITrygderettenbehandlingFoer2027,
+            is AnkeITrygderettenbehandlingEtter2027,
+            is GjenopptakITrygderettenbehandlingFoer2027,
+            is GjenopptakITrygderettenbehandlingEtter2027,
+            -> {
                 mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(
                     behandling = behandling,
                     person = person,
@@ -116,8 +122,15 @@ class BehandlingMapper(
                 )
             }
 
-            is Gjenopptaksbehandling -> {
-                mapGjenopptaksbehandlingToBehandlingDetaljerView(
+            is GjenopptaksbehandlingFoer2027 -> {
+                mapGjenopptaksbehandlingFoer2027ToBehandlingDetaljerView(
+                    gjenopptaksbehandling = behandling,
+                    person = person,
+                )
+            }
+
+            is GjenopptaksbehandlingEtter2027 -> {
+                mapGjenopptaksbehandlingEtter2027ToBehandlingDetaljerView(
                     gjenopptaksbehandling = behandling,
                     person = person,
                 )
@@ -713,8 +726,8 @@ class BehandlingMapper(
         )
     }
 
-    fun mapGjenopptaksbehandlingToBehandlingDetaljerView(
-        gjenopptaksbehandling: Gjenopptaksbehandling,
+    fun mapGjenopptaksbehandlingFoer2027ToBehandlingDetaljerView(
+        gjenopptaksbehandling: GjenopptaksbehandlingFoer2027,
         person: Person,
     ): BehandlingDetaljerView {
         val forrigeEnhetNavn = gjenopptaksbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
@@ -798,6 +811,89 @@ class BehandlingMapper(
             saksbehandler = gjenopptaksbehandling.toSaksbehandlerView(),
             previousSaksbehandler = gjenopptaksbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = gjenopptaksbehandling.varsletBehandlingstid?.varsletFrist,
+            gosysOppgaveId = gjenopptaksbehandling.gosysOppgaveId,
+            tilbakekreving = gjenopptaksbehandling.tilbakekreving,
+            timesPreviouslyExtended = gjenopptaksbehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = gjenopptaksbehandling.gosysOppgaveRequired,
+        )
+    }
+
+    fun mapGjenopptaksbehandlingEtter2027ToBehandlingDetaljerView(
+        gjenopptaksbehandling: GjenopptaksbehandlingEtter2027,
+        person: Person,
+    ): BehandlingDetaljerView {
+        val forrigeEnhetNavn = gjenopptaksbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        return BehandlingDetaljerView(
+            id = gjenopptaksbehandling.id,
+            fraNAVEnhet = gjenopptaksbehandling.klageBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
+            mottattVedtaksinstans = null,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = gjenopptaksbehandling, person = person),
+            klager =
+                getPartViewWithUtsendingskanal(
+                    technicalPartId = gjenopptaksbehandling.klager.id,
+                    partId = gjenopptaksbehandling.klager.partId,
+                    behandling = gjenopptaksbehandling,
+                    navn = null,
+                    address = null,
+                ),
+            prosessfullmektig =
+                gjenopptaksbehandling.prosessfullmektig?.let {
+                    getPartViewWithUtsendingskanal(
+                        technicalPartId = it.id,
+                        partId = it.partId,
+                        behandling = gjenopptaksbehandling,
+                        navn = it.navn,
+                        address = it.address,
+                    )
+                },
+            temaId = gjenopptaksbehandling.ytelse.toTema().id,
+            ytelseId = gjenopptaksbehandling.ytelse.id,
+            typeId = gjenopptaksbehandling.type.id,
+            mottattKlageinstans = gjenopptaksbehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = gjenopptaksbehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = gjenopptaksbehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = gjenopptaksbehandling.ferdigstilling != null,
+            frist = gjenopptaksbehandling.frist,
+            datoSendtMedunderskriver = gjenopptaksbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = gjenopptaksbehandling.hjemler.map { it.id },
+            modified = gjenopptaksbehandling.modified,
+            created = gjenopptaksbehandling.created,
+            resultat = gjenopptaksbehandling.mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter =
+                gjenopptaksbehandling.saksdokumenter
+                    .map {
+                        TilknyttetDokument(
+                            journalpostId = it.journalpostId,
+                            dokumentInfoId = it.dokumentInfoId,
+                        )
+                    }.toSet(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
+            kvalitetsvurderingReference = null,
+            sattPaaVent = gjenopptaksbehandling.sattPaaVent,
+            feilregistrering = gjenopptaksbehandling.feilregistrering.toView(),
+            fagsystemId = gjenopptaksbehandling.fagsystem.id,
+            paaanketVedtaksdato = gjenopptaksbehandling.paaanketVedtaksdato,
+            forsterketRett = gjenopptaksbehandling.forsterketRett,
+            trygderettenSaksnummer = (gjenopptaksbehandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
+            relevantDocumentIdList =
+                gjenopptaksbehandling.saksdokumenter
+                    .map {
+                        it.dokumentInfoId
+                    }.toSet(),
+            saksnummer = gjenopptaksbehandling.getSaksnummer(),
+            rol = gjenopptaksbehandling.toROLView(),
+            medunderskriver = gjenopptaksbehandling.toMedunderskriverView(),
+            saksbehandler = gjenopptaksbehandling.toSaksbehandlerView(),
+            previousSaksbehandler = gjenopptaksbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = null,
             gosysOppgaveId = gjenopptaksbehandling.gosysOppgaveId,
             tilbakekreving = gjenopptaksbehandling.tilbakekreving,
             timesPreviouslyExtended = gjenopptaksbehandling.getTimesPreviouslyExtended(),

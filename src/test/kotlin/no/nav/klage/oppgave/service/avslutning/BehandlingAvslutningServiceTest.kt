@@ -20,8 +20,8 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
@@ -159,9 +159,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -213,9 +213,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -305,9 +305,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -365,9 +365,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -411,9 +411,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -465,9 +465,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -730,9 +730,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -779,9 +779,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -825,9 +825,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -873,9 +873,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -920,9 +920,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -969,9 +969,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1016,9 +1016,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1070,9 +1070,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1187,9 +1187,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1236,9 +1236,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1282,9 +1282,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1330,9 +1330,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1377,9 +1377,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1426,9 +1426,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1473,9 +1473,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1527,9 +1527,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1599,9 +1599,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1694,9 +1694,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1740,9 +1740,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1792,9 +1792,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1843,9 +1843,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1907,9 +1907,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -1976,9 +1976,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2030,9 +2030,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2107,9 +2107,9 @@ class BehandlingAvslutningServiceTest {
     }
 
     @Nested
-    inner class GjenopptaksbehandlingTest {
+    inner class GjenopptaksbehandlingFoer2027Test {
         val behandling =
-            mockk<Gjenopptaksbehandling>(relaxed = true) {
+            mockk<GjenopptaksbehandlingFoer2027>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns
                     Ferdigstilling(
@@ -2132,9 +2132,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Gjenopptaksbehandling based on journalpost with utfall MEDHOLD_ETTER_FVL_35 should update Gosys`() {
+        fun `GjenopptaksbehandlingFoer2027 based on journalpost with utfall MEDHOLD_ETTER_FVL_35 should update Gosys`() {
             val behandling =
-                mockk<Gjenopptaksbehandling>(relaxed = true) {
+                mockk<GjenopptaksbehandlingFoer2027>(relaxed = true) {
                     every { id } returns behandlingId
                     every { ferdigstilling } returns
                         Ferdigstilling(
@@ -2164,9 +2164,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2197,9 +2197,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptaksbehandlingBasedOnKabalBehandling with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
+        fun `GjenopptaksbehandlingFoer2027 with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
             val behandling =
-                mockk<Gjenopptaksbehandling>(relaxed = true) {
+                mockk<GjenopptaksbehandlingFoer2027>(relaxed = true) {
                     every { id } returns behandlingId
                     every { ferdigstilling } returns
                         Ferdigstilling(
@@ -2229,9 +2229,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2262,7 +2262,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Gjenopptaksbehandling with Gosysoppgave with utfall going to Trygderetten creates GjenopptakITrygderettenbehandling and updates GosysOppgave`() {
+        fun `GjenopptaksbehandlingFoer2027 with Gosysoppgave with utfall going to Trygderetten creates GjenopptakITrygderettenbehandling and updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
             every { behandling.gosysOppgaveRequired } returns true
@@ -2273,7 +2273,7 @@ class BehandlingAvslutningServiceTest {
                     oppgaveUpdateKommentar = "",
                 )
             every { behandling.utfall } returns Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2284,9 +2284,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2317,11 +2317,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Gjenopptaksbehandling without Gosysoppgave with utfall going to Trygderetten creates GjenopptakITrygderettenbehandling`() {
+        fun `GjenopptaksbehandlingFoer2027 without Gosysoppgave with utfall going to Trygderetten creates GjenopptakITrygderettenbehandling`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2332,9 +2332,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2365,7 +2365,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Gjenopptaksbehandling with gosysoppgave and utfall not going to Trygderetten or vedtaksinstans updates GosysOppgave`() {
+        fun `GjenopptaksbehandlingFoer2027 with gosysoppgave and utfall not going to Trygderetten or vedtaksinstans updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
             every { behandling.gosysOppgaveRequired } returns true
@@ -2376,7 +2376,7 @@ class BehandlingAvslutningServiceTest {
                     oppgaveUpdateKommentar = "",
                 )
             every { behandling.utfall } returns Utfall.TRUKKET
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2387,9 +2387,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2420,11 +2420,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Gjenopptaksbehandling without gosysoppgave and utfall not going to Trygderetten does nothing external`() {
+        fun `GjenopptaksbehandlingFoer2027 without gosysoppgave and utfall not going to Trygderetten does nothing external`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.TRUKKET
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2435,9 +2435,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2469,9 +2469,9 @@ class BehandlingAvslutningServiceTest {
     }
 
     @Nested
-    inner class GjenopptakITrygderettenbehandlingTest {
+    inner class GjenopptakITrygderettenbehandlingFoer2027Test {
         val behandling =
-            mockk<GjenopptakITrygderettenbehandling>(relaxed = true) {
+            mockk<GjenopptakITrygderettenbehandlingFoer2027>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns
                     Ferdigstilling(
@@ -2496,11 +2496,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall not going vedtaksinstans does nothing external`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 without gosysoppgave and utfall not going vedtaksinstans does nothing external`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.IKKE_GJENOPPTATT
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2511,9 +2511,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2544,7 +2544,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall not going vedtaksinstans finalizes GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 with gosysoppgave and utfall not going vedtaksinstans finalizes GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveId } returns 123L
@@ -2555,7 +2555,7 @@ class BehandlingAvslutningServiceTest {
                     oppgaveUpdateKommentar = "",
                 )
             every { behandling.utfall } returns Utfall.IKKE_GJENOPPTATT
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2566,9 +2566,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2599,11 +2599,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall opphevet new behandling KA creates new behandling`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 without gosysoppgave and utfall opphevet new behandling KA creates new behandling`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.GJENOPPTATT_OPPHEVET
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
             every { behandling.nyBehandlingEtterTROpphevet } returns now
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -2615,9 +2615,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2648,7 +2648,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall opphevet and new behandling KA creates new behandling and updates GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 with gosysoppgave and utfall opphevet and new behandling KA creates new behandling and updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveId } returns 123L
@@ -2660,7 +2660,7 @@ class BehandlingAvslutningServiceTest {
                 )
             every { behandling.utfall } returns Utfall.GJENOPPTATT_OPPHEVET
             every { behandling.nyBehandlingEtterTROpphevet } returns now
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2671,9 +2671,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2704,11 +2704,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall opphevet new behandling VL sends Kafka message`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 without gosysoppgave and utfall opphevet new behandling VL sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.GJENOPPTATT_OPPHEVET
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
             every { behandling.nyBehandlingEtterTROpphevet } returns null
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -2720,9 +2720,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2753,7 +2753,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall opphevet new behandling VL updates GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 with gosysoppgave and utfall opphevet new behandling VL updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveId } returns 123L
@@ -2765,7 +2765,7 @@ class BehandlingAvslutningServiceTest {
                 )
             every { behandling.utfall } returns Utfall.GJENOPPTATT_OPPHEVET
             every { behandling.nyBehandlingEtterTROpphevet } returns null
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2776,9 +2776,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2809,11 +2809,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold sends Kafka message`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 without gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
             every { behandling.utfall } returns Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2824,9 +2824,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2857,7 +2857,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold updates GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 with gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveId } returns 123L
@@ -2868,7 +2868,7 @@ class BehandlingAvslutningServiceTest {
                     oppgaveUpdateKommentar = "",
                 )
             every { behandling.utfall } returns Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD
-            every { behandling.createGjenopptakITrygderettenbehandlingInput() } returns mockk()
+            every { behandling.createGjenopptakITrygderettenbehandlingFoer2027Input() } returns mockk()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -2879,9 +2879,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 0) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2912,7 +2912,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling tagged with nyGjenopptaksbehandlingKA without gosysOppgave creates new Gjenopptaksbehandling`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 tagged with nyGjenopptaksbehandlingKA without gosysOppgave creates new Gjenopptaksbehandling`() {
             every { behandling.nyGjenopptaksbehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.FS36
 
@@ -2925,9 +2925,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -2958,7 +2958,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling tagged with nyAnkebehandlingKA and with gosysOppgave creates new AnkebehandlingFoer2027 and notifies GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandlingFoer2027 tagged with nyAnkebehandlingKA and with gosysOppgave creates new AnkebehandlingFoer2027 and notifies GosysOppgave`() {
             every { behandling.nyGjenopptaksbehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
@@ -2973,9 +2973,9 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
-            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandlingFoer2027(any()) }
             verify(exactly = 1) {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
                     any(),
                 )
             }
@@ -3298,16 +3298,47 @@ class BehandlingAvslutningServiceTest {
         ): Behandling {
             val behandling =
                 when (type) {
-                    Type.KLAGE -> mockk<Klagebehandling>(relaxed = true)
-                    Type.ANKE_FOER_2027 -> mockk<AnkebehandlingFoer2027>(relaxed = true)
-                    Type.ANKE_ETTER_2027 -> mockk<AnkebehandlingEtter2027>(relaxed = true)
-                    Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> mockk<AnkeITrygderettenbehandlingFoer2027>(relaxed = true)
-                    Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true)
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true)
-                    Type.OMGJOERINGSKRAV -> mockk<Omgjoeringskravbehandling>(relaxed = true)
-                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> mockk<Gjenopptaksbehandling>(relaxed = true)
-                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> mockk<GjenopptakITrygderettenbehandling>(relaxed = true)
-                    Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> TODO()
+                    Type.KLAGE -> {
+                        mockk<Klagebehandling>(relaxed = true)
+                    }
+
+                    Type.ANKE_FOER_2027 -> {
+                        mockk<AnkebehandlingFoer2027>(relaxed = true)
+                    }
+
+                    Type.ANKE_ETTER_2027 -> {
+                        mockk<AnkebehandlingEtter2027>(relaxed = true)
+                    }
+
+                    Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
+                        mockk<AnkeITrygderettenbehandlingFoer2027>(relaxed = true)
+                    }
+
+                    Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                        mockk<AnkeITrygderettenbehandlingEtter2027>(relaxed = true)
+                    }
+
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                        mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true)
+                    }
+
+                    Type.OMGJOERINGSKRAV -> {
+                        mockk<Omgjoeringskravbehandling>(relaxed = true)
+                    }
+
+                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+                        mockk<GjenopptaksbehandlingFoer2027>(relaxed = true)
+                    }
+
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
+                        mockk<GjenopptakITrygderettenbehandlingFoer2027>(
+                            relaxed = true,
+                        )
+                    }
+
+                    Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                        TODO()
+                    }
                 }
 
             every { behandling.id } returns behandlingId
@@ -3361,13 +3392,13 @@ class BehandlingAvslutningServiceTest {
                     every { behandling.shouldBeCompletedInKA() } answers { callOriginal() }
                 }
 
-                is Gjenopptaksbehandling -> {
+                is GjenopptaksbehandlingFoer2027 -> {
                     every { behandling.shouldBeSentToTrygderetten() } answers { callOriginal() }
                     every { behandling.shouldBeSentToVedtaksinstans() } answers { callOriginal() }
                     every { behandling.shouldBeCompletedInKA() } answers { callOriginal() }
                 }
 
-                is GjenopptakITrygderettenbehandling -> {
+                is GjenopptakITrygderettenbehandlingFoer2027 -> {
                     every { behandling.nyGjenopptaksbehandlingKA } returns null
                     every { behandling.nyBehandlingEtterTROpphevet } returns null
                     every { behandling.shouldCreateNewGjenopptaksbehandling() } answers { callOriginal() }

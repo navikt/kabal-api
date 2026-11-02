@@ -56,7 +56,7 @@ class CreateBehandlingFromMottak(
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingEtter2027FromMottak(
                     mottak = mottak,
                 )
             }

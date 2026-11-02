@@ -3,11 +3,14 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027Input
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingRepository
+import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingEtter2027Repository
+import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingFoer2027Repository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -17,7 +20,8 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class GjenopptakITrygderettenbehandlingService(
-    private val gjenopptakITrygderettenbehandlingRepository: GjenopptakITrygderettenbehandlingRepository,
+    private val gjenopptakITrygderettenbehandlingFoer2027Repository: GjenopptakITrygderettenbehandlingFoer2027Repository,
+    private val gjenopptakITrygderettenbehandlingEtter2027Repository: GjenopptakITrygderettenbehandlingEtter2027Repository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -27,10 +31,12 @@ class GjenopptakITrygderettenbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createGjenopptakITrygderettenbehandling(input: GjenopptakITrygderettenbehandlingInput): GjenopptakITrygderettenbehandling {
+    fun createGjenopptakITrygderettenbehandlingFoer2027(
+        input: GjenopptakITrygderettenbehandlingFoer2027Input,
+    ): GjenopptakITrygderettenbehandlingFoer2027 {
         val gjenopptakITrygderettenbehandling =
-            gjenopptakITrygderettenbehandlingRepository.save(
-                GjenopptakITrygderettenbehandling(
+            gjenopptakITrygderettenbehandlingFoer2027Repository.save(
+                GjenopptakITrygderettenbehandlingFoer2027(
                     klager = input.klager.copy(),
                     sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
                     prosessfullmektig = input.prosessfullmektig,
@@ -101,32 +107,85 @@ class GjenopptakITrygderettenbehandlingService(
             ),
         )
 
-        // Publiser Kafka-event, infomelding om opprettelse
-        // TODO: Vurder sammen med vurderingen i BehandlingEvent.kt
-//        val behandlingEvent = BehandlingEvent(
-//            eventId = UUID.randomUUID(),
-//            kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-//            kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
-//            kabalReferanse = gjenopptakITrygderettenbehandling.id.toString(),
-//            type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
-//            detaljer = BehandlingDetaljer(
-//                gjenopptakITrygderettenbehandlingOpprettet =
-//                GjenopptakITrygderettenbehandlingOpprettetDetaljer(
-//                    sendtTilTrygderetten = gjenopptakITrygderettenbehandling.sendtTilTrygderetten,
-//                    utfall = input.gjenopptakbehandlingUtfall,
-//                )
-//            )
-//        )
-//        kafkaEventRepository.save(
-//            KafkaEvent(
-//                id = UUID.randomUUID(),
-//                behandlingId = gjenopptakITrygderettenbehandling.id,
-//                kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
-//                kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-//                jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-//                type = EventType.BEHANDLING_EVENT
-//            )
-//        )
+        return gjenopptakITrygderettenbehandling
+    }
+
+    fun createGjenopptakITrygderettenbehandlingEtter2027(
+        input: GjenopptakITrygderettenbehandlingEtter2027Input,
+    ): GjenopptakITrygderettenbehandlingEtter2027 {
+        val gjenopptakITrygderettenbehandling =
+            gjenopptakITrygderettenbehandlingEtter2027Repository.save(
+                GjenopptakITrygderettenbehandlingEtter2027(
+                    klager = input.klager.copy(),
+                    sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
+                    prosessfullmektig = input.prosessfullmektig,
+                    ytelse = input.ytelse,
+                    type = input.type,
+                    trygderettenSaksnummer = input.trygderettenSaksnummer,
+                    kildeReferanse = input.kildeReferanse,
+                    dvhReferanse = input.dvhReferanse,
+                    fagsystem = input.fagsystem,
+                    fagsakId = input.fagsakId,
+                    sakstype = input.sakstype,
+                    arkivsaksnummer = input.arkivsaksnummer,
+                    mottattKlageinstans = input.sakMottattKlageinstans,
+                    tildeling = null,
+                    hjemler =
+                        if (input.innsendingsHjemler.isNullOrEmpty()) {
+                            mutableSetOf(Hjemmel.MANGLER)
+                        } else {
+                            input.innsendingsHjemler
+                        },
+                    sendtTilTrygderetten = input.sendtTilTrygderetten,
+                    paaanketVedtaksdato = input.paaanketVedtaksdato,
+                    forsterketRett = input.forsterketRett,
+                    kjennelseMottatt = null,
+                    previousSaksbehandlerident = input.previousSaksbehandlerident,
+                    gosysOppgaveId = input.gosysOppgaveId,
+                    tilbakekreving = input.tilbakekreving,
+                    gosysOppgaveRequired = input.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = input.previousBehandlingId,
+                ),
+            )
+        logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
+
+        behandlingService.washAndSetRegistreringshjemler(
+            registreringsHjemmelSet = input.registreringsHjemmelSet,
+            ytelse = input.ytelse,
+            behandlingId = gjenopptakITrygderettenbehandling.id,
+        )
+
+        behandlingService.connectDocumentsToBehandling(
+            behandlingId = gjenopptakITrygderettenbehandling.id,
+            journalfoertDokumentReferenceSet =
+                input.saksdokumenter
+                    .map {
+                        JournalfoertDokumentReference(
+                            journalpostId = it.journalpostId,
+                            dokumentInfoId = it.dokumentInfoId,
+                        )
+                    }.toSet(),
+            saksbehandlerIdent = systembrukerIdent,
+            systemUserContext = true,
+            ignoreCheckSkrivetilgang = true,
+        )
+
+        applicationEventPublisher.publishEvent(
+            BehandlingChangedEvent(
+                behandling = gjenopptakITrygderettenbehandling,
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = gjenopptakITrygderettenbehandling.id,
+                        ),
+                    ),
+            ),
+        )
 
         return gjenopptakITrygderettenbehandling
     }

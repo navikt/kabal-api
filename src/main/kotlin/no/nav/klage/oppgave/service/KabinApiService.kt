@@ -64,11 +64,13 @@ class KabinApiService(
     fun getAnkemuligheterFoer2027(partIdValue: String): List<Mulighet> =
         behandlingService
             .getAnkemuligheterFoer2027ByPartIdValue(partIdValue = partIdValue)
+            .filter { it.feilregistrering == null }
             .map { it.toMulighet(mulighetType = Type.ANKE_FOER_2027) }
 
     fun getAnkemuligheterEtter2027(partIdValue: String): List<Mulighet> =
         behandlingService
             .getAnkemuligheterEtter2027ByPartIdValue(partIdValue = partIdValue)
+            .filter { it.feilregistrering == null }
             .map { it.toMulighet(mulighetType = Type.ANKE_ETTER_2027) }
 
     fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
@@ -94,12 +96,20 @@ class KabinApiService(
     fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> =
         behandlingService
             .getOmgjoeringskravmuligheterByPartIdValue(partIdValue = partIdValue)
+            .filter { it.feilregistrering == null }
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
 
-    fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> =
+    fun getGjenopptaksmuligheterFoer2027(partIdValue: String): List<Mulighet> =
         behandlingService
-            .getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
+            .getGjenopptaksmuligheterFoer2027ByPartIdValue(partIdValue = partIdValue)
+            .filter { it.feilregistrering == null }
             .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027) }
+
+    fun getGjenopptaksmuligheterEtter2027(partIdValue: String): List<Mulighet> =
+        behandlingService
+            .getGjenopptaksmuligheterEtter2027ByPartIdValue(partIdValue = partIdValue)
+            .filter { it.feilregistrering == null }
+            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027) }
 
     fun createBehandlingFromPreviousKabalBehandling(
         input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,

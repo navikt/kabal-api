@@ -38,7 +38,7 @@ import java.util.UUID
 @DiscriminatorValue("gjenopptak_i_trygderetten")
 @DynamicUpdate
 @Audited
-class GjenopptakITrygderettenbehandling(
+class GjenopptakITrygderettenbehandlingFoer2027(
     @Column(name = "sendt_til_trygderetten", nullable = false)
     override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "paaanket_vedtaks_dato")
@@ -148,7 +148,7 @@ class GjenopptakITrygderettenbehandling(
     BehandlingITrygderetten,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =
-        "GjenopptakITrygderettenbehandling(id=$id, " +
+        "GjenopptakITrygderettenbehandlingFoer2027(id=$id, " +
             "modified=$modified, " +
             "created=$created)"
 
@@ -156,7 +156,7 @@ class GjenopptakITrygderettenbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as GjenopptakITrygderettenbehandling
+        other as GjenopptakITrygderettenbehandlingFoer2027
 
         return id == other.id
     }
@@ -173,7 +173,7 @@ class GjenopptakITrygderettenbehandling(
         utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
 }
 
-data class GjenopptakITrygderettenbehandlingInput(
+data class GjenopptakITrygderettenbehandlingFoer2027Input(
     val klager: Klager,
     val sakenGjelder: SakenGjelder? = null,
     val prosessfullmektig: Prosessfullmektig?,

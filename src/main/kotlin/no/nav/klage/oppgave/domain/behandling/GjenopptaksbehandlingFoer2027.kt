@@ -48,7 +48,7 @@ import java.util.UUID
 @DiscriminatorValue("gjenopptak")
 @DynamicUpdate
 @Audited
-class Gjenopptaksbehandling(
+class GjenopptaksbehandlingFoer2027(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
     @Column(name = "paaanket_vedtaks_dato")
@@ -56,7 +56,7 @@ class Gjenopptaksbehandling(
     @Column(name = "forsterket_rett")
     override var forsterketRett: Boolean? = null,
     @Column(name = "klage_behandlende_enhet", nullable = false)
-    val klageBehandlendeEnhet: String,
+    override val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
     override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
@@ -169,9 +169,10 @@ class Gjenopptaksbehandling(
     BehandlingWithVarsletBehandlingstid,
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
+    BehandlingWithKlageBehandlendeEnhet,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =
-        "Gjenopptaksbehandling(id=$id, " +
+        "GjenopptaksbehandlingFoer2027(id=$id, " +
             "modified=$modified, " +
             "created=$created)"
 
@@ -179,7 +180,7 @@ class Gjenopptaksbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Gjenopptaksbehandling
+        other as GjenopptaksbehandlingFoer2027
 
         return id == other.id
     }

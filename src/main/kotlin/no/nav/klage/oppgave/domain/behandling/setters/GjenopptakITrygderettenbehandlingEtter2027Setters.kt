@@ -1,12 +1,12 @@
 package no.nav.klage.oppgave.domain.behandling.setters
 
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import java.time.LocalDateTime
 
-object GjenopptakITrygderettenbehandlingSetters {
-    fun GjenopptakITrygderettenbehandling.setNyGjenopptaksbehandlingKA(
+object GjenopptakITrygderettenbehandlingEtter2027Setters {
+    fun GjenopptakITrygderettenbehandlingEtter2027.setNyGjenopptaksbehandlingKA(
         nyVerdi: LocalDateTime,
         saksbehandlerident: String,
     ): BehandlingChangedEvent {

@@ -8,7 +8,8 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter20
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.utfallToNewAnkebehandling
 import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -119,7 +120,13 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027)
+                    type in
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                    )
             } -> {
                 BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
             }
@@ -133,7 +140,11 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.NY_GJENOPPTAKSBEHANDLING_KA &&
-                    type == Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027
+                    type in
+                    listOf(
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                    )
             } -> {
                 BehandlingState.NY_GJENOPPTAKSBEHANDLING_I_KA_UTEN_TR
             }
@@ -148,7 +159,13 @@ class StatistikkTilDVHService(
 
             changeList.any {
                 it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT &&
-                    type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027)
+                    type in
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                    )
             } -> {
                 BehandlingState.AVSLUTTET
             }
@@ -213,7 +230,7 @@ class StatistikkTilDVHService(
                 BehandlingState.AVSLUTTET_I_TR_OG_NY_GJENOPPTAKSBEHANDLING_I_KA,
             )
         ) {
-            behandling as GjenopptakITrygderettenbehandling
+            behandling as GjenopptakITrygderettenbehandlingFoer2027
             if (behandling.nyGjenopptaksbehandlingKA != null) {
                 behandling.tildeling!!.enhet
             } else {
@@ -286,11 +303,11 @@ class StatistikkTilDVHService(
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
-                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+                BehandlingType.BEGJAERING_OM_GJENOPPTAK
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
-                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
+                BehandlingType.BEGJAERING_OM_GJENOPPTAK
             }
 
             Type.KLAGE -> {
@@ -359,7 +376,13 @@ class StatistikkTilDVHService(
                     } else {
                         behandling.nyAnkebehandlingKA ?: throw RuntimeException("nyAnkebehandlingKA mangler")
                     }
-                } else if (behandling is GjenopptakITrygderettenbehandling) {
+                } else if (behandling is GjenopptakITrygderettenbehandlingFoer2027) {
+                    if (behandling.utfall != null) {
+                        behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+                    } else {
+                        behandling.nyGjenopptaksbehandlingKA ?: throw RuntimeException("nyGjenopptaksbehandlingKA mangler")
+                    }
+                } else if (behandling is GjenopptakITrygderettenbehandlingEtter2027) {
                     if (behandling.utfall != null) {
                         behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
                     } else {

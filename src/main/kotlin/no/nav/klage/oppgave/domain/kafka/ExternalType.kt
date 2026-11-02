@@ -18,19 +18,38 @@ enum class ExternalType {
     BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
     ;
 
-    /**
-     * ANKE og ANKE_I_TRYGDERETTEN dekker både foer- og etter-2027-variantene, siden fagsystemene
-     * ikke skiller på dette.
-     */
     fun toTypes(): List<Type> =
         when (this) {
-            KLAGE -> listOf(Type.KLAGE)
-            ANKE -> listOf(Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027)
-            ANKE_I_TRYGDERETTEN -> listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027)
-            BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> listOf(Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET)
-            OMGJOERINGSKRAV -> listOf(Type.OMGJOERINGSKRAV)
-            BEGJAERING_OM_GJENOPPTAK -> listOf(Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027)
-            BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> listOf(Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027)
+            KLAGE -> {
+                listOf(Type.KLAGE)
+            }
+
+            ANKE -> {
+                listOf(Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027)
+            }
+
+            ANKE_I_TRYGDERETTEN -> {
+                listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027)
+            }
+
+            BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                listOf(Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET)
+            }
+
+            OMGJOERINGSKRAV -> {
+                listOf(Type.OMGJOERINGSKRAV)
+            }
+
+            BEGJAERING_OM_GJENOPPTAK -> {
+                listOf(Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)
+            }
+
+            BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                listOf(
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                )
+            }
         }
 }
 
@@ -56,19 +75,11 @@ fun Type.toExternalType(): ExternalType =
             ExternalType.OMGJOERINGSKRAV
         }
 
-        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
             ExternalType.BEGJAERING_OM_GJENOPPTAK
         }
 
-        Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
-            TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
-        }
-
-        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
+        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
             ExternalType.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
-        }
-
-        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
-            TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027")
         }
     }

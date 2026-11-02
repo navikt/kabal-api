@@ -144,17 +144,30 @@ class KabinApiController(
         return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
     }
 
-    @PostMapping("/gjenopptaksmuligheter")
-    fun getGjenopptaksmuligheter(
+    @PostMapping("/gjenopptaksmuligheter-foer-2027")
+    fun getGjenopptaksmuligheterFoer2027(
         @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
-            methodName = ::getGjenopptaksmuligheter.name,
+            methodName = ::getGjenopptaksmuligheterFoer2027.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        return kabinApiService.getGjenopptaksmuligheter(partIdValue = input.idnummer)
+        return kabinApiService.getGjenopptaksmuligheterFoer2027(partIdValue = input.idnummer)
+    }
+
+    @PostMapping("/gjenopptaksmuligheter-etter-2027")
+    fun getGjenopptaksmuligheterEtter2027(
+        @RequestBody input: GetCompletedBehandlingerInput,
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getGjenopptaksmuligheterEtter2027.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        return kabinApiService.getGjenopptaksmuligheterEtter2027(partIdValue = input.idnummer)
     }
 
     @GetMapping("/completedbehandlinger/{behandlingId}")

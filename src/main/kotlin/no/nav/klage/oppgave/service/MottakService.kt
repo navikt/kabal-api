@@ -33,7 +33,8 @@ import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
@@ -398,7 +399,7 @@ class MottakService(
                     is Klagebehandling -> behandling.mottakDokument
                     is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> behandling.mottakDokument
                     is Omgjoeringskravbehandling -> behandling.mottakDokument
-                    is Gjenopptaksbehandling -> behandling.mottakDokument
+                    is GjenopptaksbehandlingFoer2027, is GjenopptaksbehandlingEtter2027 -> behandling.mottakDokument
                     else -> emptyList()
                 }
             }.flatten()
@@ -606,17 +607,17 @@ class MottakService(
 
     private fun toSakstype(sakstypeId: String?): Sakstype = sakstypeId?.let { Sakstype.of(it) } ?: Sakstype.FAGSAK
 
-    /** An anke etter 2027 always comes from Trygderetten, and no other behandling does. */
+    /** An anke or gjenopptaksbegjæring etter 2027 always comes from Trygderetten, and no other behandling does. */
     private fun validateTrygderettenSaksnummer(
         trygderettenSaksnummer: String?,
         type: Type,
     ) {
-        if (type == Type.ANKE_ETTER_2027) {
+        if (type in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027)) {
             if (trygderettenSaksnummer.isNullOrBlank()) {
-                throw OversendtKlageNotValidException("En anke etter 2027 må ha saksnummer fra Trygderetten.")
+                throw OversendtKlageNotValidException("Behandlingen må ha saksnummer fra Trygderetten.")
             }
         } else if (trygderettenSaksnummer != null) {
-            throw OversendtKlageNotValidException("Saksnummer fra Trygderetten kan kun settes på en anke etter 2027.")
+            throw OversendtKlageNotValidException("Behandlingstypen støtter ikke saksnummer fra Trygderetten.")
         }
     }
 
