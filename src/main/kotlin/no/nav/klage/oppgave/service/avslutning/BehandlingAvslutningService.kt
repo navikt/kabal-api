@@ -1151,7 +1151,11 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is GjenopptaksbehandlingFoer2027, is GjenopptaksbehandlingEtter2027, is GjenopptakITrygderettenbehandlingFoer2027, is GjenopptakITrygderettenbehandlingEtter2027 -> {
+            is GjenopptaksbehandlingFoer2027,
+            is GjenopptaksbehandlingEtter2027,
+            is GjenopptakITrygderettenbehandlingFoer2027,
+            is GjenopptakITrygderettenbehandlingEtter2027,
+            -> {
                 BehandlingDetaljer(
                     gjenopptaksbehandlingAvsluttet =
                         GjenopptaksbehandlingAvsluttetDetaljer(

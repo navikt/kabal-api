@@ -2497,7 +2497,11 @@ class BehandlingService(
         behandlingType: Type,
     ) {
         when (behandlingType) {
-            Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+            Type.ANKE_ETTER_2027,
+            Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            -> {
                 tilgangService.verifySaksbehandlersIsAnketeam(saksbehandlerIdent = tildeltSaksbehandlerIdent)
             }
 

@@ -3087,8 +3087,15 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = true,
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -3194,7 +3201,14 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = if (expectedGosysUpdate) 0 else 1) {
                 gosysOppgaveService.avsluttGosysOppgave(behandling = behandling, throwExceptionIfFerdigstilt = false)
             }
-            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -3213,11 +3227,24 @@ class BehandlingAvslutningServiceTest {
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
             verifyNoNewTreatments()
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
             verify(exactly = if (expectedGosysUpdate) 0 else 1) {
                 gosysOppgaveService.avsluttGosysOppgave(behandling = behandling, throwExceptionIfFerdigstilt = false)
             }
-            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.addKommentar(
+                    behandling = any(),
+                    kommentar = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -3245,8 +3272,14 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -3271,8 +3304,14 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
