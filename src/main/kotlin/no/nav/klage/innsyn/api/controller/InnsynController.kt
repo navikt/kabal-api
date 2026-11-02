@@ -5,13 +5,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.innsyn.api.view.InnsynResponse
 import no.nav.klage.innsyn.service.InnsynService
-import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.buildFilename
 import no.nav.klage.oppgave.util.contentDispositionHeaderValue
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -30,7 +28,6 @@ import java.nio.file.Files
     name = "kabal-innsyn",
     description = "api for innsyn i brukeres saker",
 )
-@ProtectedWithClaims(issuer = SecurityConfiguration.TOKEN_X, claimMap = ["acr=Level4"])
 @RequestMapping("api/innsyn")
 @SecurityRequirement(name = "bearerAuth")
 class InnsynController(

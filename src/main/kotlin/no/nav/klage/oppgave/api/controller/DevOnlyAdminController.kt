@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
@@ -43,7 +42,6 @@ class DevOnlyAdminController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Unprotected
     @GetMapping("/kafkaadmin/refill", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun resetElasticIndex() {
@@ -56,7 +54,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @DeleteMapping("/behandlinger/{id}", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun deleteBehandling(
@@ -71,7 +68,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping("/behandlinger/{id}/reindexdev", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun reindexBehandling(
@@ -86,7 +82,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping("/mytokens")
     fun getTokens(): Map<String, String> =
         mapOf(
@@ -104,7 +99,6 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithKabalApiScope" to tokenUtil.getAppAccessTokenWithKabalApiScope(),
         )
 
-    @Unprotected
     @Operation(
         summary = "Feilregistrer sak",
         description =
@@ -139,7 +133,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping("/infotrygdsaker/{id}")
     fun getInfotrygdsak(
         @PathVariable("id") id: String,
@@ -149,7 +142,6 @@ class DevOnlyAdminController(
         return adminService.getInfotrygdsak(id)
     }
 
-    @Unprotected
     @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
     fun enableMinsideMicrofrontends(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?,
@@ -168,7 +160,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping(value = ["/disableminsidemicrofrontend/{behandlingId}", "/disableminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?,
@@ -187,35 +178,30 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping("/log-inaccessible")
     fun logInaccessible() {
         logger.debug("logInaccessible is called")
         adminService.logInaccessibleBehandlinger()
     }
 
-    @Unprotected
     @GetMapping("/log-unassigned-anke-i-trygderetten-with-inngaaende-dokument")
     fun logUnassignedAnkeITrygderettenWithInngaaendeDokument() {
         logger.debug("logUnassignedAnkeITrygderettenWithInngaaendeDokument is called")
         adminService.logUnassignedAnkeITrygderettenWithInngaaendeDokument()
     }
 
-    @Unprotected
     @GetMapping("/log-inaccessible-skjerming")
     fun logInaccessibleSkjerming() {
         logger.debug("logInaccessibleSkjerming is called")
         adminService.checkForUnavailableDueToBeskyttelseAndSkjerming(null)
     }
 
-    @Unprotected
     @GetMapping("/log-inaccessible-hjemler")
     fun logInaccessibleHjemler() {
         logger.debug("logInaccessibleHjemler is called")
         adminService.checkForUnavailableDueToHjemler(null)
     }
 
-    @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun evictAllCAches() {
@@ -229,7 +215,6 @@ class DevOnlyAdminController(
         }
     }
 
-    @Unprotected
     @GetMapping("/lookup/{navIdent}")
     fun getPersonFromLookup(
         @PathVariable navIdent: String,
@@ -238,7 +223,6 @@ class DevOnlyAdminController(
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)
     }
 
-    @Unprotected
     @GetMapping("/token/unprotected")
     fun checkTokenUnprotected(): String {
         logger.debug("checkTokenUnprotected is called")

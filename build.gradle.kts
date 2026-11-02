@@ -6,7 +6,7 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 val ktlintVersion = "1.8.0"
 
 val mockkVersion = "1.14.11"
-val tokenValidationVersion = "6.0.12"
+val klageAuthVersion = "0.4.0"
 val logstashVersion = "9.0"
 val springMockkVersion = "5.0.1"
 val springDocVersion = "3.1.1"
@@ -94,8 +94,9 @@ dependencies {
 
     implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 
-    implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
-    implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
+    implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
+    implementation("no.nav.klage:klage-auth:$klageAuthVersion")
+    implementation("tools.jackson.module:jackson-module-kotlin")
 
     implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
 
@@ -125,6 +126,7 @@ dependencies {
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
+    testImplementation("no.nav.klage:klage-auth-test:$klageAuthVersion")
 }
 
 idea {

@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
-import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.config.SseShutdownSignal
 import no.nav.klage.oppgave.config.getGauge
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
@@ -11,7 +10,6 @@ import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
 import no.nav.klage.oppgave.service.AivenKafkaClientCreator
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @RestController
 @Tag(name = "kabal-api")
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}")
 class EventController(
     private val aivenKafkaClientCreator: AivenKafkaClientCreator,

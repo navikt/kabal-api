@@ -1,11 +1,10 @@
 package no.nav.klage.oppgave.api.controller
 
-import no.nav.klage.oppgave.config.SecurityConfiguration
+import no.nav.klage.auth.AzureTokenType
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.PersonProtectionService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/api/person-protection")
 class PersonProtectionController(
     private val personProtectionService: PersonProtectionService,
@@ -35,7 +33,7 @@ class PersonProtectionController(
     }
 
     private fun authorizeCaller() {
-        if (tokenUtil.getCurrentTokenType() != TokenUtil.TokenType.CC) {
+        if (tokenUtil.getCurrentTokenType() != AzureTokenType.CC) {
             throw MissingTilgangException("Endpoint requires a client-credentials token")
         }
         val caller = tokenUtil.getCallingApplication()

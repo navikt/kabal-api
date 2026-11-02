@@ -1,14 +1,12 @@
 package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
-import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.TaskListMerkantilService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/internal")
 class AdminController(
     private val adminService: AdminService,
