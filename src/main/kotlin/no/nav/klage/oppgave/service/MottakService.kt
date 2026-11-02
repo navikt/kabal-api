@@ -937,9 +937,9 @@ class MottakService(
                     MottakDokumentDTO(
                         type =
                             when (type) {
-                                Type.ANKE_FOER_2027 -> MottakDokumentType.BRUKERS_ANKE
+                                Type.ANKE_FOER_2027, Type.ANKE_ETTER_2027 -> MottakDokumentType.BRUKERS_ANKE
                                 Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
-                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
                                 else -> error("Ugyldig type $type")
                             },
                         journalpostId = input.receivedDocumentJournalpostId,
