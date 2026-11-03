@@ -371,6 +371,17 @@ abstract class Behandling(
                 Type.OMGJOERINGSKRAV,
                 Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+            ) && !isSakNoLongerInInfotrygd()
+
+    // Disse sakene finnes ikke lenger i Infotrygd.
+    fun isSakNoLongerInInfotrygd(): Boolean =
+        fagsystem == Fagsystem.IT01 &&
+            ytelse == Ytelse.BAR_BAR &&
+            type in
+            listOf(
+                Type.ANKE_FOER_2027,
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
             )
 
     fun getTimesPreviouslyExtended(): Int =
