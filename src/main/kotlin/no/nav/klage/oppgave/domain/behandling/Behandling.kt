@@ -373,7 +373,7 @@ abstract class Behandling(
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
-            )  && !isSakNoLongerInInfotrygd()
+            ) && !isSakNoLongerInInfotrygd()
 
     // Disse sakene finnes ikke lenger i Infotrygd.
     fun isSakNoLongerInInfotrygd(): Boolean =
