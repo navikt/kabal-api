@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.typeToUtfall
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -506,6 +507,69 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingFoer2027 with utfall going to Trygderetten from Infotrygd with ytelse BAR_BAR creates AnkeITrygderettenbehandlingFoer2027 without updating Infotrygd`() {
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.ytelse } returns Ytelse.BAR_BAR
+            every { behandling.type } returns Type.ANKE_FOER_2027
+            every { behandling.isSakNoLongerInInfotrygd() } answers { callOriginal() }
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = null,
+                    oppgaveUpdateKommentar = "",
+                )
+            every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
+            every { behandling.createAnkeITrygderettenbehandlingFoer2027Input() } returns mockk()
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkebehandlingFoer2027 with utfall not going to Trygderetten from Infotrygd with ytelse BAR_BAR does not update Infotrygd, only GosysOppgave`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.ytelse } returns Ytelse.BAR_BAR
+            every { behandling.type } returns Type.ANKE_FOER_2027
+            every { behandling.isSakNoLongerInInfotrygd() } answers { callOriginal() }
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = 0,
+                    oppgaveUpdateKommentar = "",
+                )
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
@@ -1048,6 +1112,36 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `AnkeITrygderettenbehandlingFoer2027 from Infotrygd with ytelse BAR_BAR does not update Infotrygd, only GosysOppgave`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.ytelse } returns Ytelse.BAR_BAR
+            every { behandling.type } returns Type.ANKE_I_TRYGDERETTEN_FOER_2027
+            every { behandling.isSakNoLongerInInfotrygd() } answers { callOriginal() }
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = null,
+                    oppgaveUpdateKommentar = "",
+                )
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
@@ -1978,6 +2072,36 @@ class BehandlingAvslutningServiceTest {
                     any(),
                 )
             }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `BehandlingEtterTrygderettenOpphevet from Infotrygd with ytelse BAR_BAR does not update Infotrygd, only GosysOppgave`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.ytelse } returns Ytelse.BAR_BAR
+            every { behandling.type } returns Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET
+            every { behandling.isSakNoLongerInInfotrygd() } answers { callOriginal() }
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns
+                GosysOppgaveUpdate(
+                    oppgaveUpdateTildeltEnhetsnummer = "123",
+                    oppgaveUpdateMappeId = null,
+                    oppgaveUpdateKommentar = "",
+                )
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(sakId = any(), input = any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }

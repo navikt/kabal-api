@@ -135,7 +135,7 @@ class BehandlingAvslutningService(
             }
 
             is BehandlingEtterTrygderettenOpphevet -> {
-                handleBehandlingEtterTrygderettenOpprettet(behandling)
+                handleBehandlingEtterTrygderettenOpphevet(behandling)
             }
 
             is Omgjoeringskravbehandling -> {
@@ -194,7 +194,11 @@ class BehandlingAvslutningService(
                 "AnkebehandlingFoer2027 med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandlingFoer2027.",
             )
             createAnkeITrygderettenbehandlingFoer2027(ankebehandling)
-            if (ankebehandling.fagsystem == Fagsystem.IT01) {
+            if (ankebehandling.fagsystem == Fagsystem.IT01 && ankebehandling.isSakNoLongerInInfotrygd()) {
+                logger.debug(
+                    "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, men har ytelse ${ankebehandling.ytelse}. Informerer ikke Infotrygd om innstilling til Trygderetten.",
+                )
+            } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
                 klankeService.setToFinishedWithAppAccess(
                     sakId = ankebehandling.kildeReferanse,
@@ -214,8 +218,14 @@ class BehandlingAvslutningService(
                 createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
             }
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
-            logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
-            setToFinishedInInfotrygd(ankebehandling)
+            if (ankebehandling.isSakNoLongerInInfotrygd()) {
+                logger.debug(
+                    "AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, men har ytelse ${ankebehandling.ytelse}. Oppdaterer ikke Infotrygd.",
+                )
+            } else {
+                logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
+                setToFinishedInInfotrygd(ankebehandling)
+            }
         } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
             logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (ankebehandling.isVedtaksinstansNotifiedOnlyThroughGosysOppgave()) {
@@ -337,10 +347,16 @@ class BehandlingAvslutningService(
                 )
             }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
-            logger.debug(
-                "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.",
-            )
-            setToFinishedInInfotrygd(ankeITrygderettenbehandling)
+            if (ankeITrygderettenbehandling.isSakNoLongerInInfotrygd()) {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, men har ytelse ${ankeITrygderettenbehandling.ytelse}. Oppdaterer ikke Infotrygd.",
+                )
+            } else {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.",
+                )
+                setToFinishedInInfotrygd(ankeITrygderettenbehandling)
+            }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.AO01) {
             logger.debug(
                 "AnkeITrygderettenbehandlingFoer2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
@@ -471,12 +487,18 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleBehandlingEtterTrygderettenOpprettet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
+    private fun handleBehandlingEtterTrygderettenOpphevet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
         if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.IT01) {
-            logger.debug(
-                "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.",
-            )
-            setToFinishedInInfotrygd(behandlingEtterTrygderettenOpphevet)
+            if (behandlingEtterTrygderettenOpphevet.isSakNoLongerInInfotrygd()) {
+                logger.debug(
+                    "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, men har ytelse ${behandlingEtterTrygderettenOpphevet.ytelse}. Oppdaterer ikke Infotrygd.",
+                )
+            } else {
+                logger.debug(
+                    "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.",
+                )
+                setToFinishedInInfotrygd(behandlingEtterTrygderettenOpphevet)
+            }
         } else if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.AO01) {
             logger.debug(
                 "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
