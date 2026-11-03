@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.repositories
 
 import com.ninjasquad.springmockk.MockkBean
+import jakarta.persistence.DiscriminatorValue
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.kodeverk.DokumentType
@@ -11,12 +12,17 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
@@ -395,6 +401,353 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         )
     }
 
+    @ParameterizedTest
+    @MethodSource("trygderettenTypes")
+    fun `approved duplicate check matches each supported type whether open or completed`(type: Type) {
+        val openSaksnummer = syntheticTrygderettenSaksnummer()
+        val completedSaksnummer = syntheticTrygderettenSaksnummer()
+        behandlingRepository.saveAll(
+            listOf(
+                newTrygderettenBehandling(type = type, saksnummer = openSaksnummer),
+                newTrygderettenBehandling(type = type, saksnummer = completedSaksnummer, completed = true),
+            ),
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = openSaksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isTrue()
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = completedSaksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isTrue()
+    }
+
+    @ParameterizedTest
+    @MethodSource("trygderettenTypes")
+    fun `approved duplicate check excludes feilregistrert rows for each supported type`(type: Type) {
+        val saksnummer = syntheticTrygderettenSaksnummer()
+        behandlingRepository.save(newTrygderettenBehandling(type = type, saksnummer = saksnummer, feilregistrert = true))
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @Test
+    fun `approved duplicate check finds a valid row when a feilregistrert row shares its number`() {
+        val saksnummer = syntheticTrygderettenSaksnummer()
+        behandlingRepository.saveAll(
+            listOf(
+                newTrygderettenBehandling(type = Type.ANKE_ETTER_2027, saksnummer = saksnummer, feilregistrert = true),
+                newTrygderettenBehandling(
+                    type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                    saksnummer = saksnummer,
+                    completed = true,
+                ),
+            ),
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isTrue()
+    }
+
+    @Test
+    fun `approved duplicate check returns false when no row matches`() {
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = syntheticTrygderettenSaksnummer(),
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @Test
+    fun `approved duplicate check ignores treatment types without Trygderetten number support`() {
+        val behandling = getAnkeITrygderettenbehandling()
+        val saksnummer = syntheticTrygderettenSaksnummer()
+        behandlingRepository.save(behandling)
+        testEntityManager.flush()
+        testEntityManager.entityManager
+            .createNativeQuery("UPDATE klage.behandling SET trygderetten_saksnummer = :saksnummer WHERE id = :id")
+            .setParameter("saksnummer", saksnummer)
+            .setParameter("id", behandling.id)
+            .executeUpdate()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @ParameterizedTest
+    @MethodSource("exactMatchNearMisses")
+    fun `approved duplicate check requires an exact number match`(
+        storedSaksnummer: String,
+        queriedSaksnummer: String,
+    ) {
+        behandlingRepository.save(
+            newTrygderettenBehandling(type = Type.ANKE_ETTER_2027, saksnummer = storedSaksnummer),
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = queriedSaksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @Test
+    fun `approved duplicate check treats an injection-like value as ordinary unmatched input`() {
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = "' OR 1=1 --",
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @Test
+    fun `Trygderetten number implementors have usable unique discriminator values`() {
+        val discriminatorValues = trygderettenDiscriminatorValues()
+
+        assertThat(discriminatorValues).doesNotHaveDuplicates()
+        assertThat(discriminatorValues).allSatisfy { assertThat(it).isNotBlank() }
+    }
+
+    @Test
+    fun `approved duplicate check applies the supplied treatment type filter`() {
+        val saksnummer = syntheticTrygderettenSaksnummer()
+        val matchingType =
+            checkNotNull(AnkebehandlingEtter2027::class.java.getAnnotation(DiscriminatorValue::class.java)?.value) {
+                "Missing @DiscriminatorValue on ${AnkebehandlingEtter2027::class.java.name}"
+            }
+        check(matchingType.isNotBlank()) {
+            "Blank @DiscriminatorValue on ${AnkebehandlingEtter2027::class.java.name}"
+        }
+        behandlingRepository.save(newTrygderettenBehandling(type = Type.ANKE_ETTER_2027, saksnummer = saksnummer))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val discriminatorValues = trygderettenDiscriminatorValues()
+        assertThat(discriminatorValues).contains(matchingType)
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = discriminatorValues.filterNot { it == matchingType },
+            ),
+        ).isFalse()
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = listOf(matchingType),
+            ),
+        ).isTrue()
+    }
+
+    private fun trygderettenDiscriminatorValues(): List<String> {
+        val implementationClasses =
+            testEntityManager.entityManager.metamodel.entities
+                .map { it.javaType }
+                .filter { BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it) }
+        check(implementationClasses.isNotEmpty()) {
+            "No entities implement ${BehandlingWithTrygderettenSaksnummer::class.java.name}"
+        }
+        return implementationClasses.map { implementationClass ->
+            val discriminatorValue =
+                checkNotNull(implementationClass.getAnnotation(DiscriminatorValue::class.java)?.value) {
+                    "Missing @DiscriminatorValue on ${implementationClass.name}"
+                }
+            check(discriminatorValue.isNotBlank()) {
+                "Blank @DiscriminatorValue on ${implementationClass.name}"
+            }
+            discriminatorValue
+        }
+    }
+
+    private fun newTrygderettenBehandling(
+        type: Type,
+        saksnummer: String,
+        feilregistrert: Boolean = false,
+        completed: Boolean = false,
+    ): Behandling {
+        val now = LocalDateTime.now()
+        val feilregistrering =
+            if (feilregistrert) {
+                Feilregistrering(
+                    navIdent = "TEST",
+                    navn = "Test",
+                    registered = now,
+                    reason = "Test fixture",
+                    fagsystem = Fagsystem.K9,
+                )
+            } else {
+                null
+            }
+        val ferdigstilling =
+            if (completed) {
+                Ferdigstilling(
+                    avsluttetAvSaksbehandler = now,
+                    navIdent = "TEST",
+                    navn = "Test",
+                )
+            } else {
+                null
+            }
+        val klager =
+            Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "synthetic-${UUID.randomUUID()}"),
+            )
+        val sakenGjelder =
+            SakenGjelder(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "synthetic-${UUID.randomUUID()}"),
+            )
+
+        return when (type) {
+            Type.ANKE_ETTER_2027 -> {
+                AnkebehandlingEtter2027(
+                    trygderettenSaksnummer = saksnummer,
+                    klageBehandlendeEnhet = "4219",
+                    previousBehandlingId = null,
+                    klager = klager,
+                    sakenGjelder = sakenGjelder,
+                    prosessfullmektig = null,
+                    ytelse = Ytelse.OMS_OMP,
+                    type = type,
+                    kildeReferanse = "duplicate-check-test",
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "synthetic-fagsak",
+                    sakstype = Sakstype.FAGSAK,
+                    arkivsaksnummer = null,
+                    mottattKlageinstans = now,
+                    frist = now.toLocalDate(),
+                    feilregistrering = feilregistrering,
+                    ferdigstilling = ferdigstilling,
+                    previousSaksbehandlerident = "TEST",
+                    gosysOppgaveId = null,
+                    gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                )
+            }
+
+            Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+                AnkeITrygderettenbehandlingEtter2027(
+                    sendtTilTrygderetten = now,
+                    trygderettenSaksnummer = saksnummer,
+                    previousBehandlingId = null,
+                    klager = klager,
+                    sakenGjelder = sakenGjelder,
+                    prosessfullmektig = null,
+                    ytelse = Ytelse.OMS_OMP,
+                    type = type,
+                    kildeReferanse = "duplicate-check-test",
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "synthetic-fagsak",
+                    sakstype = Sakstype.FAGSAK,
+                    arkivsaksnummer = null,
+                    mottattKlageinstans = now,
+                    frist = now.toLocalDate(),
+                    feilregistrering = feilregistrering,
+                    ferdigstilling = ferdigstilling,
+                    previousSaksbehandlerident = "TEST",
+                    gosysOppgaveId = null,
+                    gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                )
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
+                GjenopptaksbehandlingEtter2027(
+                    trygderettenSaksnummer = saksnummer,
+                    klageBehandlendeEnhet = "4219",
+                    kakaKvalitetsvurderingId = null,
+                    kakaKvalitetsvurderingVersion = 2,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                    previousBehandlingId = null,
+                    klager = klager,
+                    sakenGjelder = sakenGjelder,
+                    prosessfullmektig = null,
+                    ytelse = Ytelse.OMS_OMP,
+                    type = type,
+                    kildeReferanse = "duplicate-check-test",
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "synthetic-fagsak",
+                    sakstype = Sakstype.FAGSAK,
+                    arkivsaksnummer = null,
+                    mottattKlageinstans = now,
+                    frist = now.toLocalDate(),
+                    feilregistrering = feilregistrering,
+                    ferdigstilling = ferdigstilling,
+                    previousSaksbehandlerident = "TEST",
+                    gosysOppgaveId = null,
+                    gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                )
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+                GjenopptakITrygderettenbehandlingEtter2027(
+                    trygderettenSaksnummer = saksnummer,
+                    sendtTilTrygderetten = now,
+                    previousBehandlingId = null,
+                    klager = klager,
+                    sakenGjelder = sakenGjelder,
+                    prosessfullmektig = null,
+                    ytelse = Ytelse.OMS_OMP,
+                    type = type,
+                    kildeReferanse = "duplicate-check-test",
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "synthetic-fagsak",
+                    sakstype = Sakstype.FAGSAK,
+                    arkivsaksnummer = null,
+                    mottattKlageinstans = now,
+                    feilregistrering = feilregistrering,
+                    ferdigstilling = ferdigstilling,
+                    previousSaksbehandlerident = "TEST",
+                    gosysOppgaveId = null,
+                    gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                )
+            }
+
+            else -> {
+                error("Unsupported test type: $type")
+            }
+        }
+    }
+
+    private fun syntheticTrygderettenSaksnummer(): String = "2027-TEST-${UUID.randomUUID()}"
+
     private fun Behandling.addTildelingHistorikk(
         ident: String?,
         tidspunkt: LocalDateTime,
@@ -451,6 +804,26 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     companion object {
         private const val ORGNR_TRYGDERETTEN = "974761084"
         private val PAAANKET_VEDTAKSDATO: LocalDate = LocalDate.of(2020, 1, 1)
+
+        @JvmStatic
+        fun trygderettenTypes(): Stream<Type> =
+            Stream.of(
+                Type.ANKE_ETTER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            )
+
+        @JvmStatic
+        fun exactMatchNearMisses(): Stream<Arguments> {
+            val saksnummer = "2027-TEST-${UUID.randomUUID()}"
+            return Stream.of(
+                Arguments.of(saksnummer, saksnummer.lowercase()),
+                Arguments.of(saksnummer, " $saksnummer"),
+                Arguments.of(saksnummer, "$saksnummer "),
+                Arguments.of(saksnummer, "PREFIX-$saksnummer"),
+            )
+        }
 
         @JvmStatic
         fun behandlingProvider(): Stream<Behandling> =

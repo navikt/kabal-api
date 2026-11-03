@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.api.view.kabin.GetCompletedBehandlingerInput
 import no.nav.klage.oppgave.api.view.kabin.GosysOppgaveIsDuplicateInput
 import no.nav.klage.oppgave.api.view.kabin.Mulighet
 import no.nav.klage.oppgave.api.view.kabin.SearchUsedJournalpostIdInput
+import no.nav.klage.oppgave.api.view.kabin.TrygderettenSaksnummerIsDuplicateInput
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KabinApiService
@@ -89,6 +90,20 @@ class KabinApiController(
         )
         return behandlingService.gosysOppgaveIsDuplicate(
             gosysOppgaveId = input.gosysOppgaveId,
+        )
+    }
+
+    @PostMapping("/trygderettensaksnummerisduplicate")
+    fun trygderettenSaksnummerIsDuplicate(
+        @RequestBody input: TrygderettenSaksnummerIsDuplicateInput,
+    ): Boolean {
+        logMethodDetails(
+            methodName = ::trygderettenSaksnummerIsDuplicate.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+        return behandlingService.trygderettenSaksnummerIsDuplicate(
+            trygderettenSaksnummer = input.trygderettenSaksnummer,
         )
     }
 

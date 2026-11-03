@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.service
 
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.EntityManager
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
@@ -62,6 +64,7 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
@@ -192,6 +195,7 @@ class BehandlingService(
     private val kodeverkService: KodeverkService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
+    private val entityManager: EntityManager,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -3335,6 +3339,33 @@ class BehandlingService(
         return FradeltSaksbehandlerViewWrapped(
             modified = behandling.modified,
             hjemmelIdList = behandling.hjemler.map { it.id },
+        )
+    }
+
+    fun trygderettenSaksnummerIsDuplicate(trygderettenSaksnummer: String): Boolean {
+        val implementationClasses =
+            entityManager.metamodel.entities
+                .map { it.javaType }
+                .filter {
+                    BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it)
+                }
+        check(implementationClasses.isNotEmpty()) {
+            "No entities implement ${BehandlingWithTrygderettenSaksnummer::class.java.name}"
+        }
+        val implementationTypes =
+            implementationClasses.map { implementationClass ->
+                val discriminatorValue =
+                    checkNotNull(implementationClass.getAnnotation(DiscriminatorValue::class.java)?.value) {
+                        "Missing @DiscriminatorValue on ${implementationClass.name}"
+                    }
+                check(discriminatorValue.isNotBlank()) {
+                    "Blank @DiscriminatorValue on ${implementationClass.name}"
+                }
+                discriminatorValue
+            }
+        return behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+            trygderettenSaksnummer = trygderettenSaksnummer,
+            behandlingTypes = implementationTypes,
         )
     }
 

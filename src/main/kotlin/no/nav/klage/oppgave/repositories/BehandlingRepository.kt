@@ -55,6 +55,23 @@ interface BehandlingRepository :
 
     fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(gosysOppgaveId: Long): List<Behandling>
 
+    @Query(
+        value = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM klage.behandling
+                WHERE trygderetten_saksnummer = :trygderettenSaksnummer
+                AND feilregistrering_registered IS NULL
+                AND behandling_type IN (:behandlingTypes)
+            )
+        """,
+        nativeQuery = true,
+    )
+    fun existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+        trygderettenSaksnummer: String,
+        behandlingTypes: List<String>,
+    ): Boolean
+
     fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
     fun findByFeilregistreringIsNull(): List<Behandling>
