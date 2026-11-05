@@ -79,10 +79,7 @@ class InnsynService(
             saksnummer = firstBehandling.getSaksnummer(),
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId =
-                firstBehandling.ytelse
-                    .mapYtelseToInnsendingsytelseList()
-                    .firstOrNull()
-                    ?.id,
+                getIdNullIfMoreThanOne(firstBehandling.ytelse),
             innsendingsytelseIdList = firstBehandling.ytelse.mapYtelseToInnsendingsytelseList().map { it.id },
             events =
                 this
@@ -414,6 +411,18 @@ class InnsynService(
 /**
  * Used when providing link to ettersendelse. If no matching innsendingsytelse, go to nav.no/klage instead.
  */
+
+fun getIdNullIfMoreThanOne(ytelse: Ytelse): String? {
+    val innsendingsytelseList = ytelse.mapYtelseToInnsendingsytelseList()
+    return if (innsendingsytelseList.isEmpty()) {
+        null
+    } else if (innsendingsytelseList.size == 1) {
+        innsendingsytelseList.first().id
+    } else {
+        null
+    }
+}
+
 fun Ytelse.mapYtelseToInnsendingsytelseList(): List<Innsendingsytelse> =
     when (this) {
         Ytelse.FOR_FOR -> listOf(Innsendingsytelse.FORELDREPENGER)
