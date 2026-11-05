@@ -691,8 +691,6 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     klageBehandlendeEnhet = "4219",
                     kakaKvalitetsvurderingId = null,
                     kakaKvalitetsvurderingVersion = 2,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
                     previousBehandlingId = null,
                     klager = klager,
                     sakenGjelder = sakenGjelder,

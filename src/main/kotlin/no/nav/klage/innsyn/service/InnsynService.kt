@@ -6,16 +6,12 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.innsendingsytelse.Innsendingsytelse
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
-import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
-import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
@@ -50,29 +46,26 @@ class InnsynService(
     private fun Behandling.toBasicType(): Type =
         when (this) {
             is Klagebehandling -> Type.KLAGE
-
             is AnkebehandlingFoer2027, is AnkeITrygderettenbehandlingFoer2027 -> Type.ANKE_FOER_2027
-
-            is AnkebehandlingEtter2027, is AnkeITrygderettenbehandlingEtter2027 -> Type.ANKE_ETTER_2027
-
             is BehandlingEtterTrygderettenOpphevet -> Type.ANKE_FOER_2027
-
             is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
-
             is GjenopptaksbehandlingFoer2027, is GjenopptakITrygderettenbehandlingFoer2027 -> Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027
-
-            is GjenopptaksbehandlingEtter2027,
-            is GjenopptakITrygderettenbehandlingEtter2027,
-            -> Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027
-
-            else -> error("Unknown Behandling subtype: ${this::class.java.name}")
+            else -> error("Unknown or unsupported behandling subtype: ${this::class.java.name}")
         }
 
     fun getSakerForBruker(fnr: String): InnsynResponse {
         val behandlingerGroupedBySak: Map<GroupByKey, List<Behandling>> =
             behandlingRepository
                 .findBySakenGjelderPartIdValueAndFeilregistreringIsNull(fnr)
-                .groupBy { it.toGroupByKey() }
+                .filter {
+                    it.type !in
+                        listOf(
+                            Type.ANKE_ETTER_2027,
+                            Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                        )
+                }.groupBy { it.toGroupByKey() }
 
         return InnsynResponse(
             saker =
@@ -94,23 +87,18 @@ class InnsynService(
             innsendingsytelseIdList = firstBehandling.ytelse.mapYtelseToInnsendingsytelseList().map { it.id },
             events =
                 this
-                    .map {
+                    .flatMap {
                         when (it) {
                             is Klagebehandling -> it.getEvents()
                             is AnkeITrygderettenbehandlingFoer2027 -> it.getEvents()
-                            is AnkeITrygderettenbehandlingEtter2027 -> it.getEvents()
                             is AnkebehandlingFoer2027 -> it.getEvents()
-                            is AnkebehandlingEtter2027 -> it.getEvents()
                             is BehandlingEtterTrygderettenOpphevet -> it.getEvents()
                             is Omgjoeringskravbehandling -> it.getEvents()
                             is GjenopptaksbehandlingFoer2027 -> it.getEvents()
-                            is GjenopptaksbehandlingEtter2027 -> it.getEvents()
                             is GjenopptakITrygderettenbehandlingFoer2027 -> it.getEvents()
-                            is GjenopptakITrygderettenbehandlingEtter2027 -> it.getEvents()
-                            else -> error("Unknown Behandling subtype: ${it::class.java.name}")
+                            else -> error("Unknown or unsupported behandling subtype: ${it::class.java.name}")
                         }
-                    }.flatten()
-                    .sortedBy { it.date },
+                    }.sortedBy { it.date },
             // Will this always be correct when we for example truncate time?
             varsletBehandlingstid = firstBehandling.getVarsletBehandlingstid(),
             mottattKlageinstans = firstBehandling.mottattKlageinstans.toLocalDate(),
@@ -206,66 +194,7 @@ class InnsynService(
         return events
     }
 
-    private fun AnkeITrygderettenbehandlingEtter2027.getEvents(): List<SakView.Event> {
-        val events = mutableListOf<SakView.Event>()
-        events +=
-            SakView.Event(
-                type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
-                date = sendtTilTrygderetten,
-                relevantDocuments = listOf(),
-            )
-
-        if (kjennelseMottatt != null) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
-                    date = kjennelseMottatt!!,
-                    relevantDocuments = listOf(),
-                )
-        }
-
-        if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
-                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                    relevantDocuments = listOf(),
-                )
-        }
-        return events
-    }
-
     private fun AnkebehandlingFoer2027.getEvents(): List<SakView.Event> {
-        val events = mutableListOf<SakView.Event>()
-
-        if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
-            // if from Kabin or sent from vedtaksløsning
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
-                    date = mottattKlageinstans,
-                    relevantDocuments =
-                        getRelevantDocuments(
-                            eventType = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
-                            behandling = this,
-                        ),
-                )
-        } else {
-            // If created in Kabal, don't show to user.
-        }
-
-        if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                    relevantDocuments = listOf(),
-                )
-        }
-        return events
-    }
-
-    private fun AnkebehandlingEtter2027.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
 
         if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
@@ -338,66 +267,7 @@ class InnsynService(
         return events
     }
 
-    private fun GjenopptaksbehandlingEtter2027.getEvents(): List<SakView.Event> {
-        val events = mutableListOf<SakView.Event>()
-
-        if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
-            // if from Kabin or sent from vedtaksløsning
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
-                    date = mottattKlageinstans,
-                    relevantDocuments =
-                        getRelevantDocuments(
-                            eventType = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
-                            behandling = this,
-                        ),
-                )
-        } else {
-            // If created in Kabal, don't show to user.
-        }
-
-        if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_KLAGEINSTANS,
-                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                    relevantDocuments = listOf(),
-                )
-        }
-        return events
-    }
-
     private fun GjenopptakITrygderettenbehandlingFoer2027.getEvents(): List<SakView.Event> {
-        val events = mutableListOf<SakView.Event>()
-        events +=
-            SakView.Event(
-                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_SENDT_TRYGDERETTEN,
-                date = sendtTilTrygderetten,
-                relevantDocuments = listOf(),
-            )
-
-        if (kjennelseMottatt != null) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
-                    date = kjennelseMottatt!!,
-                    relevantDocuments = listOf(),
-                )
-        }
-
-        if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
-            events +=
-                SakView.Event(
-                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_TRYGDERETTEN,
-                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                    relevantDocuments = listOf(),
-                )
-        }
-        return events
-    }
-
-    private fun GjenopptakITrygderettenbehandlingEtter2027.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
         events +=
             SakView.Event(

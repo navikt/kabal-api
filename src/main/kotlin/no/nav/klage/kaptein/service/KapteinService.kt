@@ -368,7 +368,7 @@ class KapteinService(
             sattPaaVent = behandling.sattPaaVent,
             feilregistrering = behandling.feilregistrering.toView(),
             fagsystemId = behandling.fagsystem.id,
-            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            varsletFrist = null,
             tilbakekreving = behandling.tilbakekreving,
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
