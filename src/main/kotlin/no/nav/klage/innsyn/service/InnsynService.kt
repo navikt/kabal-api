@@ -78,7 +78,12 @@ class InnsynService(
             id = "${firstBehandling.fagsystem.id}_${firstBehandling.sakKey()}_${firstBehandling.toBasicType().id}",
             saksnummer = firstBehandling.getSaksnummer(),
             ytelseId = firstBehandling.ytelse.id,
-            innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id,
+            innsendingsytelseId =
+                firstBehandling.ytelse
+                    .mapYtelseToInnsendingsytelseList()
+                    .firstOrNull()
+                    ?.id,
+            innsendingsytelseIdList = firstBehandling.ytelse.mapYtelseToInnsendingsytelseList().map { it.id },
             events =
                 this
                     .map {
@@ -409,121 +414,120 @@ class InnsynService(
 /**
  * Used when providing link to ettersendelse. If no matching innsendingsytelse, go to nav.no/klage instead.
  */
-fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? =
+fun Ytelse.mapYtelseToInnsendingsytelseList(): List<Innsendingsytelse> =
     when (this) {
-        Ytelse.FOR_FOR -> Innsendingsytelse.FORELDREPENGER
+        Ytelse.FOR_FOR -> listOf(Innsendingsytelse.FORELDREPENGER)
 
-        Ytelse.FOR_SVA -> Innsendingsytelse.SVANGERSKAPSPENGER
+        Ytelse.FOR_SVA -> listOf(Innsendingsytelse.SVANGERSKAPSPENGER)
 
-        Ytelse.FOR_ENG -> Innsendingsytelse.ENGANGSSTONAD
+        Ytelse.FOR_ENG -> listOf(Innsendingsytelse.ENGANGSSTONAD)
 
-        Ytelse.OMS_OMP -> Innsendingsytelse.OMSORGSPENGER_HJEMME_MED_SYKT_BARN_DAGER
+        Ytelse.OMS_OMP -> listOf(Innsendingsytelse.OMSORGSPENGER_HJEMME_MED_SYKT_BARN_DAGER)
 
-        Ytelse.OMS_OLP -> Innsendingsytelse.OPPLARINGSPENGER
+        Ytelse.OMS_OLP -> listOf(Innsendingsytelse.OPPLARINGSPENGER)
 
-        Ytelse.OMS_PSB -> Innsendingsytelse.PLEIEPENGER_FOR_SYKT_BARN
+        Ytelse.OMS_PSB -> listOf(Innsendingsytelse.PLEIEPENGER_FOR_SYKT_BARN)
 
-        Ytelse.OMS_PLS -> Innsendingsytelse.PLEIEPENGER_I_LIVETS_SLUTTFASE
+        Ytelse.OMS_PLS -> listOf(Innsendingsytelse.PLEIEPENGER_I_LIVETS_SLUTTFASE)
 
-        Ytelse.SYK_SYK -> Innsendingsytelse.SYKEPENGER
+        Ytelse.SYK_SYK -> listOf(Innsendingsytelse.SYKEPENGER)
 
-        Ytelse.AAP_AAP -> Innsendingsytelse.ARBEIDSAVKLARINGSPENGER
+        Ytelse.AAP_AAP -> listOf(Innsendingsytelse.ARBEIDSAVKLARINGSPENGER)
 
-        Ytelse.BAR_BAR -> Innsendingsytelse.BARNETRYGD
+        Ytelse.BAR_BAR -> listOf(Innsendingsytelse.BARNETRYGD)
 
-        Ytelse.BID_BAB -> Innsendingsytelse.BARNEBIDRAG
+        Ytelse.BID_BAB -> listOf(Innsendingsytelse.BARNEBIDRAG)
 
-        Ytelse.BID_BIF -> Innsendingsytelse.BIDRAGSFORSKUDD
+        Ytelse.BID_BIF -> listOf(Innsendingsytelse.BIDRAGSFORSKUDD)
 
-        Ytelse.BID_OPI -> Innsendingsytelse.OPPFOSTRINGSBIDRAG
+        Ytelse.BID_OPI -> listOf(Innsendingsytelse.OPPFOSTRINGSBIDRAG)
 
-        Ytelse.BID_EKB -> Innsendingsytelse.EKTEFELLEBIDRAG
+        Ytelse.BID_EKB -> listOf(Innsendingsytelse.EKTEFELLEBIDRAG)
 
-        Ytelse.BID_BBF -> Innsendingsytelse.BARNEBIDRAG
+        Ytelse.BID_BBF -> listOf(Innsendingsytelse.BARNEBIDRAG)
 
-        Ytelse.BID_BII -> Innsendingsytelse.BARNEBIDRAG
+        Ytelse.BID_BII -> listOf(Innsendingsytelse.BARNEBIDRAG)
 
-        Ytelse.DAG_DAG -> Innsendingsytelse.DAGPENGER
+        Ytelse.DAG_DAG -> listOf(Innsendingsytelse.DAGPENGER)
 
-        Ytelse.ENF_ENF -> Innsendingsytelse.ENSLIG_MOR_ELLER_FAR
+        Ytelse.ENF_ENF -> listOf(Innsendingsytelse.ENSLIG_MOR_ELLER_FAR)
 
-        Ytelse.GEN_GEN -> Innsendingsytelse.LONNSGARANTI
+        Ytelse.GEN_GEN -> listOf(Innsendingsytelse.LONNSGARANTI)
 
-        Ytelse.GRA_GRA -> Innsendingsytelse.GRAVFERDSSTONAD
+        Ytelse.GRA_GRA -> listOf(Innsendingsytelse.GRAVFERDSSTONAD)
 
-        Ytelse.GRU_HJE -> Innsendingsytelse.HJELPESTONAD
+        Ytelse.GRU_HJE -> listOf(Innsendingsytelse.HJELPESTONAD)
 
-        Ytelse.GRU_GRU -> Innsendingsytelse.GRUNNSTONAD
+        Ytelse.GRU_GRU -> listOf(Innsendingsytelse.GRUNNSTONAD)
 
-        Ytelse.HJE_HJE -> Innsendingsytelse.HJELPEMIDLER
+        Ytelse.HJE_HJE -> listOf(Innsendingsytelse.HJELPEMIDLER)
 
-        Ytelse.KON_KON -> Innsendingsytelse.KONTANTSTOTTE
+        Ytelse.KON_KON -> listOf(Innsendingsytelse.KONTANTSTOTTE)
 
-        Ytelse.MED_MED -> Innsendingsytelse.MEDLEMSKAP
+        Ytelse.MED_MED -> listOf(Innsendingsytelse.MEDLEMSKAP)
 
-        Ytelse.PEN_ALD -> Innsendingsytelse.ALDERSPENSJON
+        Ytelse.PEN_ALD -> listOf(Innsendingsytelse.ALDERSPENSJON)
 
-        Ytelse.PEN_BAR -> Innsendingsytelse.BARNEPENSJON
+        Ytelse.PEN_BAR -> listOf(Innsendingsytelse.BARNEPENSJON)
 
-        Ytelse.PEN_AFP -> null
+        Ytelse.PEN_AFP -> listOf(Innsendingsytelse.AVTALEFESTET_PENSJON_PRIVAT, Innsendingsytelse.AVTALEFESTET_PENSJON_SPK)
 
-        // don't know which to choose
-        Ytelse.PEN_KRI -> Innsendingsytelse.KRIGSPENSJON
+        Ytelse.PEN_KRI -> listOf(Innsendingsytelse.KRIGSPENSJON)
 
-        Ytelse.PEN_GJE -> Innsendingsytelse.GJENLEVENDE
+        Ytelse.PEN_GJE -> listOf(Innsendingsytelse.GJENLEVENDE)
 
-        Ytelse.PEN_EYO -> Innsendingsytelse.OMSTILLINGSSTONAD
+        Ytelse.PEN_EYO -> listOf(Innsendingsytelse.OMSTILLINGSSTONAD)
 
-        Ytelse.SUP_PEN -> Innsendingsytelse.SUPPLERENDE_STONAD
+        Ytelse.SUP_PEN -> listOf(Innsendingsytelse.SUPPLERENDE_STONAD)
 
-        Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER
+        Ytelse.SUP_UFF -> listOf(Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER)
 
-        Ytelse.TIL_TIP -> Innsendingsytelse.TILTAKSPENGER
+        Ytelse.TIL_TIP -> listOf(Innsendingsytelse.TILTAKSPENGER)
 
-        Ytelse.TIL_TIL -> null
+        Ytelse.TIL_TIL -> emptyList()
 
         // ? In Klang, tema is IND. Tema TIL is not used.
-        Ytelse.UFO_UFO -> Innsendingsytelse.UFORETRYGD
+        Ytelse.UFO_UFO -> listOf(Innsendingsytelse.UFORETRYGD)
 
-        Ytelse.YRK_YRK -> Innsendingsytelse.YRKESSKADE
+        Ytelse.YRK_YRK -> listOf(Innsendingsytelse.YRKESSKADE)
 
-        Ytelse.YRK_MEN -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
+        Ytelse.YRK_MEN -> listOf(Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM)
 
-        Ytelse.YRK_YSY -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
+        Ytelse.YRK_YSY -> listOf(Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM)
 
-        Ytelse.UFO_TVF -> Innsendingsytelse.UFORETRYGD
+        Ytelse.UFO_TVF -> listOf(Innsendingsytelse.UFORETRYGD)
 
-        Ytelse.OPP_OPP -> Innsendingsytelse.OPPFOLGING
+        Ytelse.OPP_OPP -> listOf(Innsendingsytelse.OPPFOLGING)
 
-        Ytelse.AAR_AAR -> null
+        Ytelse.AAR_AAR -> emptyList()
 
         // no matching innsendingsytelse
-        Ytelse.HJE_AUR -> Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER
+        Ytelse.HJE_AUR -> listOf(Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER)
 
-        Ytelse.TSR_ASO -> Innsendingsytelse.TILLEGGSSTONADER
+        Ytelse.TSR_ASO -> listOf(Innsendingsytelse.TILLEGGSSTONADER)
 
-        Ytelse.FRI_FRI -> null
-
-        // no matching innsendingsytelse/tema
-        Ytelse.TSO_TSO -> Innsendingsytelse.TILLEGGSSTONADER
-
-        Ytelse.FAR_FAR -> null
+        Ytelse.FRI_FRI -> emptyList()
 
         // no matching innsendingsytelse/tema
-        Ytelse.DAG_LKP -> Innsendingsytelse.DAGPENGER
+        Ytelse.TSO_TSO -> listOf(Innsendingsytelse.TILLEGGSSTONADER)
 
-        Ytelse.DAG_FDP -> Innsendingsytelse.DAGPENGER
-
-        Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
-
-        Ytelse.HEL_HEL -> Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE
-
-        Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
-
-        Ytelse.PAR_PAR -> null
+        Ytelse.FAR_FAR -> emptyList()
 
         // no matching innsendingsytelse/tema
-        Ytelse.UNG_UNG -> Innsendingsytelse.UNGDOMSPROGRAMMET
+        Ytelse.DAG_LKP -> listOf(Innsendingsytelse.DAGPENGER)
 
-        Ytelse.PEN_GYS -> null
+        Ytelse.DAG_FDP -> listOf(Innsendingsytelse.DAGPENGER)
+
+        Ytelse.BIL_BIL -> listOf(Innsendingsytelse.BILSTONAD)
+
+        Ytelse.HEL_HEL -> listOf(Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE)
+
+        Ytelse.FOS_FOS -> listOf(Innsendingsytelse.FORSIKRING)
+
+        Ytelse.PAR_PAR -> emptyList()
+
+        // no matching innsendingsytelse/tema
+        Ytelse.UNG_UNG -> listOf(Innsendingsytelse.UNGDOMSPROGRAMMET)
+
+        Ytelse.PEN_GYS -> emptyList()
     }

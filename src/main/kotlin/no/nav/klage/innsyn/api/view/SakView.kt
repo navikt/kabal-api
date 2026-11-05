@@ -12,6 +12,7 @@ data class SakView(
     val saksnummer: String,
     val ytelseId: String,
     val innsendingsytelseId: String?,
+    val innsendingsytelseIdList: List<String>,
     val events: List<Event>,
     val varsletBehandlingstid: VarsletBehandlingstid?,
     val mottattKlageinstans: LocalDate,
