@@ -7,8 +7,8 @@ import no.nav.klage.oppgave.config.SseShutdownSignal
 import no.nav.klage.oppgave.config.getGauge
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
-import no.nav.klage.oppgave.service.AivenKafkaClientCreator
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.InternalKafkaEventStreams
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @Tag(name = "kabal-api")
 @RequestMapping("/behandlinger/{behandlingId}")
 class EventController(
-    private val aivenKafkaClientCreator: AivenKafkaClientCreator,
+    private val internalKafkaEventStreams: InternalKafkaEventStreams,
     meterRegistry: MeterRegistry,
     private val behandlingService: BehandlingService,
     private val sseShutdownSignal: SseShutdownSignal,
@@ -35,6 +35,12 @@ class EventController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        // The sink drops events for subscribers without demand. This per-client buffer queues events and errors on
+        // overflow, so the client reconnects.
+        private const val SSE_CLIENT_BUFFER_SIZE = 256
+
+        private val objectMapper = jacksonObjectMapper()
     }
 
     private val gaugeBehandling =
@@ -85,23 +91,54 @@ class EventController(
             .takeUntilOther(sseShutdownSignal.asMono())
     }
 
+    // Each record is parsed once per pod and shared by all SSE clients. Parsing failures are skipped here, so they
+    // cannot terminate the clients' streams.
+    private val sharedBehandlingEvents: Flux<ParsedEvent<InternalBehandlingEvent>> by lazy {
+        internalKafkaEventStreams
+            .behandlingEvents()
+            .mapNotNull { consumerRecord ->
+                runCatching {
+                    val event = objectMapper.readValue(consumerRecord.value(), InternalBehandlingEvent::class.java)
+                    ParsedEvent(offset = consumerRecord.offset(), event = event, data = objectMapper.readTree(event.data))
+                }.onFailure {
+                    logger.error(
+                        "Could not parse internal behandling event at offset {}, skipping it",
+                        consumerRecord.offset(),
+                        it,
+                    )
+                }.getOrNull()
+            }.share()
+    }
+
+    private val sharedIdentityEvents: Flux<ParsedEvent<InternalIdentityEvent>> by lazy {
+        internalKafkaEventStreams
+            .identityEvents()
+            .mapNotNull { consumerRecord ->
+                runCatching {
+                    val event = objectMapper.readValue(consumerRecord.value(), InternalIdentityEvent::class.java)
+                    ParsedEvent(offset = consumerRecord.offset(), event = event, data = objectMapper.readTree(event.data))
+                }.onFailure {
+                    logger.error(
+                        "Could not parse internal identity event at offset {}, skipping it",
+                        consumerRecord.offset(),
+                        it,
+                    )
+                }.getOrNull()
+            }.share()
+    }
+
     private fun getBehandlingEventPublisher(behandlingId: UUID): Flux<ServerSentEvent<JsonNode>> {
         val flux =
-            aivenKafkaClientCreator
-                .getNewKafkaInternalBehandlingEventReceiver()
-                .receive()
-                .mapNotNull { consumerRecord ->
-                    val internalBehandlingEvent = jsonToInternalBehandlingEvent(consumerRecord.value())
-                    if (internalBehandlingEvent.behandlingId == behandlingId.toString()) {
-                        ServerSentEvent
-                            .builder<JsonNode>()
-                            .id(consumerRecord.offset().toString())
-                            .event(internalBehandlingEvent.type.name)
-                            .data(jacksonObjectMapper().readTree(internalBehandlingEvent.data))
-                            .build()
-                    } else {
-                        null
-                    }
+            sharedBehandlingEvents
+                .onBackpressureBuffer(SSE_CLIENT_BUFFER_SIZE)
+                .filter { it.event.behandlingId == behandlingId.toString() }
+                .map {
+                    ServerSentEvent
+                        .builder<JsonNode>()
+                        .id(it.offset.toString())
+                        .event(it.event.type.name)
+                        .data(it.data)
+                        .build()
                 }.doOnSubscribe {
                     gaugeBehandling.incrementAndGet()
                 }.doFinally { _ ->
@@ -113,21 +150,16 @@ class EventController(
 
     private fun getIdentityEventPublisher(behandlingView: BehandlingDetaljerView): Flux<ServerSentEvent<JsonNode>> {
         val flux =
-            aivenKafkaClientCreator
-                .getNewKafkaInternalIdentityEventReceiver()
-                .receive()
-                .mapNotNull { consumerRecord ->
-                    val internalIdentityEvent = jsonToInternalIdentityEvent(consumerRecord.value())
-                    if (internalIdentityEvent.identifikator == behandlingView.sakenGjelder.identifikator) {
-                        ServerSentEvent
-                            .builder<JsonNode>()
-                            .id(consumerRecord.offset().toString())
-                            .event(internalIdentityEvent.type.name)
-                            .data(jacksonObjectMapper().readTree(internalIdentityEvent.data))
-                            .build()
-                    } else {
-                        null
-                    }
+            sharedIdentityEvents
+                .onBackpressureBuffer(SSE_CLIENT_BUFFER_SIZE)
+                .filter { it.event.identifikator == behandlingView.sakenGjelder.identifikator }
+                .map {
+                    ServerSentEvent
+                        .builder<JsonNode>()
+                        .id(it.offset.toString())
+                        .event(it.event.type.name)
+                        .data(it.data)
+                        .build()
                 }.doOnSubscribe {
                     gaugeIdentity.incrementAndGet()
                 }.doFinally { _ ->
@@ -167,9 +199,9 @@ class EventController(
             .event("HEARTBEAT")
             .build()
 
-    private fun jsonToInternalBehandlingEvent(json: String?): InternalBehandlingEvent =
-        jacksonObjectMapper().readValue(json, InternalBehandlingEvent::class.java)
-
-    private fun jsonToInternalIdentityEvent(json: String?): InternalIdentityEvent =
-        jacksonObjectMapper().readValue(json, InternalIdentityEvent::class.java)
+    private data class ParsedEvent<T>(
+        val offset: Long,
+        val event: T,
+        val data: JsonNode,
+    )
 }

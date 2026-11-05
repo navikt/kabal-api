@@ -27,7 +27,7 @@ class SseBrokenPipeLogFilter : TurboFilter() {
                     throwable.javaClass.name == "java.io.IOException" &&
                         throwable.message == "Broken pipe" &&
                         logger?.name?.contains("org.apache.catalina.core.ContainerBase") == true
-                    )
+                )
             /*
              ||
             (throwable.javaClass.name == "AsyncRequestNotUsableException" &&
@@ -96,7 +96,7 @@ class SseBrokenPipeLogFilter : TurboFilter() {
             (
                 this is java.io.IOException &&
                     message?.let { it.contains("Broken pipe") || it.contains("Connection reset") } == true
-                )
+            )
 }
 
 private val CLIENT_DISCONNECT_EXCEPTIONS =
