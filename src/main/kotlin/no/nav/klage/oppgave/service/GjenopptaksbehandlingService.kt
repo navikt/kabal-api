@@ -141,7 +141,9 @@ class GjenopptaksbehandlingService(
         // Validated when the mottak is created, so this only guards against future callers.
         val trygderettenSaksnummer =
             mottak.trygderettenSaksnummer
-                ?: error("Mottak with kildereferanse ${mottak.kildeReferanse} for anke etter 2027 is missing saksnummer fra Trygderetten.")
+                ?: error(
+                    "Mottak with kildereferanse ${mottak.kildeReferanse} for gjenopptak etter 2027 is missing saksnummer fra Trygderetten.",
+                )
 
         val gjenopptaksbehandling =
             gjenopptaksbehandlingEtter2027Repository.save(
@@ -283,7 +285,7 @@ class GjenopptaksbehandlingService(
             )
 
         logger.debug(
-            "Created gjenopptaksbehandling {} from gjenopptakITrygderettenbehandling {}",
+            "Created gjenopptaksbehandlingFoer2027 {} from gjenopptakITrygderettenbehandlingFoer2027 {}",
             gjenopptaksbehandling.id,
             gjenopptakITrygderettenbehandlingFoer2027.id,
         )
@@ -358,7 +360,7 @@ class GjenopptaksbehandlingService(
             )
 
         logger.debug(
-            "Created gjenopptaksbehandling {} from gjenopptakITrygderettenbehandling {}",
+            "Created gjenopptaksbehandlingEtter2027 {} from gjenopptakITrygderettenbehandlingEtter2027 {}",
             gjenopptaksbehandling.id,
             gjenopptakITrygderettenbehandlingEtter2027.id,
         )

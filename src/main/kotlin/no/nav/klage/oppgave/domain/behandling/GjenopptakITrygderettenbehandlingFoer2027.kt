@@ -49,7 +49,7 @@ class GjenopptakITrygderettenbehandlingFoer2027(
     override var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
     @Column(name = "ny_gjenopptaksbehandling_ka")
-    var nyGjenopptaksbehandlingKA: LocalDateTime? = null,
+    override var nyGjenopptaksbehandlingKA: LocalDateTime? = null,
     /** Skal det opprettes ny behandling etter TR har opphevet? */
     @Column(name = "ny_behandling_etter_tr_opphevet")
     override var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
@@ -145,6 +145,7 @@ class GjenopptakITrygderettenbehandlingFoer2027(
         gosysOppgaveRequired = gosysOppgaveRequired,
         initiatingSystem = initiatingSystem,
     ),
+    GjenopptakITrygderettenbehandling,
     BehandlingITrygderetten,
     BehandlingWithTrygderettenMetadata {
     override fun toString(): String =

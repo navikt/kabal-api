@@ -68,7 +68,7 @@ class GjenopptakITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
+        logger.debug("Created gjenopptakITrygderettenbehandlingFoer2027 {}", gjenopptakITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
@@ -148,7 +148,7 @@ class GjenopptakITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
+        logger.debug("Created gjenopptakITrygderettenbehandlingEtter2027 {}", gjenopptakITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,

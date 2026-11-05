@@ -302,11 +302,7 @@ class StatistikkTilDVHService(
                 BehandlingType.BEGJAERING_OM_GJENOPPTAK
             }
 
-            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
-                BehandlingType.BEGJAERING_OM_GJENOPPTAK
-            }
-
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
                 BehandlingType.BEGJAERING_OM_GJENOPPTAK
             }
 

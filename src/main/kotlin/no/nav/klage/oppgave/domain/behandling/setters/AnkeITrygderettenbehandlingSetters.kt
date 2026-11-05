@@ -1,23 +1,25 @@
 package no.nav.klage.oppgave.domain.behandling.setters
 
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import java.time.LocalDateTime
 
-object GjenopptakITrygderettenbehandlingEtter2027Setters {
-    fun GjenopptakITrygderettenbehandlingEtter2027.setNyGjenopptaksbehandlingKA(
+object AnkeITrygderettenbehandlingSetters {
+    fun AnkeITrygderettenbehandling.setNyAnkebehandlingKA(
         nyVerdi: LocalDateTime,
         saksbehandlerident: String,
     ): BehandlingChangedEvent {
-        val gammelVerdi = nyGjenopptaksbehandlingKA
+        this as Behandling
+        val gammelVerdi = nyAnkebehandlingKA
         val tidspunkt = LocalDateTime.now()
-        nyGjenopptaksbehandlingKA = nyVerdi
+        nyAnkebehandlingKA = nyVerdi
         modified = tidspunkt
         val change =
             createChange(
                 saksbehandlerident = saksbehandlerident,
-                felt = BehandlingChangedEvent.Felt.NY_GJENOPPTAKSBEHANDLING_KA,
+                felt = BehandlingChangedEvent.Felt.NY_ANKEBEHANDLING_KA,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,

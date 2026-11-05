@@ -572,6 +572,14 @@ interface BehandlingITrygderetten {
     var nyBehandlingEtterTROpphevet: LocalDateTime?
 }
 
+interface AnkeITrygderettenbehandling {
+    var nyAnkebehandlingKA: LocalDateTime?
+}
+
+interface GjenopptakITrygderettenbehandling {
+    var nyGjenopptaksbehandlingKA: LocalDateTime?
+}
+
 interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingId: UUID?
     var kakaKvalitetsvurderingVersion: Int

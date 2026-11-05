@@ -77,8 +77,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.noKvalitetsvurderingNeeded
 import no.nav.klage.oppgave.domain.behandling.noRegistringshjemmelNeeded
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingEtter2027Setters.setNyAnkebehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingFoer2027Setters.setNyAnkebehandlingKA
+import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
@@ -110,8 +109,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTilba
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingWithVarsletBehandlingstidSetters.setVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingEtter2027Setters.setNyGjenopptaksbehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingFoer2027Setters.setNyGjenopptaksbehandlingKA
+import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyGjenopptaksbehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.behandling.utfallITrygderettenOpphevetEllerHenvist
@@ -1620,25 +1618,10 @@ class BehandlingService(
         when (behandling) {
             is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
                 val eventNyBehandling =
-                    when (behandling) {
-                        is AnkeITrygderettenbehandlingFoer2027 -> {
-                            behandling.setNyAnkebehandlingKA(
-                                nyVerdi = LocalDateTime.now(),
-                                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                            )
-                        }
-
-                        is AnkeITrygderettenbehandlingEtter2027 -> {
-                            behandling.setNyAnkebehandlingKA(
-                                nyVerdi = LocalDateTime.now(),
-                                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                            )
-                        }
-
-                        else -> {
-                            error("Unreachable")
-                        }
-                    }
+                    behandling.setNyAnkebehandlingKA(
+                        nyVerdi = LocalDateTime.now(),
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    )
                 val eventAvsluttetAvSaksbehandler =
                     behandling.setAvsluttetAvSaksbehandler(
                         saksbehandlerident = utfoerendeSaksbehandlerIdent,
@@ -1659,26 +1642,10 @@ class BehandlingService(
 
             is GjenopptakITrygderettenbehandlingFoer2027, is GjenopptakITrygderettenbehandlingEtter2027 -> {
                 val eventNyBehandling =
-                    when (behandling) {
-                        is GjenopptakITrygderettenbehandlingFoer2027 -> {
-                            behandling.setNyGjenopptaksbehandlingKA(
-                                nyVerdi = LocalDateTime.now(),
-                                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                            )
-                        }
-
-                        is GjenopptakITrygderettenbehandlingEtter2027 -> {
-                            behandling.setNyGjenopptaksbehandlingKA(
-                                nyVerdi = LocalDateTime.now(),
-                                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                            )
-                        }
-
-                        else -> {
-                            error("Unreachable")
-                        }
-                    }
-
+                    behandling.setNyGjenopptaksbehandlingKA(
+                        nyVerdi = LocalDateTime.now(),
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    )
                 val eventAvsluttetAvSaksbehandler =
                     behandling.setAvsluttetAvSaksbehandler(
                         saksbehandlerident = utfoerendeSaksbehandlerIdent,
@@ -1698,7 +1665,7 @@ class BehandlingService(
             }
 
             else -> {
-                throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+                throw IllegalOperation("Dette feltet kan bare settes i behandlinger i Trygderetten")
             }
         }
     }
