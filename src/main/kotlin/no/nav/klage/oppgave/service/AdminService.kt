@@ -42,7 +42,8 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -492,7 +493,8 @@ class AdminService(
                         is AnkebehandlingEtter2027,
                         is Omgjoeringskravbehandling,
                         is BehandlingEtterTrygderettenOpphevet,
-                        is Gjenopptaksbehandling,
+                        is GjenopptaksbehandlingFoer2027,
+                        is GjenopptaksbehandlingEtter2027,
                         -> true
 
                         else -> false

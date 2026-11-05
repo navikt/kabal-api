@@ -28,8 +28,10 @@ import no.nav.klage.oppgave.clients.klageunleashproxy.KlageUnleashProxyClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.DokDistKanalService
@@ -239,9 +241,15 @@ class KabalDocumentMapper(
                     trygderettenMetadata.forsterketRett
                 }
 
+            val gjenopptak =
+                behandling is GjenopptaksbehandlingFoer2027 ||
+                    behandling is GjenopptaksbehandlingEtter2027 ||
+                    behandling is GjenopptakITrygderettenbehandlingFoer2027 ||
+                    behandling is GjenopptakITrygderettenbehandlingEtter2027
+
             TrygderettenMetadataInput(
                 kravfremsettelsesdato =
-                    if (behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling) {
+                    if (gjenopptak) {
                         behandling.mottattKlageinstans.toLocalDate()
                     } else {
                         null
@@ -251,7 +259,7 @@ class KabalDocumentMapper(
                     behandlingService.isConnectedToPreviousITrygderettenbehandlingThatWasOpphevetOrHenvist(
                         behandling = behandling,
                     ),
-                gjenopptak = behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling,
+                gjenopptak = gjenopptak,
                 forsterketRett = forsterketRett,
                 ettersendelse =
                     hovedDokument.smartEditorTemplateId in

@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.service
 
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.EntityManager
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
@@ -62,8 +64,10 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
@@ -73,7 +77,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.noKvalitetsvurderingNeeded
 import no.nav.klage.oppgave.domain.behandling.noRegistringshjemmelNeeded
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingFoer2027Setters.setNyAnkebehandlingKA
+import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
@@ -162,7 +166,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingEtter2027Setters.setNyAnkebehandlingKA as setNyAnkebehandlingKAEtter2027
 
 @Service
 @Transactional
@@ -190,6 +193,7 @@ class BehandlingService(
     private val kodeverkService: KodeverkService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
+    private val entityManager: EntityManager,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -372,11 +376,14 @@ class BehandlingService(
                     )
                 } else {
                     if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
-                        if (behandling.type in
-                            listOf(
-                                Type.ANKE_FOER_2027,
-                                Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
-                            ) && behandling.shouldBeSentToTrygderetten()
+                        if ((
+                                behandling.type in
+                                    listOf(
+                                        Type.ANKE_FOER_2027,
+                                        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                                    ) && behandling.shouldBeSentToTrygderetten()
+                            ) ||
+                            (behandling.type in listOf(Type.ANKE_ETTER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027))
                         ) {
                             if (gosysOppgaveInput.gosysOppgaveUpdate.mappeId == null) {
                                 throw SectionedValidationErrorWithDetailsException(
@@ -468,7 +475,9 @@ class BehandlingService(
                         "NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.",
                     )
                 }
-            } else if (behandling is GjenopptakITrygderettenbehandling) {
+            } else if (behandling is GjenopptakITrygderettenbehandlingFoer2027 ||
+                behandling is GjenopptakITrygderettenbehandlingEtter2027
+            ) {
                 if (behandling.utfall != Utfall.GJENOPPTATT_OPPHEVET) {
                     throw IllegalOperation(
                         "NyBehandlingEtterTROpphevet kan kun opprettes på Gjenopptak i Trygderetten hvis utfall er 'Gjenopptatt - Opphevet'.",
@@ -1606,66 +1615,58 @@ class BehandlingService(
     ): Behandling {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
-        if (behandling is AnkeITrygderettenbehandlingFoer2027 ||
-            behandling is AnkeITrygderettenbehandlingEtter2027
-        ) {
-            val eventNyBehandling =
-                when (behandling) {
-                    is AnkeITrygderettenbehandlingFoer2027 -> {
-                        behandling.setNyAnkebehandlingKA(
-                            nyVerdi = LocalDateTime.now(),
-                            saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                        )
-                    }
+        when (behandling) {
+            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> {
+                val eventNyBehandling =
+                    behandling.setNyAnkebehandlingKA(
+                        nyVerdi = LocalDateTime.now(),
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    )
+                val eventAvsluttetAvSaksbehandler =
+                    behandling.setAvsluttetAvSaksbehandler(
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                        saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                    )
+                val changeList =
+                    eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
-                    is AnkeITrygderettenbehandlingEtter2027 -> {
-                        behandling.setNyAnkebehandlingKAEtter2027(
-                            nyVerdi = LocalDateTime.now(),
-                            saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                        )
-                    }
-
-                    else -> {
-                        error("Unreachable")
-                    }
-                }
-            val eventAvsluttetAvSaksbehandler =
-                behandling.setAvsluttetAvSaksbehandler(
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                    saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                applicationEventPublisher.publishEvent(
+                    BehandlingChangedEvent(
+                        behandling = behandling,
+                        changeList = changeList,
+                    ),
                 )
-            val changeList =
-                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
-            applicationEventPublisher.publishEvent(
-                BehandlingChangedEvent(
-                    behandling = behandling,
-                    changeList = changeList,
-                ),
-            )
+                return behandling
+            }
 
-            return behandling
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
-            val eventNyBehandling =
-                behandling.setNyGjenopptaksbehandlingKA(nyVerdi = LocalDateTime.now(), saksbehandlerident = utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler =
-                behandling.setAvsluttetAvSaksbehandler(
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                    saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            is GjenopptakITrygderettenbehandlingFoer2027, is GjenopptakITrygderettenbehandlingEtter2027 -> {
+                val eventNyBehandling =
+                    behandling.setNyGjenopptaksbehandlingKA(
+                        nyVerdi = LocalDateTime.now(),
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    )
+                val eventAvsluttetAvSaksbehandler =
+                    behandling.setAvsluttetAvSaksbehandler(
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                        saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                    )
+                val changeList =
+                    eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
+
+                applicationEventPublisher.publishEvent(
+                    BehandlingChangedEvent(
+                        behandling = behandling,
+                        changeList = changeList,
+                    ),
                 )
-            val changeList =
-                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
-            applicationEventPublisher.publishEvent(
-                BehandlingChangedEvent(
-                    behandling = behandling,
-                    changeList = changeList,
-                ),
-            )
+                return behandling
+            }
 
-            return behandling
-        } else {
-            throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+            else -> {
+                throw IllegalOperation("Dette feltet kan bare settes i behandlinger i Trygderetten")
+            }
         }
     }
 
@@ -2467,7 +2468,11 @@ class BehandlingService(
         behandlingType: Type,
     ) {
         when (behandlingType) {
-            Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027 -> {
+            Type.ANKE_ETTER_2027,
+            Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            -> {
                 tilgangService.verifySaksbehandlersIsAnketeam(saksbehandlerIdent = tildeltSaksbehandlerIdent)
             }
 
@@ -3304,6 +3309,33 @@ class BehandlingService(
         )
     }
 
+    fun trygderettenSaksnummerIsDuplicate(trygderettenSaksnummer: String): Boolean {
+        val implementationClasses =
+            entityManager.metamodel.entities
+                .map { it.javaType }
+                .filter {
+                    BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it)
+                }
+        check(implementationClasses.isNotEmpty()) {
+            "No entities implement ${BehandlingWithTrygderettenSaksnummer::class.java.name}"
+        }
+        val implementationTypes =
+            implementationClasses.map { implementationClass ->
+                val discriminatorValue =
+                    checkNotNull(implementationClass.getAnnotation(DiscriminatorValue::class.java)?.value) {
+                        "Missing @DiscriminatorValue on ${implementationClass.name}"
+                    }
+                check(discriminatorValue.isNotBlank()) {
+                    "Blank @DiscriminatorValue on ${implementationClass.name}"
+                }
+                discriminatorValue
+            }
+        return behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+            trygderettenSaksnummer = trygderettenSaksnummer,
+            behandlingTypes = implementationTypes,
+        )
+    }
+
     fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean =
         behandlingRepository
             .findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
@@ -3342,6 +3374,7 @@ class BehandlingService(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                         Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
                         Type.ANKE_ETTER_2027,
                     ),
             ).filter {
@@ -3372,6 +3405,7 @@ class BehandlingService(
                         Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                         Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                         Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
                     ),
             ).filter {
                 try {
@@ -3417,17 +3451,47 @@ class BehandlingService(
             }
         }
 
-    fun getGjenopptaksmuligheterByPartIdValue(partIdValue: String): List<Behandling> =
-        behandlingRepository.getGjenopptaksmuligheter(partIdValue).filter {
-            try {
-                checkReadAccessToSak(
-                    behandling = it,
-                )
-                true
-            } catch (e: MissingTilgangException) {
-                false
+    fun getGjenopptaksmuligheterFoer2027ByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository
+            .getGjenopptaksmuligheter(
+                partIdValue = partIdValue,
+                includedTypes =
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                    ),
+            ).filter {
+                try {
+                    checkReadAccessToSak(
+                        behandling = it,
+                    )
+                    true
+                } catch (_: MissingTilgangException) {
+                    false
+                }
             }
-        }
+
+    fun getGjenopptaksmuligheterEtter2027ByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository
+            .getGjenopptaksmuligheter(
+                partIdValue = partIdValue,
+                includedTypes =
+                    listOf(
+                        Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                        Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                        Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                    ),
+            ).filter {
+                try {
+                    checkReadAccessToSak(
+                        behandling = it,
+                    )
+                    true
+                } catch (_: MissingTilgangException) {
+                    false
+                }
+            }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
         val name =

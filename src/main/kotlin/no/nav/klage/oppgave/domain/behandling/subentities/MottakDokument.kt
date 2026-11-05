@@ -66,12 +66,8 @@ fun Type.getMottakDokumentType(): MottakDokumentType =
             MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
         }
 
-        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
+        Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027, Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
             MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
-        }
-
-        Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
-            TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
         }
 
         else -> {

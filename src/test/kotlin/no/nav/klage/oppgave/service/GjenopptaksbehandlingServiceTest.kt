@@ -11,14 +11,15 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.repositories.GjenopptaksbehandlingRepository
+import no.nav.klage.oppgave.repositories.GjenopptaksbehandlingEtter2027Repository
+import no.nav.klage.oppgave.repositories.GjenopptaksbehandlingFoer2027Repository
 import no.nav.klage.oppgave.util.KakaVersionUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -29,7 +30,8 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 class GjenopptaksbehandlingServiceTest {
-    private val repository = mockk<GjenopptaksbehandlingRepository>()
+    private val repositoryFoer2027 = mockk<GjenopptaksbehandlingFoer2027Repository>()
+    private val repositoryEtter2027 = mockk<GjenopptaksbehandlingEtter2027Repository>()
     private val dokumentService = mockk<DokumentService>()
     private val behandlingService = mockk<BehandlingService>(relaxed = true)
     private val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
@@ -39,7 +41,8 @@ class GjenopptaksbehandlingServiceTest {
 
     private val service =
         GjenopptaksbehandlingService(
-            gjenopptaksbehandlingRepository = repository,
+            gjenopptaksbehandlingFoer2027Repository = repositoryFoer2027,
+            gjenopptaksbehandlingEtter2027Repository = repositoryEtter2027,
             dokumentService = dokumentService,
             behandlingService = behandlingService,
             applicationEventPublisher = eventPublisher,
@@ -54,18 +57,18 @@ class GjenopptaksbehandlingServiceTest {
         every { kakaApiGateway.createKvalitetsvurdering(2) } returns
             KakaOutput(kvalitetsvurderingId = kvalitetsvurderingId, kvalitetsvurderingVersion = 2)
         every { dokumentService.createSaksdokumenterFromJournalpostIdList(any()) } returns mutableSetOf()
-        every { repository.save(any<Gjenopptaksbehandling>()) } answers { firstArg() }
+        every { repositoryFoer2027.save(any<GjenopptaksbehandlingFoer2027>()) } answers { firstArg() }
     }
 
     @Test
     fun `journalpost Mottak oppretter konkret gjenopptaksbehandling uten paaanket datooppslag`() {
         val result =
-            service.createGjenopptaksbehandlingFromMottak(
+            service.createGjenopptaksbehandlingFoer2027FromMottak(
                 mottak(isBasedOnJournalpost = true),
             )
 
-        assertThat(result).isExactlyInstanceOf(Gjenopptaksbehandling::class.java)
-        assertThat((result as Gjenopptaksbehandling).paaanketVedtaksdato).isNull()
+        assertThat(result).isExactlyInstanceOf(GjenopptaksbehandlingFoer2027::class.java)
+        assertThat((result).paaanketVedtaksdato).isNull()
         verify(exactly = 0) { behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(any()) }
     }
 
@@ -78,14 +81,14 @@ class GjenopptaksbehandlingServiceTest {
         } returns paaanketVedtaksdato
 
         val result =
-            service.createGjenopptaksbehandlingFromMottak(
+            service.createGjenopptaksbehandlingFoer2027FromMottak(
                 mottak(
                     isBasedOnJournalpost = false,
                     forrigeBehandlingId = previousBehandlingId,
                 ),
-            ) as Gjenopptaksbehandling
+            )
 
-        assertThat(result).isExactlyInstanceOf(Gjenopptaksbehandling::class.java)
+        assertThat(result).isExactlyInstanceOf(GjenopptaksbehandlingFoer2027::class.java)
         assertThat(result.paaanketVedtaksdato).isEqualTo(paaanketVedtaksdato)
         verify(exactly = 1) {
             behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(previousBehandlingId)
@@ -97,7 +100,7 @@ class GjenopptaksbehandlingServiceTest {
         val sourceId = UUID.randomUUID()
         val date = LocalDate.of(2024, 9, 17)
         val source =
-            GjenopptakITrygderettenbehandling(
+            GjenopptakITrygderettenbehandlingFoer2027(
                 id = sourceId,
                 sendtTilTrygderetten = LocalDateTime.of(2024, 1, 1, 0, 0),
                 paaanketVedtaksdato = date,
@@ -128,13 +131,13 @@ class GjenopptaksbehandlingServiceTest {
             )
 
         val result =
-            service.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(source)
+            service.createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(source)
 
-        assertThat(result).isExactlyInstanceOf(Gjenopptaksbehandling::class.java)
+        assertThat(result).isExactlyInstanceOf(GjenopptaksbehandlingFoer2027::class.java)
         assertThat(result.previousBehandlingId).isEqualTo(sourceId)
         assertThat(result.paaanketVedtaksdato).isEqualTo(date)
         assertThat(result.forsterketRett).isTrue()
-        verify(exactly = 0) { repository.findById(any()) }
+        verify(exactly = 0) { repositoryFoer2027.findById(any()) }
     }
 
     private fun mottak(

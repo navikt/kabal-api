@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.domain.behandling.setters
 
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -10,6 +11,7 @@ object GjenopptakITrygderettenbehandlingSetters {
         nyVerdi: LocalDateTime,
         saksbehandlerident: String,
     ): BehandlingChangedEvent {
+        this as Behandling
         val gammelVerdi = nyGjenopptaksbehandlingKA
         val tidspunkt = LocalDateTime.now()
         nyGjenopptaksbehandlingKA = nyVerdi

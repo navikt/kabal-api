@@ -8,7 +8,8 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.exceptions.InvalidProperty
@@ -102,7 +103,7 @@ class KakaApiGateway(
                     klageBehandlendeEnhet to kakaKvalitetsvurderingId
                 }
 
-                is Gjenopptaksbehandling -> {
+                is GjenopptaksbehandlingFoer2027, is GjenopptaksbehandlingEtter2027 -> {
                     if (Enhet.entries.none { it.navn == klageBehandlendeEnhet }) {
                         logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
                     }
