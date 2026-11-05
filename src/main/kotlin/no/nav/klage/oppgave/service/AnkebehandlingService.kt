@@ -290,8 +290,6 @@ class AnkebehandlingService(
             ),
         )
 
-        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
-
         return ankebehandling
     }
 
@@ -356,8 +354,6 @@ class AnkebehandlingService(
                     ),
             ),
         )
-
-        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
 
         return ankebehandling
     }

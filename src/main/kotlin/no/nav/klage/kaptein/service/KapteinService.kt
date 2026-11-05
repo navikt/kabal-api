@@ -10,8 +10,10 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
-import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
@@ -116,7 +118,11 @@ class KapteinService(
                 mapAnkebehandlingEtter2027ToAnonymousBehandlingView(this)
             }
 
-            is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027, is GjenopptakITrygderettenbehandling -> {
+            is AnkeITrygderettenbehandlingFoer2027,
+            is AnkeITrygderettenbehandlingEtter2027,
+            is GjenopptakITrygderettenbehandlingFoer2027,
+            is GjenopptakITrygderettenbehandlingEtter2027,
+            -> {
                 mapBehandlingITrygderettenToAnonymousBehandlingView(
                     this,
                 )
@@ -130,8 +136,12 @@ class KapteinService(
                 mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
             }
 
-            is Gjenopptaksbehandling -> {
-                mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
+            is GjenopptaksbehandlingFoer2027 -> {
+                mapGjenopptaksbehandlingFoer2027ToAnonymousBehandlingView(this)
+            }
+
+            is GjenopptaksbehandlingEtter2027 -> {
+                mapGjenopptaksbehandlingEtter2027ToAnonymousBehandlingView(this)
             }
 
             else -> {
@@ -301,7 +311,9 @@ class KapteinService(
             initiatingSystem = behandling.initiatingSystem,
         )
 
-    private fun mapGjenopptaksbehandlingToAnonymousBehandlingView(behandling: Gjenopptaksbehandling): AnonymousBehandlingView =
+    private fun mapGjenopptaksbehandlingFoer2027ToAnonymousBehandlingView(
+        behandling: GjenopptaksbehandlingFoer2027,
+    ): AnonymousBehandlingView =
         AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
@@ -323,6 +335,40 @@ class KapteinService(
             feilregistrering = behandling.feilregistrering.toView(),
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
+        )
+
+    private fun mapGjenopptaksbehandlingEtter2027ToAnonymousBehandlingView(
+        behandling: GjenopptaksbehandlingEtter2027,
+    ): AnonymousBehandlingView =
+        AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = null,
             tilbakekreving = behandling.tilbakekreving,
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,

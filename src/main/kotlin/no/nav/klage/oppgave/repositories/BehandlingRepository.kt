@@ -55,6 +55,23 @@ interface BehandlingRepository :
 
     fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(gosysOppgaveId: Long): List<Behandling>
 
+    @Query(
+        value = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM klage.behandling
+                WHERE trygderetten_saksnummer = :trygderettenSaksnummer
+                AND feilregistrering_registered IS NULL
+                AND behandling_type IN (:behandlingTypes)
+            )
+        """,
+        nativeQuery = true,
+    )
+    fun existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+        trygderettenSaksnummer: String,
+        behandlingTypes: List<String>,
+    ): Boolean
+
     fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
     fun findByFeilregistreringIsNull(): List<Behandling>
@@ -186,6 +203,7 @@ interface BehandlingRepository :
                 Type.ANKE_I_TRYGDERETTEN_FOER_2027,
                 Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
             ),
     ): List<Behandling>
 

@@ -66,6 +66,8 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
@@ -2175,6 +2177,8 @@ class DokumentUnderArbeidService(
             when (val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)) {
                 is AnkebehandlingEtter2027 -> true
                 is AnkebehandlingFoer2027 -> behandling.shouldBeSentToTrygderetten()
+                is GjenopptaksbehandlingEtter2027 -> true
+                is GjenopptaksbehandlingFoer2027 -> behandling.shouldBeSentToTrygderetten()
                 else -> false
             }
 

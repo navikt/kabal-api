@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.api.view.kabin.GetCompletedBehandlingerInput
 import no.nav.klage.oppgave.api.view.kabin.GosysOppgaveIsDuplicateInput
 import no.nav.klage.oppgave.api.view.kabin.Mulighet
 import no.nav.klage.oppgave.api.view.kabin.SearchUsedJournalpostIdInput
+import no.nav.klage.oppgave.api.view.kabin.TrygderettenSaksnummerIsDuplicateInput
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KabinApiService
@@ -92,6 +93,20 @@ class KabinApiController(
         )
     }
 
+    @PostMapping("/trygderettensaksnummerisduplicate")
+    fun trygderettenSaksnummerIsDuplicate(
+        @RequestBody input: TrygderettenSaksnummerIsDuplicateInput,
+    ): Boolean {
+        logMethodDetails(
+            methodName = ::trygderettenSaksnummerIsDuplicate.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+        return behandlingService.trygderettenSaksnummerIsDuplicate(
+            trygderettenSaksnummer = input.trygderettenSaksnummer,
+        )
+    }
+
     @PostMapping("/ankemuligheter-foer-2027")
     fun getAnkemuligheterFoer2027(
         @RequestBody input: GetCompletedBehandlingerInput,
@@ -144,17 +159,30 @@ class KabinApiController(
         return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
     }
 
-    @PostMapping("/gjenopptaksmuligheter")
-    fun getGjenopptaksmuligheter(
+    @PostMapping("/gjenopptaksmuligheter-foer-2027")
+    fun getGjenopptaksmuligheterFoer2027(
         @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
-            methodName = ::getGjenopptaksmuligheter.name,
+            methodName = ::getGjenopptaksmuligheterFoer2027.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        return kabinApiService.getGjenopptaksmuligheter(partIdValue = input.idnummer)
+        return kabinApiService.getGjenopptaksmuligheterFoer2027(partIdValue = input.idnummer)
+    }
+
+    @PostMapping("/gjenopptaksmuligheter-etter-2027")
+    fun getGjenopptaksmuligheterEtter2027(
+        @RequestBody input: GetCompletedBehandlingerInput,
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getGjenopptaksmuligheterEtter2027.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        return kabinApiService.getGjenopptaksmuligheterEtter2027(partIdValue = input.idnummer)
     }
 
     @GetMapping("/completedbehandlinger/{behandlingId}")

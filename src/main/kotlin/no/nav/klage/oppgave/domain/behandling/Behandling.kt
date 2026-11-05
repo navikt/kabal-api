@@ -371,6 +371,8 @@ abstract class Behandling(
                 Type.OMGJOERINGSKRAV,
                 Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
             ) && !isSakNoLongerInInfotrygd()
 
     // Disse sakene finnes ikke lenger i Infotrygd.
@@ -414,8 +416,8 @@ abstract class Behandling(
             is AnkeITrygderettenbehandlingFoer2027, is AnkeITrygderettenbehandlingEtter2027 -> false
             is AnkebehandlingFoer2027, is AnkebehandlingEtter2027 -> false
             is BehandlingEtterTrygderettenOpphevet -> false
-            is GjenopptakITrygderettenbehandling -> shouldBeCompletedInKA()
-            is Gjenopptaksbehandling -> shouldBeCompletedInKA()
+            is GjenopptakITrygderettenbehandlingFoer2027, is GjenopptakITrygderettenbehandlingEtter2027 -> shouldBeCompletedInKA()
+            is GjenopptaksbehandlingFoer2027, is GjenopptaksbehandlingEtter2027 -> shouldBeCompletedInKA()
             is Omgjoeringskravbehandling -> shouldBeCompletedInKA()
             else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
@@ -467,8 +469,8 @@ abstract class Behandling(
             previousBehandlingId = id,
         )
 
-    fun createGjenopptakITrygderettenbehandlingInput(): GjenopptakITrygderettenbehandlingInput =
-        GjenopptakITrygderettenbehandlingInput(
+    fun createGjenopptakITrygderettenbehandlingFoer2027Input(): GjenopptakITrygderettenbehandlingFoer2027Input =
+        GjenopptakITrygderettenbehandlingFoer2027Input(
             klager = klager,
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
@@ -570,6 +572,14 @@ interface BehandlingITrygderetten {
     var nyBehandlingEtterTROpphevet: LocalDateTime?
 }
 
+interface AnkeITrygderettenbehandling {
+    var nyAnkebehandlingKA: LocalDateTime?
+}
+
+interface GjenopptakITrygderettenbehandling {
+    var nyGjenopptaksbehandlingKA: LocalDateTime?
+}
+
 interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingId: UUID?
     var kakaKvalitetsvurderingVersion: Int
@@ -585,14 +595,11 @@ interface BehandlingWithTrygderettenMetadata {
 }
 
 /**
- * Only anker etter 2027 arrive from Trygderetten, so they are the only behandlinger that have a
- * saksnummer from Trygderetten.
+ * Anke and gjenopptak after 2027 retain the saksnummer received from Trygderetten.
  */
 interface BehandlingWithTrygderettenSaksnummer {
     /**
-     * Saksnummeret Trygderetten has given the anke, on the form year + counter, e.g. 2027123. Passed on
-     * to kabal-document so it can end up as saksaar and sakssekvensnummer in the avtalemelding. The
-     * column is nullable in the database because all behandlinger share a single table.
+     * Year + counter, e.g. 2027123. Kabal-document uses it as saksaar and sakssekvensnummer in the avtalemelding.
      */
     var trygderettenSaksnummer: String
 }

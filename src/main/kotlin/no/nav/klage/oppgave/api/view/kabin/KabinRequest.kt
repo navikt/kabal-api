@@ -45,6 +45,10 @@ data class GosysOppgaveIsDuplicateInput(
     val gosysOppgaveId: Long,
 )
 
+data class TrygderettenSaksnummerIsDuplicateInput(
+    val trygderettenSaksnummer: String,
+)
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val typeId: String,

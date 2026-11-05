@@ -3,10 +3,8 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
-import tools.jackson.module.kotlin.jacksonObjectMapper
 
 @Service
 class CreateBehandlingFromMottak(
@@ -14,12 +12,10 @@ class CreateBehandlingFromMottak(
     private val ankebehandlingService: AnkebehandlingService,
     private val omgjoeringskravbehandlingService: OmgjoeringskravbehandlingService,
     private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
-    private val kafkaEventRepository: KafkaEventRepository,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapperBehandlingEvents = jacksonObjectMapper()
     }
 
     fun createBehandling(mottak: Mottak): Behandling {
@@ -56,13 +52,15 @@ class CreateBehandlingFromMottak(
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027 -> {
-                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFoer2027FromMottak(
                     mottak = mottak,
                 )
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027 -> {
-                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_ETTER_2027")
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingEtter2027FromMottak(
+                    mottak = mottak,
+                )
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
@@ -70,7 +68,7 @@ class CreateBehandlingFromMottak(
             }
 
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027 -> {
-                TODO("Implement support for BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER2027")
+                TODO()
             }
 
             Type.ANKE_ETTER_2027 -> {
