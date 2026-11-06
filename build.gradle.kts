@@ -22,7 +22,6 @@ val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.67.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.1.1"
-val reactorKafkaVersion = "1.3.25"
 
 plugins {
     val kotlinVersion = "2.4.21"
@@ -73,7 +72,6 @@ dependencies {
     implementation("org.springframework.data:spring-data-envers")
 
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("io.projectreactor.kafka:reactor-kafka:$reactorKafkaVersion")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
