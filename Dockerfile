@@ -5,4 +5,4 @@ COPY build/libs/app.jar app.jar
 # SSE endpoint span (caused by client disconnects) to OK.
 # Loaded by the OTEL auto-instrumentation agent via OTEL_JAVAAGENT_EXTENSIONS.
 COPY otel-extension/build/libs/otel-extension.jar otel-extension.jar
-CMD ["-jar","app.jar"]
+CMD ["--enable-native-access=ALL-UNNAMED","-jar","app.jar"]
