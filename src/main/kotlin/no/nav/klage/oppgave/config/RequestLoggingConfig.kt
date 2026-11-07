@@ -12,7 +12,7 @@ class RequestLoggingConfig {
         filter.setIncludeQueryString(true)
         filter.setIncludePayload(false)
         filter.setIncludeHeaders(false)
-        filter.setIncludeClientInfo(true)
+        filter.setIncludeClientInfo(false)
         return filter
     }
 }
