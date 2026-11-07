@@ -12,6 +12,9 @@ spring:
   datasource:
     url: ${NAIS_DATABASE_KABAL_API_PRIV_KABAL_API_JDBC_URL}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      # Logs a warning with the stack trace of the code that borrowed a connection held longer than this (ms)
+      leak-detection-threshold: 20000
   flyway:
     enabled: true
     clean-disabled: true
