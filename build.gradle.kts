@@ -42,10 +42,6 @@ java {
     }
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(25)
-}
-
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
@@ -188,10 +184,6 @@ tasks.named("detekt") {
     enabled = false
 }
 
-tasks.withType<dev.detekt.gradle.DetektCreateBaselineTask>().configureEach {
-    jvmTarget.set(JvmTarget.JVM_25.target)
-}
-
 tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
     jvmTarget.set(JvmTarget.JVM_25.target)
     reports {
@@ -208,7 +200,6 @@ tasks.named("check") {
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_25)
         freeCompilerArgs = listOf("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
 }

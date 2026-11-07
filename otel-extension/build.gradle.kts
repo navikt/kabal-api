@@ -21,12 +21,6 @@ dependencies {
     compileOnly("io.opentelemetry:opentelemetry-api:$otelVersion")
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
-    }
-}
-
 tasks.jar {
     archiveBaseName.set("otel-extension")
     archiveVersion.set("")
