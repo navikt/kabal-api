@@ -108,8 +108,21 @@ class TilgangService(
     fun getSaksbehandlerAccessToBehandling(
         behandling: Behandling,
         navIdent: String? = null,
+    ): Access =
+        getSaksbehandlerAccessToPersongalleri(
+            persongalleri = getPersongalleriToCheckForBehandling(behandling),
+            navIdent = navIdent,
+        )
+
+    /**
+     * Does not touch the database, so it can be called outside a transaction with a persongalleri
+     * loaded earlier by [getPersongalleriToCheckForBehandling].
+     */
+    fun getSaksbehandlerAccessToPersongalleri(
+        persongalleri: List<String>,
+        navIdent: String? = null,
     ): Access {
-        getPersongalleriToCheckForBehandling(behandling).forEach { fnr ->
+        persongalleri.forEach { fnr ->
             val access = getSaksbehandlerAccessToPerson(fnr = fnr, navIdent = navIdent)
             if (!access.access) {
                 return access
