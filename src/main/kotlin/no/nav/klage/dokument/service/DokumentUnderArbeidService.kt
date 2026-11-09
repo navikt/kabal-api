@@ -2270,30 +2270,57 @@ class DokumentUnderArbeidService(
             )
     }
 
+    /**
+     * No transaction around the call to kabal-document, which can take minutes and would otherwise hold a DB
+     * connection the whole time. The input is built in one short transaction and the result stored in another.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
-        val hovedDokument =
-            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
-        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
-        // Denne er alltid sann
-        if (hovedDokument.dokumentEnhetId == null) {
-            logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokument.id)
-            // Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
-            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
-            val dokumentEnhetId =
-                kabalDocumentGateway.createKomplettDokumentEnhet(
-                    behandling = behandling,
-                    hovedDokument = hovedDokument,
-                    vedlegg = vedlegg,
-                    innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokument.id),
-                )
-            logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
-            hovedDokument.dokumentEnhetId = dokumentEnhetId
-            logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
+        val input =
+            transactionTemplate.execute {
+                val hovedDokument =
+                    getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+                logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
+                // Denne er alltid sann
+                if (hovedDokument.dokumentEnhetId == null) {
+                    logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokument.id)
+                    val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
+                    logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
+                    // Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
+                    val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+                    kabalDocumentGateway.createKomplettDokumentEnhetInput(
+                        behandling = behandling,
+                        hovedDokument = hovedDokument,
+                        vedlegg = vedlegg,
+                        innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokument.id),
+                    )
+                } else {
+                    null
+                }
+            }
+
+        val dokumentEnhetId = input?.let { kabalDocumentGateway.createDokumentEnhet(it) }
+        logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
+
+        return transactionTemplate.execute {
+            val hovedDokument =
+                getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            if (dokumentEnhetId != null) {
+                if (hovedDokument.dokumentEnhetId == null) {
+                    hovedDokument.dokumentEnhetId = dokumentEnhetId
+                    logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
+                } else {
+                    logger.warn(
+                        "Hoveddokument {} got dokumentEnhetId {} while creating dokumentEnhet {}. Keeping the existing one.",
+                        hovedDokumentId,
+                        hovedDokument.dokumentEnhetId,
+                        dokumentEnhetId,
+                    )
+                }
+            }
+            hovedDokument
         }
-        return hovedDokument
     }
 
     private fun registerMottakDokumentIfNeeded(
@@ -2337,21 +2364,28 @@ class DokumentUnderArbeidService(
         }
     }
 
+    /**
+     * No transaction around the calls to kabal-document (can take minutes) and SAF, which would otherwise hold a DB
+     * connection the whole time. The result is stored in a short transaction afterwards.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
-        val hovedDokument =
-            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        val (dokumentEnhetId, sakenGjelderFnr) =
+            transactionTemplate.execute {
+                val hovedDokument =
+                    getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+                val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+                hovedDokument.dokumentEnhetId!! to behandling.sakenGjelder.partId.value
+            }
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
-            hovedDokument.dokumentEnhetId,
-            hovedDokument.id,
+            dokumentEnhetId,
+            hovedDokumentId,
         )
         val dokumentEnhetFullfoerOutput =
-            kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
-
-        val behandling: Behandling =
-            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+            kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = dokumentEnhetId)
 
         val journalpostIdSet =
             dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList
@@ -2366,100 +2400,107 @@ class DokumentUnderArbeidService(
         val journalpostSetFromSaf =
             safFacade.getJournalposter(
                 journalpostIdSet = journalpostIdSet,
-                fnr = behandling.sakenGjelder.partId.value,
+                fnr = sakenGjelderFnr,
                 saksbehandlerContext = false,
             )
 
-        val journalfoerteVedlegg =
-            journalfoertDokumentUnderArbeidRepository.findByParentId(dokumentId = hovedDokument.id)
+        return transactionTemplate.execute {
+            val hovedDokument =
+                getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            val behandling: Behandling =
+                behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
-        journalpostIdSet.forEach { journalpostId ->
-            val journalpost = journalpostSetFromSaf.find { it.journalpostId == journalpostId }
-            val saksbehandlerIdent = hovedDokument.markertFerdigBy!!
-            val saksdokumenter = journalpost.mapToSaksdokumenter()
+            val journalfoerteVedlegg =
+                journalfoertDokumentUnderArbeidRepository.findByParentId(dokumentId = hovedDokument.id)
 
-            if (behandling.ferdigstilling == null) {
-                // Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.
-                val newDocuments =
-                    saksdokumenter.filter { saksdokument ->
-                        journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
-                    }
+            journalpostIdSet.forEach { journalpostId ->
+                val journalpost = journalpostSetFromSaf.find { it.journalpostId == journalpostId }
+                val saksbehandlerIdent = hovedDokument.markertFerdigBy!!
+                val saksdokumenter = journalpost.mapToSaksdokumenter()
 
-                if (newDocuments.isNotEmpty()) {
-                    newDocuments.forEach { saksdokument ->
-                        behandling
-                            .addSaksdokument(saksdokument = saksdokument, saksbehandlerident = saksbehandlerIdent)
-                            ?.also { applicationEventPublisher.publishEvent(it) }
-                    }
+                if (behandling.ferdigstilling == null) {
+                    // Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.
+                    val newDocuments =
+                        saksdokumenter.filter { saksdokument ->
+                            journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
+                        }
 
-                    publishInternalEvent(
-                        data =
-                            jacksonObjectMapper.writeValueAsString(
-                                IncludedDocumentsChangedEvent(
-                                    actor =
-                                        Employee(
-                                            navIdent = saksbehandlerIdent,
-                                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
-                                        ),
-                                    timestamp = LocalDateTime.now(),
-                                    journalfoertDokumentReferenceSet =
-                                        newDocuments
-                                            .map {
-                                                JournalfoertDokument(
-                                                    journalpostId = it.journalpostId,
-                                                    dokumentInfoId = it.dokumentInfoId,
-                                                )
-                                            }.toSet(),
-                                    traceparent = currentTraceparent(),
+                    if (newDocuments.isNotEmpty()) {
+                        newDocuments.forEach { saksdokument ->
+                            behandling
+                                .addSaksdokument(saksdokument = saksdokument, saksbehandlerident = saksbehandlerIdent)
+                                ?.also { applicationEventPublisher.publishEvent(it) }
+                        }
+
+                        publishInternalEvent(
+                            data =
+                                jacksonObjectMapper.writeValueAsString(
+                                    IncludedDocumentsChangedEvent(
+                                        actor =
+                                            Employee(
+                                                navIdent = saksbehandlerIdent,
+                                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                            ),
+                                        timestamp = LocalDateTime.now(),
+                                        journalfoertDokumentReferenceSet =
+                                            newDocuments
+                                                .map {
+                                                    JournalfoertDokument(
+                                                        journalpostId = it.journalpostId,
+                                                        dokumentInfoId = it.dokumentInfoId,
+                                                    )
+                                                }.toSet(),
+                                        traceparent = currentTraceparent(),
+                                    ),
                                 ),
+                            behandlingId = behandling.id,
+                            type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+                        )
+                    }
+                }
+            }
+
+            registerMottakDokumentIfNeeded(
+                hovedDokument = hovedDokument,
+                behandling = behandling,
+                journalpostIdSet = journalpostIdSet,
+            )
+
+            // Legg inn dokarkivReferences på dokumenter som ikke tidligere har vært i arkivet
+            dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList
+                .filter { it.sourceReference != null }
+                .forEach { sourceReferenceWithJoarkReferences ->
+                    val currentDokumentUnderArbeid =
+                        dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
+                    sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
+                        currentDokumentUnderArbeid.dokarkivReferences.add(
+                            DokumentUnderArbeidDokarkivReference(
+                                journalpostId = joarkReference.journalpostId,
+                                dokumentInfoId = joarkReference.dokumentInfoId,
                             ),
-                        behandlingId = behandling.id,
-                        type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
-                    )
+                        )
+                    }
                 }
+
+            val now = LocalDateTime.now()
+
+            logger.debug(
+                "about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}",
+                hovedDokument.id,
+            )
+            hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
+
+            val allVedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
+            logger.debug(
+                "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
+                hovedDokument.id,
+            )
+            allVedlegg.forEach {
+                it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
             }
+            logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokument.id)
+            hovedDokument
         }
-
-        registerMottakDokumentIfNeeded(
-            hovedDokument = hovedDokument,
-            behandling = behandling,
-            journalpostIdSet = journalpostIdSet,
-        )
-
-        // Legg inn dokarkivReferences på dokumenter som ikke tidligere har vært i arkivet
-        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList
-            .filter { it.sourceReference != null }
-            .forEach { sourceReferenceWithJoarkReferences ->
-                val currentDokumentUnderArbeid =
-                    dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
-                sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
-                    currentDokumentUnderArbeid.dokarkivReferences.add(
-                        DokumentUnderArbeidDokarkivReference(
-                            journalpostId = joarkReference.journalpostId,
-                            dokumentInfoId = joarkReference.dokumentInfoId,
-                        ),
-                    )
-                }
-            }
-
-        val now = LocalDateTime.now()
-
-        logger.debug(
-            "about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}",
-            hovedDokument.id,
-        )
-        hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
-
-        val allVedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        logger.debug(
-            "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
-            hovedDokument.id,
-        )
-        allVedlegg.forEach {
-            it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
-        }
-        logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokument.id)
-        return hovedDokument
     }
 
     // No transaction: this makes several slow HTTP calls. Updates happen in short transactions inside.
