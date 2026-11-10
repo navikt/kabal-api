@@ -19,7 +19,7 @@ val tikaVersion = "4.2.0"
 val verapdfVersion = "1.30.3"
 val klageKodeverkVersion = "3.4.9"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
-val otelVersion = "1.67.0"
+val otelVersion = "1.68.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.1.1"
 
