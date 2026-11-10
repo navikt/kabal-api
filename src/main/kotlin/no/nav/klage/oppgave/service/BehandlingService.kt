@@ -159,6 +159,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -3268,6 +3269,9 @@ class BehandlingService(
             }
     }
 
+    // No transaction: the view only needs sakenGjelder (embedded columns), but the mapping calls PDL, KRR and
+    // regoppslag, which can be slow. findById uses the repository's own short transaction.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView =
         behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId))
 

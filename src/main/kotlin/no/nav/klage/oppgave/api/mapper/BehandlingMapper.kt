@@ -49,6 +49,7 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.util.UUID
@@ -901,6 +902,8 @@ class BehandlingMapper(
         )
     }
 
+    // Only reads embedded columns, so it does not need its own transaction (and DB connection) during the HTTP calls
+    @Transactional(propagation = Propagation.SUPPORTS)
     fun getSakenGjelderView(behandling: Behandling): BehandlingDetaljerView.SakenGjelderView {
         if (behandling.sakenGjelder.erPerson()) {
             val person = getSakenGjelderAsPerson(behandling)

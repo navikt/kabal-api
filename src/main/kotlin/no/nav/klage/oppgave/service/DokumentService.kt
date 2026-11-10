@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import jakarta.persistence.EntityNotFoundException
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.FysiskDokument
@@ -42,6 +43,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
@@ -54,8 +56,12 @@ import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.system.measureTimeMillis
 
+/**
+ * Most methods here only call SAF/dokarkiv or process PDFs. SUPPORTS joins the caller's transaction if there is one,
+ * but does not open one (and take a DB connection) for slow downloads. Methods using the database open their own.
+ */
 @Service
-@Transactional
+@Transactional(propagation = Propagation.SUPPORTS)
 class DokumentService(
     private val safRestClient: SafRestClient,
     private val mergedDocumentRepository: MergedDocumentRepository,
@@ -171,7 +177,7 @@ class DokumentService(
         )
     }
 
-    fun getDocumentTitle(
+    private fun getDocumentTitle(
         journalpostId: String,
         dokumentInfoId: String,
     ): String {
@@ -311,6 +317,7 @@ class DokumentService(
         fetchDokumentInfoIdFromJournalpost(journalpost)
             .map { Saksdokument(journalpostId = journalpost.journalpostId, dokumentInfoId = it) }
 
+    @Transactional
     fun storeDocumentsForMerging(documents: List<JournalfoertDokumentReference>): MergedDocument {
         val hash = documents.joinToString(separator = "") { it.journalpostId + it.dokumentInfoId }.toMd5Hash()
 
@@ -374,7 +381,11 @@ class DokumentService(
         id: UUID,
         preferArkivvariantIfAccess: Boolean,
     ): Pair<Path, String> {
-        val mergedDocument = mergedDocumentRepository.getReferenceById(id)
+        // findById loads documentsToMerge (eager) in its own short transaction, so no connection is held during the downloads
+        val mergedDocument =
+            mergedDocumentRepository.findById(id).orElseThrow {
+                EntityNotFoundException("MergedDocument with id $id not found")
+            }
         val documentsToMerge = mergedDocument.documentsToMerge.sortedBy { it.index }
 
         return mergeJournalfoerteDocuments(
@@ -540,6 +551,7 @@ class DokumentService(
         return FileSystemResource(mergedDocumentFile) to title
     }
 
+    @Transactional
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)
 
     fun updateDocumentTitle(
