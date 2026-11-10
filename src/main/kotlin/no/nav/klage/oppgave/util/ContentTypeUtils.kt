@@ -43,7 +43,7 @@ fun contentDispositionHeaderValue(
     type: String,
 ): String {
     val fallback =
-        buildContentDisposition(filename = filename.replace('%', '_'), type = type)
+        buildContentDisposition(filename = filename.replace(oldChar = '%', newChar = '_'), type = type)
             .substringBefore(EXTENDED_FILENAME_SEPARATOR)
     val extended =
         buildContentDisposition(filename = filename, type = type)
