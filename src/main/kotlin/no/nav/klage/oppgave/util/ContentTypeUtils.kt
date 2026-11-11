@@ -67,3 +67,16 @@ fun contentDispositionHeaderValue(
     filename: String,
     inline: Boolean,
 ): String = contentDispositionHeaderValue(filename = filename, type = if (inline) "inline" else "attachment")
+
+private val MULTIPART_FILENAME_ESCAPE = Regex("%(22|0D|0A)")
+
+/**
+ * Browsers replace '"', CR and LF in multipart/form-data filenames with %22, %0D and %0A
+ * (WHATWG HTML, "multipart/form-data encoding algorithm"). Nothing else is escaped, not even '%',
+ * so only these three sequences are decoded. CR and LF become a space, since a line break does not
+ * belong in a document title.
+ */
+fun decodeMultipartFilename(filename: String): String =
+    MULTIPART_FILENAME_ESCAPE.replace(input = filename) { match ->
+        if (match.groupValues[1] == "22") "\"" else " "
+    }

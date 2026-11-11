@@ -31,4 +31,20 @@ internal class ContentTypeUtilsTest {
 
         assertThat(value).isEqualTo("inline; filename=\"vedtak.pdf\"; filename*=UTF-8''vedtak.pdf")
     }
+
+    @Test
+    fun `multipart filename decodes escaped double quotes`() {
+        assertThat(decodeMultipartFilename(filename = "Æ ø å %22a\\b%22 1+1 & 50% #?.pdf"))
+            .isEqualTo("Æ ø å \"a\\b\" 1+1 & 50% #?.pdf")
+    }
+
+    @Test
+    fun `multipart filename turns escaped line breaks into spaces`() {
+        assertThat(decodeMultipartFilename(filename = "a%0D%0Ab.pdf")).isEqualTo("a  b.pdf")
+    }
+
+    @Test
+    fun `multipart filename keeps other percent sequences`() {
+        assertThat(decodeMultipartFilename(filename = "100%25 %20 %2522.pdf")).isEqualTo("100%25 %20 %2522.pdf")
+    }
 }
