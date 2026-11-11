@@ -14,3 +14,6 @@ acl:
   - team: klage
     application: klage-kafka-manager
     access: read
+  - team: klage
+    application: kabal-frontend
+    access: read
