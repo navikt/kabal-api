@@ -33,8 +33,27 @@ fun buildFilename(
  * Builds a Content-Disposition header value where the filename is properly escaped and encoded.
  * Interpolating the filename directly into the header breaks the header when the filename contains
  * a double quote or a backslash, and non-ASCII characters are not allowed in header values at all.
+ *
+ * The value is also sent to GCS as a signed URL query parameter. GCS rejects the signature when the
+ * ASCII fallback (filename="...") contains a raw '%', so it is replaced there. The exact name is kept
+ * in filename*, which browsers prefer.
  */
 fun contentDispositionHeaderValue(
+    filename: String,
+    type: String,
+): String {
+    val fallback =
+        buildContentDisposition(filename = filename.replace(oldChar = '%', newChar = '_'), type = type)
+            .substringBefore(EXTENDED_FILENAME_SEPARATOR)
+    val extended =
+        buildContentDisposition(filename = filename, type = type)
+            .substringAfter(EXTENDED_FILENAME_SEPARATOR)
+    return "$fallback$EXTENDED_FILENAME_SEPARATOR$extended"
+}
+
+private const val EXTENDED_FILENAME_SEPARATOR = "; filename*="
+
+private fun buildContentDisposition(
     filename: String,
     type: String,
 ): String =
@@ -48,3 +67,16 @@ fun contentDispositionHeaderValue(
     filename: String,
     inline: Boolean,
 ): String = contentDispositionHeaderValue(filename = filename, type = if (inline) "inline" else "attachment")
+
+private val MULTIPART_FILENAME_ESCAPE = Regex("%(22|0D|0A)")
+
+/**
+ * Browsers replace '"', CR and LF in multipart/form-data filenames with %22, %0D and %0A
+ * (WHATWG HTML, "multipart/form-data encoding algorithm"). Nothing else is escaped, not even '%',
+ * so only these three sequences are decoded. CR and LF become a space, since a line break does not
+ * belong in a document title.
+ */
+fun decodeMultipartFilename(filename: String): String =
+    MULTIPART_FILENAME_ESCAPE.replace(input = filename) { match ->
+        if (match.groupValues[1] == "22") "\"" else " "
+    }

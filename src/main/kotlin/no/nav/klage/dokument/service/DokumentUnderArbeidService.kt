@@ -97,6 +97,7 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.buildFilename
 import no.nav.klage.oppgave.util.contentDispositionHeaderValue
+import no.nav.klage.oppgave.util.decodeMultipartFilename
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSortKey
 import no.nav.klage.oppgave.util.isInngaaende
@@ -328,7 +329,7 @@ class DokumentUnderArbeidService(
             val inputStream = item.inputStream
             logger.debug("Got input stream in {} ms", System.currentTimeMillis() - start)
             if (!item.isFormField) {
-                filename = item.name
+                filename = item.name?.let { decodeMultipartFilename(filename = it) }
                 try {
                     start = System.currentTimeMillis()
                     Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
