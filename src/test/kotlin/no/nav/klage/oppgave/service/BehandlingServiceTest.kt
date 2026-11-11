@@ -640,7 +640,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                     reason = "Feilregistrert sak",
                     fagsystem = Fagsystem.K9,
                     navIdent = saksbehandlerIdent,
-                    kildereferanse = "abc",
+                    kildereferanse = behandlingRepository.findById(behandlingId).get().kildeReferanse,
                 )
             } else {
                 behandlingService.feilregistrer(
@@ -719,7 +719,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 fagsakId = "123",
                 sakstype = Sakstype.FAGSAK,
                 arkivsaksnummer = null,
-                kildeReferanse = "abc",
+                kildeReferanse = UUID.randomUUID().toString(),
                 mottattVedtaksinstans = now.toLocalDate(),
                 avsenderEnhetFoersteinstans = "enhet",
                 kakaKvalitetsvurderingId = UUID.randomUUID(),
