@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -36,9 +37,12 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.kafka.ExternalType
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -46,6 +50,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
@@ -562,6 +568,87 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 behandlingId = behandling.id,
                 nyBehandlingEtterTROpphevet = false,
             )
+        }
+    }
+
+    @Nested
+    inner class Feilregistrering {
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `active documents prevent feilregistrering before any changes`(external: Boolean) {
+            val behandling = behandlingRepository.findById(behandlingId).get()
+            val originalModified = behandling.modified
+            val originalUtfall = behandling.utfall
+            val originalHjemler = behandling.registreringshjemler.toSet()
+            every { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandlingId) } returns
+                setOf(mockk<DokumentUnderArbeid>())
+
+            val exception = assertThrows<SectionedValidationErrorWithDetailsException> { feilregistrer(external) }
+
+            assertThat(exception.sections).containsExactly(
+                ValidationSection(
+                    section = "dokumenter",
+                    properties =
+                        listOf(
+                            InvalidProperty(
+                                field = "underArbeid",
+                                reason = "Ferdigstill eller slett alle dokumenter under arbeid.",
+                            ),
+                        ),
+                ),
+            )
+            assertThat(behandling.feilregistrering).isNull()
+            assertThat(behandling.modified).isEqualTo(originalModified)
+            assertThat(behandling.utfall).isEqualTo(originalUtfall)
+            assertThat(behandling.registreringshjemler).containsExactlyInAnyOrderElementsOf(originalHjemler)
+            verify(exactly = 0) { applicationEventPublisher.publishEvent(any()) }
+            verify(exactly = 0) {
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = any(),
+                    kvalitetsvurderingVersion = any(),
+                )
+            }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = [false, true])
+        fun `feilregistrering succeeds without active documents`(external: Boolean) {
+            every {
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = any(),
+                    kvalitetsvurderingVersion = any(),
+                )
+            } returns Unit
+            every { kakaApiGateway.createKvalitetsvurdering(any()).kvalitetsvurderingId } returns UUID.randomUUID()
+
+            feilregistrer(external)
+
+            val behandling = behandlingRepository.findById(behandlingId).get()
+            assertThat(behandling.feilregistrering?.reason).isEqualTo("Feilregistrert sak")
+            verify(exactly = 1) { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandlingId) }
+        }
+
+        @Test
+        fun `preflight validation succeeds without active documents`() {
+            behandlingService.validateFeilregistrering(behandlingId)
+        }
+
+        private fun feilregistrer(external: Boolean) {
+            if (external) {
+                behandlingService.feilregistrer(
+                    type = ExternalType.KLAGE,
+                    reason = "Feilregistrert sak",
+                    fagsystem = Fagsystem.K9,
+                    navIdent = saksbehandlerIdent,
+                    kildereferanse = "abc",
+                )
+            } else {
+                behandlingService.feilregistrer(
+                    behandlingId = behandlingId,
+                    reason = "Feilregistrert sak",
+                    fagsystem = Fagsystem.K9,
+                )
+            }
         }
     }
 
