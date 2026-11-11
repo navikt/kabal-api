@@ -810,7 +810,6 @@ class BehandlingService(
     fun validateFeilregistrering(behandlingId: UUID) {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
-        val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
         val unfinishedDocuments =
@@ -830,16 +829,6 @@ class BehandlingService(
                 ValidationSection(
                     section = "dokumenter",
                     properties = dokumentValidationErrors,
-                ),
-            )
-        }
-
-        // TODO: Denne er alltid tom nå. Burde vi sjekke noe annet her?
-        if (behandlingValidationErrors.isNotEmpty()) {
-            sectionList.add(
-                ValidationSection(
-                    section = "behandling",
-                    properties = behandlingValidationErrors,
                 ),
             )
         }
@@ -2783,6 +2772,8 @@ class BehandlingService(
         fagsystem: Fagsystem,
         systemUserContext: Boolean = false,
     ): Behandling {
+        validateFeilregistrering(behandling.id)
+
         val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
 
         setSaksbehandler(
