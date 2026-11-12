@@ -24,7 +24,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.BufferedWriter
 import java.io.OutputStream
@@ -38,50 +41,69 @@ class KapteinService(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     @Value($$"${KAPTEIN_BEHANDLING_TOPIC}")
     private val kapteinBehandlingTopic: String,
+    transactionManager: PlatformTransactionManager,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val jacksonObjectMapper = jacksonObjectMapper()
+        private const val KAPTEIN_BATCH_SIZE = 200
     }
 
-    @Transactional(readOnly = true)
+    private val readOnlyTransactionTemplate = TransactionTemplate(transactionManager).apply { isReadOnly = true }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
-        val total = behandlingRepository.count()
+        val behandlingIds =
+            readOnlyTransactionTemplate.execute {
+                behandlingRepository.findAllIdsForKaptein()
+            }
+        val total = behandlingIds.size
 
         val behandlingYtelseCounter = mutableMapOf<String, Int>()
         val viewYtelseCounter = mutableMapOf<String, Int>()
 
-        logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
-            val outputStream: OutputStream = httpServletResponse.outputStream
-            val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
-            httpServletResponse.status = HttpStatus.OK.value()
-            httpServletResponse.addIntHeader("Kaptein-Total", total.toInt())
-            httpServletResponse.addHeader("Transfer-Encoding", "chunked")
+        logger.debug("Fetched IDs for $total behandlinger in ${System.currentTimeMillis() - startCount} ms")
+        val outputStream: OutputStream = httpServletResponse.outputStream
+        val writer = BufferedWriter(OutputStreamWriter(outputStream))
+        httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
+        httpServletResponse.status = HttpStatus.OK.value()
+        httpServletResponse.addIntHeader("Kaptein-Total", total)
+        httpServletResponse.addHeader("Transfer-Encoding", "chunked")
 
+        writer.use {
             var count = 0
-            streamed.forEach { behandling ->
-                val view = behandling.toAnonymousBehandlingView()
-                behandlingYtelseCounter[behandling.ytelse.id] =
-                    behandlingYtelseCounter.getOrDefault(key = behandling.ytelse.id, defaultValue = 0) + 1
-                viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(key = view.ytelseId, defaultValue = 0) + 1
-                writer.write(jacksonObjectMapper.writeValueAsString(view) + "\n")
-                entityManager.detach(behandling)
-                if (count++ % 100 == 0) {
-                    writer.flush()
+            behandlingIds.chunked(KAPTEIN_BATCH_SIZE).forEach { batchIds ->
+                val views =
+                    readOnlyTransactionTemplate.execute {
+                        try {
+                            behandlingRepository
+                                .findAllForKapteinByIds(batchIds)
+                                .map { behandling -> behandling.toAnonymousBehandlingView() }
+                        } finally {
+                            entityManager.clear()
+                        }
+                    }
+
+                views.forEach { view ->
+                    behandlingYtelseCounter[view.ytelseId] =
+                        behandlingYtelseCounter.getOrDefault(key = view.ytelseId, defaultValue = 0) + 1
+                    viewYtelseCounter[view.ytelseId] =
+                        viewYtelseCounter.getOrDefault(key = view.ytelseId, defaultValue = 0) + 1
+                    writer.write(jacksonObjectMapper.writeValueAsString(view) + "\n")
+                    if (count++ % 100 == 0) {
+                        writer.flush()
+                    }
                 }
             }
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
-            writer.flush()
-            writer.close()
+            it.flush()
         }
-        logger.debug("Behandling ytelse counts: $behandlingYtelseCounter")
-        logger.debug("View ytelse counts: $viewYtelseCounter")
+        logger.debug("Behandling ytelse counts: {}", behandlingYtelseCounter)
+        logger.debug("View ytelse counts: {}", viewYtelseCounter)
     }
 
     fun sendBehandlingChanged(behandling: Behandling) {
