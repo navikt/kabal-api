@@ -267,7 +267,7 @@ class KabalDocumentMapper(
                             ETTERSENDING_TIL_TR_TEMPLATE_NAME,
                             GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME,
                         ),
-                lovhenvisning = behandling.hjemler.map { it.toSearchableString() }.toSet(),
+                lovhenvisning = behandling.hjemler.map { "${behandling.ytelse.navn}|${it.lovKilde.navn}|${it.spesifikasjon}" }.toSet(),
                 trygderettenSaksnummer = (behandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
                 representant =
                     behandling.prosessfullmektig?.let { prosessfullmektig ->
