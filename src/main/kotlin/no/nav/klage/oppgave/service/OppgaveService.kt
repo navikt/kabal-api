@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Behandling_
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling_
 import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling_
+import no.nav.klage.oppgave.repositories.BehandlingIdProjection
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.data.domain.Sort
@@ -51,18 +52,22 @@ class OppgaveService(
         specification = addFerdigstiltFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
         specification = addFristFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
 
-        val data =
-            behandlingRepository.findAll(
-                specification,
-                Sort.by(
-                    getSortDirection(queryParams),
-                    getSortProperty(queryParams),
-                ),
-            )
+        val behandlingIds =
+            behandlingRepository.findBy<Behandling, List<UUID>>(specification) { query ->
+                query
+                    .`as`(BehandlingIdProjection::class.java)
+                    .sortBy(
+                        Sort.by(
+                            getSortDirection(queryParams),
+                            getSortProperty(queryParams),
+                        ),
+                    ).all()
+                    .map { projection -> projection.id }
+            }
 
         return BehandlingerListResponse(
-            behandlinger = data.map { behandling -> behandling.id },
-            antallTreffTotalt = data.size,
+            behandlinger = behandlingIds,
+            antallTreffTotalt = behandlingIds.size,
         )
     }
 
@@ -79,18 +84,22 @@ class OppgaveService(
         specification = addFerdigstiltFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
         specification = addFristFromToSpecifications(queryParams = queryParams, mainSpecification = specification)
 
-        val data =
-            behandlingRepository.findAll(
-                specification,
-                Sort.by(
-                    getSortDirection(queryParams),
-                    getSortProperty(queryParams),
-                ),
-            )
+        val behandlingIds =
+            behandlingRepository.findBy<Behandling, List<UUID>>(specification) { query ->
+                query
+                    .`as`(BehandlingIdProjection::class.java)
+                    .sortBy(
+                        Sort.by(
+                            getSortDirection(queryParams),
+                            getSortProperty(queryParams),
+                        ),
+                    ).all()
+                    .map { projection -> projection.id }
+            }
 
         return BehandlingerListResponse(
-            behandlinger = data.map { behandling -> behandling.id },
-            antallTreffTotalt = data.size,
+            behandlinger = behandlingIds,
+            antallTreffTotalt = behandlingIds.size,
         )
     }
 

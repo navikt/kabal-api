@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import jakarta.persistence.EntityManagerFactory
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Sakstype
@@ -29,6 +30,7 @@ import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
+import org.hibernate.SessionFactory
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,6 +49,9 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
+
+    @Autowired
+    lateinit var entityManagerFactory: EntityManagerFactory
 
     @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
@@ -352,6 +357,144 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
+    }
+
+    @Test
+    fun `get ferdigstilte returns ordered ids without loading entities`() {
+        val earliest =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(3),
+                fnr = "00000000000",
+            )
+        val latest =
+            simpleInsert(
+                type = Type.ANKE_FOER_2027,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+                fnr = "00000000001",
+            )
+        val otherSaksbehandler =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = "OTHER_IDENT",
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(2),
+                fnr = "00000000002",
+            )
+        simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_PLS,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = "OTHER_IDENT",
+            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(4),
+            fnr = "00000000003",
+        )
+        val otherEnhet =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(5),
+                enhetId = "2000",
+                fnr = "00000000004",
+            )
+
+        val statistics = entityManagerFactory.unwrap(SessionFactory::class.java).statistics
+        val statisticsWereEnabled = statistics.isStatisticsEnabled
+        statistics.isStatisticsEnabled = true
+
+        try {
+            statistics.clear()
+            val mine =
+                oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                    MineFerdigstilteOppgaverQueryParams(
+                        typer = listOf(Type.KLAGE.id, Type.ANKE_FOER_2027.id),
+                        ytelser = listOf(Ytelse.OMS_OMP.id),
+                        registreringshjemler = emptyList(),
+                        rekkefoelge = Rekkefoelge.SYNKENDE,
+                        sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                        ferdigstiltFrom = null,
+                        ferdigstiltTo = null,
+                        fristFrom = null,
+                        fristTo = null,
+                    ),
+                )
+            assertThat(mine.behandlinger).containsExactly(latest.id, earliest.id, otherEnhet.id)
+            assertThat(mine.antallTreffTotalt).isEqualTo(3)
+            assertThat(statistics.entityLoadCount).isZero()
+            assertThat(statistics.collectionLoadCount).isZero()
+
+            statistics.clear()
+            val enhet =
+                oppgaveService.getFerdigstilteOppgaverForEnhet(
+                    EnhetensFerdigstilteOppgaverQueryParams(
+                        typer = listOf(Type.KLAGE.id, Type.ANKE_FOER_2027.id),
+                        ytelser = listOf(Ytelse.OMS_OMP.id),
+                        registreringshjemler = emptyList(),
+                        rekkefoelge = Rekkefoelge.STIGENDE,
+                        sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                        ferdigstiltFrom = null,
+                        ferdigstiltTo = null,
+                        fristFrom = null,
+                        fristTo = null,
+                    ),
+                )
+            assertThat(enhet.behandlinger).containsExactly(earliest.id, otherSaksbehandler.id, latest.id)
+            assertThat(enhet.antallTreffTotalt).isEqualTo(3)
+            assertThat(statistics.entityLoadCount).isZero()
+            assertThat(statistics.collectionLoadCount).isZero()
+
+            statistics.clear()
+            val emptyEnhet =
+                oppgaveService.getFerdigstilteOppgaverForEnhet(
+                    EnhetensFerdigstilteOppgaverQueryParams(
+                        typer = listOf(Type.KLAGE.id),
+                        ytelser = listOf(Ytelse.OMS_OLP.id),
+                        registreringshjemler = emptyList(),
+                        rekkefoelge = Rekkefoelge.STIGENDE,
+                        sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                        ferdigstiltFrom = null,
+                        ferdigstiltTo = null,
+                        fristFrom = null,
+                        fristTo = null,
+                    ),
+                )
+            assertThat(emptyEnhet.behandlinger).isEmpty()
+            assertThat(emptyEnhet.antallTreffTotalt).isZero()
+            assertThat(statistics.entityLoadCount).isZero()
+            assertThat(statistics.collectionLoadCount).isZero()
+
+            statistics.clear()
+            val emptyMine =
+                oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                    MineFerdigstilteOppgaverQueryParams(
+                        typer = listOf(Type.KLAGE.id),
+                        ytelser = listOf(Ytelse.OMS_PLS.id),
+                        registreringshjemler = emptyList(),
+                        rekkefoelge = Rekkefoelge.STIGENDE,
+                        sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                        ferdigstiltFrom = null,
+                        ferdigstiltTo = null,
+                        fristFrom = null,
+                        fristTo = null,
+                    ),
+                )
+            assertThat(emptyMine.behandlinger).isEmpty()
+            assertThat(emptyMine.antallTreffTotalt).isZero()
+            assertThat(statistics.entityLoadCount).isZero()
+            assertThat(statistics.collectionLoadCount).isZero()
+        } finally {
+            statistics.clear()
+            statistics.isStatisticsEnabled = statisticsWereEnabled
+        }
     }
 
     @Test

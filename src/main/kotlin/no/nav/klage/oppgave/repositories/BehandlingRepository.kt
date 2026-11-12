@@ -34,6 +34,10 @@ data class UnassignedBehandlingWithInngaaendeDokument(
     val dokumentCreated: LocalDateTime,
 )
 
+data class BehandlingIdProjection(
+    val id: UUID,
+)
+
 interface BehandlingRepository :
     JpaRepository<Behandling, UUID>,
     JpaSpecificationExecutor<Behandling> {
