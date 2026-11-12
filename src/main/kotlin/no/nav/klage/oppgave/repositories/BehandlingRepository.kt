@@ -273,17 +273,20 @@ interface BehandlingRepository :
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
 
-    @QueryHints(QueryHint(name = HINT_FETCH_SIZE, value = "2000"))
+    @Query("select b.id from Behandling b order by b.id")
+    fun findAllIdsForKaptein(): List<UUID>
+
     @Query(
         """
             select b
             from Behandling b
             left join fetch b.hjemler h
             left join fetch b.registreringshjemler rh
+            where b.id in :ids
             order by b.id
         """,
     )
-    fun findAllForKapteinStreamed(): Stream<Behandling>
+    fun findAllForKapteinByIds(ids: Collection<UUID>): List<Behandling>
 
     @QueryHints(QueryHint(name = HINT_FETCH_SIZE, value = "2000"))
     @Query(

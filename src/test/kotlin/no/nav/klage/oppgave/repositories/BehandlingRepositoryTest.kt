@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Sakstype
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
@@ -149,6 +150,36 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         testEntityManager.clear()
 
         assertThat(behandlingRepository.findById(klage.id).get()).isEqualTo(klage)
+    }
+
+    @Test
+    fun `Kaptein queries retain database UUID ordering and fetch both home collections for requested IDs`() {
+        val firstId = UUID.fromString("10000000-0000-0000-0000-000000000001")
+        val secondId = UUID.fromString("80000000-0000-0000-0000-000000000001")
+        val excludedId = UUID.fromString("40000000-0000-0000-0000-000000000001")
+        val first = getKlagebehandling(id = firstId)
+        val second =
+            getKlagebehandling(
+                id = secondId,
+                hjemler = mutableSetOf(Hjemmel.FTRL_8_7, Hjemmel.FTRL_8_8),
+                registreringshjemler = mutableSetOf(Registreringshjemmel.FTRL_22_15_TILBAKEKREVING),
+            )
+        val excluded = getKlagebehandling(id = excludedId)
+        behandlingRepository.saveAll(listOf(first, second, excluded))
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val kapteinIds = setOf(firstId, secondId, excludedId)
+        assertThat(behandlingRepository.findAllIdsForKaptein().filter { it in kapteinIds })
+            .containsExactly(firstId, excludedId, secondId)
+        val fetched = behandlingRepository.findAllForKapteinByIds(listOf(secondId, firstId))
+        testEntityManager.clear()
+
+        assertThat(fetched.map { it.id }).containsExactly(firstId, secondId)
+        assertThat(fetched.first().hjemler.map { it.id }).containsExactly(Hjemmel.FTRL_8_7.id)
+        assertThat(fetched.last().hjemler.map { it.id }).containsExactlyInAnyOrder(Hjemmel.FTRL_8_7.id, Hjemmel.FTRL_8_8.id)
+        assertThat(fetched.last().registreringshjemler.map { it.id })
+            .containsExactly(Registreringshjemmel.FTRL_22_15_TILBAKEKREVING.id)
     }
 
     @Test
@@ -846,6 +877,9 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             fagsakId: String? = "123",
             sakstype: Sakstype = Sakstype.FAGSAK,
             arkivsaksnummer: String? = null,
+            id: UUID = UUID.randomUUID(),
+            hjemler: Set<Hjemmel> = mutableSetOf(Hjemmel.FTRL_8_7),
+            registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
         ) = Klagebehandling(
             klager =
                 Klager(
@@ -861,7 +895,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
-            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+            hjemler = hjemler,
+            registreringshjemler = registreringshjemler,
             mottattKlageinstans = LocalDateTime.now(),
             fagsystem = Fagsystem.K9,
             fagsakId = fagsakId,
@@ -878,6 +913,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            id = id,
             previousBehandlingId = null,
         )
 
