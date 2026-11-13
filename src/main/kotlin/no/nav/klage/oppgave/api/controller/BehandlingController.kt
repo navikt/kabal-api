@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.oppgave.api.view.ActiveResponse
 import no.nav.klage.oppgave.api.view.BehandlingDateInput
 import no.nav.klage.oppgave.api.view.BehandlingDateNullableInput
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -479,6 +480,20 @@ class BehandlingController(
         )
 
         return behandlingService.getSakenGjelderView(behandlingId)
+    }
+
+    @GetMapping("/{behandlingId}/active")
+    fun isBehandlingActive(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): ActiveResponse {
+        logBehandlingMethodDetails(
+            methodName = ::isBehandlingActive.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
+        )
+
+        return ActiveResponse(active = behandlingService.isBehandlingActive(behandlingId))
     }
 
     // TODO: Remove url without redirect

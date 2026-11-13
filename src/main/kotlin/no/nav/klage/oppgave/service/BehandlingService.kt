@@ -3264,6 +3264,10 @@ class BehandlingService(
             }
     }
 
+    @Transactional(readOnly = true)
+    fun isBehandlingActive(behandlingId: UUID): Boolean =
+        !getBehandlingAndCheckReadAccessToSak(behandlingId).isFerdigstiltOrFeilregistrert()
+
     // No transaction: the view only needs sakenGjelder (embedded columns), but the mapping calls PDL, KRR and
     // regoppslag, which can be slow. findById uses the repository's own short transaction.
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
