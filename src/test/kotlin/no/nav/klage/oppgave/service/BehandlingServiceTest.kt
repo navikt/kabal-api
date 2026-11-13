@@ -625,7 +625,24 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 
             val behandling = behandlingRepository.findById(behandlingId).get()
             assertThat(behandling.feilregistrering?.reason).isEqualTo("Feilregistrert sak")
+            assertThat(behandling.feilregistrering?.navIdent).isEqualTo(saksbehandlerIdent)
             verify(exactly = 1) { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandlingId) }
+            if (external) {
+                verify(exactly = 0) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) }
+            } else {
+                verify(atLeast = 1) { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling) }
+            }
+        }
+
+        @Test
+        fun `missing read access prevents internal feilregistrering`() {
+            every { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) } throws
+                MissingTilgangException("Access denied")
+
+            assertThrows<MissingTilgangException> { feilregistrer(external = false) }
+
+            assertThat(behandlingRepository.findById(behandlingId).get().feilregistrering).isNull()
+            verify(exactly = 0) { applicationEventPublisher.publishEvent(any()) }
         }
 
         @Test
@@ -635,6 +652,10 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 
         private fun feilregistrer(external: Boolean) {
             if (external) {
+                every { innloggetSaksbehandlerService.getInnloggetIdent() } throws
+                    IllegalStateException("No logged-in user for client credentials")
+                every { tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(any()) } throws
+                    IllegalStateException("An on-behalf-of token is required")
                 behandlingService.feilregistrer(
                     type = ExternalType.KLAGE,
                     reason = "Feilregistrert sak",

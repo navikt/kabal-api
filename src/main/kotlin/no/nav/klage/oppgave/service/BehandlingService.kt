@@ -809,6 +809,10 @@ class BehandlingService(
 
     fun validateFeilregistrering(behandlingId: UUID) {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
+        validateFeilregistrering(behandling)
+    }
+
+    private fun validateFeilregistrering(behandling: Behandling) {
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
@@ -2772,7 +2776,7 @@ class BehandlingService(
         fagsystem: Fagsystem,
         systemUserContext: Boolean = false,
     ): Behandling {
-        validateFeilregistrering(behandling.id)
+        validateFeilregistrering(behandling)
 
         val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
 
