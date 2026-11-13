@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import jakarta.persistence.criteria.CriteriaBuilder
+import jakarta.persistence.criteria.Path
 import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -14,9 +15,8 @@ import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.SearchSaksnummerResponse
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.Behandling_
-import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling_
-import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling_
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.repositories.BehandlingIdProjection
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import kotlin.reflect.KProperty1
 
 @Service
 class OppgaveService(
@@ -42,7 +43,7 @@ class OppgaveService(
     fun getFerdigstilteOppgaverForNavIdent(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
         var specification: Specification<Behandling> =
             Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                builder.isNotNull(root.get(Behandling_.ferdigstilling))
+                builder.isNotNull(root.path(Behandling::ferdigstilling))
             }
 
         specification = addInnloggetSaksbehandler(specification)
@@ -74,7 +75,7 @@ class OppgaveService(
     fun getFerdigstilteOppgaverForEnhet(queryParams: EnhetensFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
         var specification: Specification<Behandling> =
             Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                builder.isNotNull(root.get(Behandling_.ferdigstilling))
+                builder.isNotNull(root.path(Behandling::ferdigstilling))
             }
 
         specification = addEnhet(specification)
@@ -176,19 +177,19 @@ class OppgaveService(
     private fun getSortProperty(queryParams: CommonOppgaverQueryParams): String =
         when (queryParams.sortering) {
             Sortering.AVSLUTTET_AV_SAKSBEHANDLER -> {
-                Behandling_.ferdigstilling.name + "." + Ferdigstilling_.avsluttetAvSaksbehandler.name
+                Behandling::ferdigstilling.name + "." + Ferdigstilling::avsluttetAvSaksbehandler.name
             }
 
             Sortering.MOTTATT -> {
-                Behandling_.mottattKlageinstans.name
+                Behandling::mottattKlageinstans.name
             }
 
             Sortering.FRIST -> {
-                Behandling_.frist.name
+                Behandling::frist.name
             }
 
             Sortering.ALDER -> {
-                Behandling_.mottattKlageinstans.name
+                Behandling::mottattKlageinstans.name
             }
 
             Sortering.PAA_VENT_FROM -> {
@@ -207,7 +208,7 @@ class OppgaveService(
     private fun addEnhet(specification: Specification<Behandling>) =
         specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
-                root.get(Behandling_.tildeling).get(Tildeling_.enhet),
+                root.path(Behandling::tildeling).path(Tildeling::enhet),
                 saksbehandlerService
                     .getEnhetForSaksbehandler(
                         navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -218,7 +219,7 @@ class OppgaveService(
     private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
         specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
-                root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
+                root.path(Behandling::tildeling).path(Tildeling::saksbehandlerident),
                 innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -237,14 +238,14 @@ class OppgaveService(
                     Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                         builder.isMember(
                             hjemmel,
-                            root.get(Behandling_.registreringshjemler),
+                            root.path(Behandling::registreringshjemler),
                         )
                     }
                 } else {
                     hjemmelSpecification!!.or { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                         builder.isMember(
                             hjemmel,
-                            root.get(Behandling_.registreringshjemler),
+                            root.path(Behandling::registreringshjemler),
                         )
                     }
                 }
@@ -265,14 +266,14 @@ class OppgaveService(
                     if (typeSpecifications == null) {
                         Specification { root, _, builder ->
                             builder.equal(
-                                root.get(Behandling_.type),
+                                root.path(Behandling::type),
                                 type,
                             )
                         }
                     } else {
                         typeSpecifications!!.or { root, _, builder ->
                             builder.equal(
-                                root.get(Behandling_.type),
+                                root.path(Behandling::type),
                                 type,
                             )
                         }
@@ -298,14 +299,14 @@ class OppgaveService(
                     if (ytelseSpecifications == null) {
                         Specification<Behandling> { root, _, builder ->
                             builder.equal(
-                                root.get(Behandling_.ytelse),
+                                root.path(Behandling::ytelse),
                                 ytelse,
                             )
                         }
                     } else {
                         ytelseSpecifications!!.or { root, _, builder ->
                             builder.equal(
-                                root.get(Behandling_.ytelse),
+                                root.path(Behandling::ytelse),
                                 ytelse,
                             )
                         }
@@ -334,7 +335,7 @@ class OppgaveService(
         specification =
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
-                    root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
+                    root.path(Behandling::ferdigstilling).path(Ferdigstilling::avsluttetAvSaksbehandler),
                     from.atStartOfDay(),
                 )
             }
@@ -342,7 +343,7 @@ class OppgaveService(
         specification =
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.lessThan(
-                    root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
+                    root.path(Behandling::ferdigstilling).path(Ferdigstilling::avsluttetAvSaksbehandler),
                     to!!.plusDays(1).atStartOfDay(),
                 )
             }
@@ -364,21 +365,27 @@ class OppgaveService(
         val betweenDates =
             Specification { root, _, builder ->
                 builder.greaterThanOrEqualTo(
-                    root.get(Behandling_.frist),
+                    root.path(Behandling::frist),
                     from,
                 )
             }.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.lessThanOrEqualTo(
-                    root.get(Behandling_.frist),
+                    root.path(Behandling::frist),
                     to,
                 )
             }
 
         val isNull =
             Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                builder.isNull(root.get(Behandling_.frist))
+                builder.isNull(root.path(Behandling::frist))
             }
 
         return mainSpecification.and(betweenDates.or(isNull))
     }
 }
+
+/**
+ * Typed criteria path from a Kotlin property reference, used instead of the
+ * generated JPA metamodel. A misspelt or removed property fails at compile time.
+ */
+private fun <X : Any, Y> Path<out X?>.path(property: KProperty1<X, Y>): Path<Y & Any> = get(property.name)
