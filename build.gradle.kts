@@ -33,7 +33,6 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("dev.detekt") version "2.0.0-alpha.6"
     idea
-    kotlin("kapt") version kotlinVersion
 }
 
 java {
@@ -80,7 +79,6 @@ dependencies {
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-processor")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
@@ -200,7 +198,7 @@ tasks.named("check") {
 
 tasks.withType<KotlinCompile> {
     compilerOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict", "-Xannotation-default-target=param-property")
+        freeCompilerArgs = listOf("-Xjsr305=strict")
     }
 }
 
