@@ -2641,16 +2641,19 @@ class BehandlingService(
             .findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialSaksbehandlere(behandling)
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getPotentialMedunderskrivereForBehandling(behandlingId: UUID): Medunderskrivere {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialMedunderskrivere(behandling)
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getPotentialROLForBehandling(behandlingId: UUID): Rols {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return Rols(
@@ -2669,11 +2672,13 @@ class BehandlingService(
             enhet,
         )
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getAInntektUrl(behandlingId: UUID): String {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAInntektUrl(behandling.sakenGjelder.partId.value)
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun getAARegisterUrl(behandlingId: UUID): String {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAARegisterUrl(behandling.sakenGjelder.partId.value)
