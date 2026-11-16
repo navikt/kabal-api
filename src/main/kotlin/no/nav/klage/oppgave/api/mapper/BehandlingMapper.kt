@@ -162,21 +162,19 @@ class BehandlingMapper(
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = klagebehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = klagebehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = klagebehandling.klager.id,
                     partId = klagebehandling.klager.partId,
-                    behandling = klagebehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 klagebehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = klagebehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -251,21 +249,19 @@ class BehandlingMapper(
             id = omgjoeringskravbehandling.id,
             fraNAVEnhet = omgjoeringskravbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = enhetNavn,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = omgjoeringskravbehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = omgjoeringskravbehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = omgjoeringskravbehandling.klager.id,
                     partId = omgjoeringskravbehandling.klager.partId,
-                    behandling = omgjoeringskravbehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 omgjoeringskravbehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = omgjoeringskravbehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -387,21 +383,19 @@ class BehandlingMapper(
             fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = ankebehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = ankebehandling.klager.id,
                     partId = ankebehandling.klager.partId,
-                    behandling = ankebehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 ankebehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = ankebehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -478,21 +472,19 @@ class BehandlingMapper(
             fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = ankebehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = ankebehandling.klager.id,
                     partId = ankebehandling.klager.partId,
-                    behandling = ankebehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 ankebehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = ankebehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -561,21 +553,19 @@ class BehandlingMapper(
             fraNAVEnhet = null,
             fraNAVEnhetNavn = null,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = behandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = behandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = behandling.klager.id,
                     partId = behandling.klager.partId,
-                    behandling = behandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 behandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = behandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -647,21 +637,19 @@ class BehandlingMapper(
             fraNAVEnhet = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = behandlingEtterTrygderettenOpphevet, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = behandlingEtterTrygderettenOpphevet, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = behandlingEtterTrygderettenOpphevet.klager.id,
                     partId = behandlingEtterTrygderettenOpphevet.klager.partId,
-                    behandling = behandlingEtterTrygderettenOpphevet,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 behandlingEtterTrygderettenOpphevet.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = behandlingEtterTrygderettenOpphevet,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -738,21 +726,19 @@ class BehandlingMapper(
             fraNAVEnhet = gjenopptaksbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = gjenopptaksbehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = gjenopptaksbehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = gjenopptaksbehandling.klager.id,
                     partId = gjenopptaksbehandling.klager.partId,
-                    behandling = gjenopptaksbehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 gjenopptaksbehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = gjenopptaksbehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -830,21 +816,19 @@ class BehandlingMapper(
             fraNAVEnhet = gjenopptaksbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = gjenopptaksbehandling, person = person),
+            sakenGjelder = getSakenGjelderView(behandling = gjenopptaksbehandling, person = person),
             klager =
-                getPartViewWithUtsendingskanal(
+                getPartView(
                     technicalPartId = gjenopptaksbehandling.klager.id,
                     partId = gjenopptaksbehandling.klager.partId,
-                    behandling = gjenopptaksbehandling,
                     navn = null,
                     address = null,
                 ),
             prosessfullmektig =
                 gjenopptaksbehandling.prosessfullmektig?.let {
-                    getPartViewWithUtsendingskanal(
+                    getPartView(
                         technicalPartId = it.id,
                         partId = it.partId,
-                        behandling = gjenopptaksbehandling,
                         navn = it.navn,
                         address = it.address,
                     )
@@ -902,11 +886,15 @@ class BehandlingMapper(
         )
     }
 
-    // Only reads embedded columns, so it does not need its own transaction (and DB connection) during the HTTP calls
+    // Does not need its own transaction (and DB connection) during the HTTP calls.
+    // The persongalleri lookup uses the repository's own read-only transaction.
     @Transactional(propagation = Propagation.SUPPORTS)
-    fun getSakenGjelderView(behandling: Behandling): BehandlingDetaljerView.SakenGjelderView {
+    fun getSakenGjelderView(
+        behandling: Behandling,
+        person: Person? = null,
+    ): BehandlingDetaljerView.SakenGjelderView {
         if (behandling.sakenGjelder.erPerson()) {
-            val person = getSakenGjelderAsPerson(behandling)
+            val person = person ?: getSakenGjelderAsPerson(behandling)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(behandling.sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 id = behandling.sakenGjelder.id,
@@ -920,6 +908,7 @@ class BehandlingMapper(
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
                 address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
+                protectedFamilyMembers = getProtectedFamilyMemberViews(behandling),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -1006,55 +995,20 @@ class BehandlingMapper(
             )
         }
 
-    fun getPartViewWithUtsendingskanal(
+    fun getPartView(
         technicalPartId: UUID,
         partId: PartId?,
-        behandling: Behandling,
         navn: String?,
         address: Adresse?,
-    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
-        val utsendingskanal =
-            dokDistKanalService.getUtsendingskanal(
-                mottakerId = partId?.value,
-                brukerId = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-                saksbehandlerContext = true,
+    ): BehandlingDetaljerView.PartView =
+        if (partId != null) {
+            getAvsenderPartView(
+                identifier = partId.value,
+                isPerson = partId.isPerson(),
+                technicalPartId = technicalPartId,
             )
-
-        return if (partId != null) {
-            val isPerson = partId.isPerson()
-            val identifier = partId.value
-
-            if (isPerson) {
-                val person = personService.getPerson(fnr = identifier)
-                val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
-                BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                    id = technicalPartId,
-                    identifikator = person.foedselsnr,
-                    name = person.sammensattNavn,
-                    type = BehandlingDetaljerView.IdType.FNR,
-                    available = person.doed == null,
-                    language = krrInfo?.spraak,
-                    statusList = getStatusList(person, krrInfo),
-                    address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
-                    utsendingskanal = utsendingskanal,
-                )
-            } else {
-                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
-                BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                    id = technicalPartId,
-                    identifikator = identifier,
-                    name = organisasjon.navn.sammensattnavn,
-                    type = BehandlingDetaljerView.IdType.ORGNR,
-                    available = organisasjon.isActive(),
-                    language = null,
-                    statusList = getStatusList(organisasjon),
-                    address = getAddress(organisasjon),
-                    utsendingskanal = utsendingskanal,
-                )
-            }
         } else {
-            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+            BehandlingDetaljerView.PartView(
                 id = technicalPartId,
                 identifikator = null,
                 name = navn ?: "",
@@ -1073,9 +1027,43 @@ class BehandlingMapper(
                             poststed = it.poststed,
                         )
                     },
-                utsendingskanal = utsendingskanal,
             )
         }
+
+    fun getPartViewWithUtsendingskanal(
+        technicalPartId: UUID,
+        partId: PartId?,
+        behandling: Behandling,
+        navn: String?,
+        address: Adresse?,
+    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+        val utsendingskanal =
+            dokDistKanalService.getUtsendingskanal(
+                mottakerId = partId?.value,
+                brukerId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                saksbehandlerContext = true,
+            )
+
+        val partView =
+            getPartView(
+                technicalPartId = technicalPartId,
+                partId = partId,
+                navn = navn,
+                address = address,
+            )
+
+        return BehandlingDetaljerView.PartViewWithUtsendingskanal(
+            id = partView.id,
+            identifikator = partView.identifikator,
+            name = partView.name,
+            type = partView.type,
+            available = partView.available,
+            language = partView.language,
+            statusList = partView.statusList,
+            address = partView.address,
+            utsendingskanal = utsendingskanal,
+        )
     }
 
     fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address? {
