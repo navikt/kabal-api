@@ -343,7 +343,14 @@ abstract class Behandling(
         FEILREGISTRERT,
     }
 
-    fun shouldBeSentToTrygderetten(): Boolean = utfall in utfallToTrygderetten
+    fun shouldBeSentToTrygderetten(): Boolean =
+        (
+            this is AnkebehandlingFoer2027 ||
+                this is AnkebehandlingEtter2027 ||
+                this is GjenopptaksbehandlingFoer2027 ||
+                this is GjenopptaksbehandlingEtter2027
+        ) &&
+            utfall in utfallToTrygderetten
 
     fun shouldNotifyVedtaksinstans(): Boolean = this is Klagebehandling || utfall in utfallToNotifyVedtaksinstans
 
