@@ -113,6 +113,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbeh
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.behandling.utfallITrygderettenOpphevetEllerHenvist
+import no.nav.klage.oppgave.domain.behandling.ytelserNoLongerInInfotrygd
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingFerdigstiltEvent
 import no.nav.klage.oppgave.domain.kafka.Employee
@@ -3370,6 +3371,7 @@ class BehandlingService(
             .getAnkemuligheter(
                 partIdValue = partIdValue,
                 excludedFagsystems = listOf(Fagsystem.IT01),
+                ytelserExemptFromFagsystemExclusion = ytelserNoLongerInInfotrygd,
                 utfallWithoutAnkemulighet =
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
@@ -3401,6 +3403,7 @@ class BehandlingService(
             .getAnkemuligheter(
                 partIdValue = partIdValue,
                 excludedFagsystems = listOf(Fagsystem.IT01),
+                ytelserExemptFromFagsystemExclusion = ytelserNoLongerInInfotrygd,
                 utfallWithoutAnkemulighet =
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
@@ -3430,7 +3433,10 @@ class BehandlingService(
         partIdValue: String,
         tema: Tema,
     ): List<Behandling> {
-        val ytelseList = tema.toYtelserCurrentlyInUse()
+        val ytelseList = tema.toYtelserCurrentlyInUse() - ytelserNoLongerInInfotrygd.toSet()
+        if (ytelseList.isEmpty()) {
+            return emptyList()
+        }
         return behandlingRepository
             .getAnkeMuligheterBasedOnInfotrygd(
                 partIdValue = partIdValue,
