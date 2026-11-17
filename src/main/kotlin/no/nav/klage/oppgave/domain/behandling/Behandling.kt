@@ -385,11 +385,13 @@ abstract class Behandling(
     // Disse sakene finnes ikke lenger i Infotrygd.
     fun isSakNoLongerInInfotrygd(): Boolean =
         fagsystem == Fagsystem.IT01 &&
-            ytelse == Ytelse.BAR_BAR &&
+            ytelse in ytelserNoLongerInInfotrygd &&
             type in
             listOf(
                 Type.ANKE_FOER_2027,
                 Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.ANKE_ETTER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
             )
 
@@ -548,6 +550,12 @@ val utfallToNotifyVedtaksinstans =
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
 val noKvalitetsvurderingNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
+
+/**
+ * Anker for disse ytelsene fra Infotrygd behandles ikke lenger i Infotrygd.
+ * De opprettes i Kabin basert på tidligere klagebehandling i Kabal, og Infotrygd skal ikke oppdateres.
+ */
+val ytelserNoLongerInInfotrygd: List<Ytelse> = listOf(Ytelse.BAR_BAR)
 
 interface BehandlingWithVarsletBehandlingstid {
     val id: UUID

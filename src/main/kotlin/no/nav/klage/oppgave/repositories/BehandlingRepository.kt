@@ -236,7 +236,7 @@ interface BehandlingRepository :
             SELECT b
             FROM Behandling b
             WHERE b.ferdigstilling.avsluttet IS NOT null
-            AND b.fagsystem NOT IN :excludedFagsystems
+            AND (b.fagsystem NOT IN :excludedFagsystems OR b.ytelse IN :ytelserExemptFromFagsystemExclusion)
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
             AND b.type NOT IN :excludedTypes
@@ -245,6 +245,7 @@ interface BehandlingRepository :
     fun getAnkemuligheter(
         partIdValue: String,
         excludedFagsystems: List<Fagsystem>,
+        ytelserExemptFromFagsystemExclusion: List<Ytelse>,
         utfallWithoutAnkemulighet: List<Utfall>,
         excludedTypes: List<Type>,
     ): List<Behandling>

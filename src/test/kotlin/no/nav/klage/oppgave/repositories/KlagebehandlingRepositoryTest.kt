@@ -193,6 +193,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
             behandlingRepository.getAnkemuligheter(
                 partIdValue = "23452354",
                 excludedFagsystems = listOf(Fagsystem.IT01),
+                ytelserExemptFromFagsystemExclusion = listOf(Ytelse.BAR_BAR),
                 utfallWithoutAnkemulighet =
                     listOf(
                         Utfall.INNSTILLING_AVVIST,
@@ -212,7 +213,58 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
         )
     }
 
-    fun getKlagebehandling(saksdokumenter: MutableSet<Saksdokument>? = null): Klagebehandling =
+    @Test
+    fun `get ankemuligheter excludes Infotrygd except for ytelser no longer in Infotrygd`() {
+        val ferdigstilling =
+            Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
+
+        val klageFromInfotrygdWithBarnetrygd =
+            getKlagebehandling(fagsystem = Fagsystem.IT01, ytelse = Ytelse.BAR_BAR).apply {
+                this.ferdigstilling = ferdigstilling
+                utfall = Utfall.STADFESTELSE
+            }
+        val klageFromInfotrygdWithOtherYtelse =
+            getKlagebehandling(fagsystem = Fagsystem.IT01, ytelse = Ytelse.OMS_OMP).apply {
+                this.ferdigstilling = ferdigstilling
+                utfall = Utfall.STADFESTELSE
+            }
+        val klageFromModernFagsystem =
+            getKlagebehandling().apply {
+                this.ferdigstilling = ferdigstilling
+                utfall = Utfall.STADFESTELSE
+            }
+
+        klagebehandlingRepository.saveAll(
+            listOf(klageFromInfotrygdWithBarnetrygd, klageFromInfotrygdWithOtherYtelse, klageFromModernFagsystem),
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            behandlingRepository.getAnkemuligheter(
+                partIdValue = "23452354",
+                excludedFagsystems = listOf(Fagsystem.IT01),
+                ytelserExemptFromFagsystemExclusion = listOf(Ytelse.BAR_BAR),
+                utfallWithoutAnkemulighet = listOf(Utfall.INNSTILLING_AVVIST),
+                excludedTypes = listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027),
+            ),
+        ).containsExactlyInAnyOrder(
+            klageFromInfotrygdWithBarnetrygd,
+            klageFromModernFagsystem,
+        )
+    }
+
+    fun getKlagebehandling(
+        saksdokumenter: MutableSet<Saksdokument>? = null,
+        fagsystem: Fagsystem = Fagsystem.K9,
+        ytelse: Ytelse = Ytelse.OMS_OMP,
+    ): Klagebehandling =
         Klagebehandling(
             klager =
                 Klager(
@@ -225,7 +277,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 ),
             prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
+            ytelse = ytelse,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler =
@@ -233,7 +285,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     Hjemmel.FTRL_8_7,
                 ),
             mottattKlageinstans = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
+            fagsystem = fagsystem,
             fagsakId = "123",
             sakstype = Sakstype.FAGSAK,
             arkivsaksnummer = null,

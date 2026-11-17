@@ -270,20 +270,26 @@ class BehandlingAvslutningService(
                 "AnkebehandlingEtter2027 med id ${ankebehandling.id} sendes til trygderetten.",
             )
             if (ankebehandling.fagsystem == Fagsystem.IT01) {
-                logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
-                klankeService.setToFinishedWithAppAccess(
-                    sakId = ankebehandling.kildeReferanse,
-                    input =
-                        SakFinishedInput(
-                            status = SakFinishedInput.Status.VIDERESENDT_TR,
-                            nivaa = SakFinishedInput.Nivaa.KA,
-                            typeResultat = SakFinishedInput.TypeResultat.INNSTILLING_2,
-                            utfall = SakFinishedInput.Utfall.valueOf(ankeutfallToInfotrygdutfall[ankebehandling.utfall!!]!!),
-                            mottaker = SakFinishedInput.Mottaker.TRYGDERETTEN,
-                            saksbehandlerIdent = ankebehandling.tildeling!!.saksbehandlerident!!,
-                        ),
-                )
-                logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
+                if (ankebehandling.isSakNoLongerInInfotrygd()) {
+                    logger.debug(
+                        "AnkebehandlingEtter2027 med id ${ankebehandling.id} kommer fra Infotrygd, men har ytelse ${ankebehandling.ytelse}. Informerer ikke Infotrygd om innstilling til Trygderetten.",
+                    )
+                } else {
+                    logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
+                    klankeService.setToFinishedWithAppAccess(
+                        sakId = ankebehandling.kildeReferanse,
+                        input =
+                            SakFinishedInput(
+                                status = SakFinishedInput.Status.VIDERESENDT_TR,
+                                nivaa = SakFinishedInput.Nivaa.KA,
+                                typeResultat = SakFinishedInput.TypeResultat.INNSTILLING_2,
+                                utfall = SakFinishedInput.Utfall.valueOf(ankeutfallToInfotrygdutfall[ankebehandling.utfall!!]!!),
+                                mottaker = SakFinishedInput.Mottaker.TRYGDERETTEN,
+                                saksbehandlerIdent = ankebehandling.tildeling!!.saksbehandlerident!!,
+                            ),
+                    )
+                    logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
+                }
             }
             if (ankebehandling.isModernizedFagsystemCase()) {
                 createKafkaEventForModernizedFagsystem(behandling = ankebehandling)
@@ -452,10 +458,16 @@ class BehandlingAvslutningService(
                 )
             }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
-            logger.debug(
-                "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.",
-            )
-            setToFinishedInInfotrygd(ankeITrygderettenbehandling)
+            if (ankeITrygderettenbehandling.isSakNoLongerInInfotrygd()) {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, men har ytelse ${ankeITrygderettenbehandling.ytelse}. Oppdaterer ikke Infotrygd.",
+                )
+            } else {
+                logger.debug(
+                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.",
+                )
+                setToFinishedInInfotrygd(ankeITrygderettenbehandling)
+            }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.AO01) {
             logger.debug(
                 "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.",
