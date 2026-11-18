@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.repositories
 import com.ninjasquad.springmockk.MockkBean
 import jakarta.persistence.DiscriminatorValue
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidDokarkivReference
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
@@ -337,7 +338,11 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             ),
         )
 
-        persistDokument(behandling = utenTildelingMedKjennelse, dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN)
+        persistDokument(
+            behandling = utenTildelingMedKjennelse,
+            dokumentType = DokumentType.KJENNELSE_FRA_TRYGDERETTEN,
+            journalpostId = "111111111",
+        )
         persistDokument(
             behandling = utenTildelingMedAnnenPost,
             dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
@@ -353,6 +358,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
         assertThat(result.map { it.behandlingId }).containsExactly(utenTildelingMedKjennelse.id)
         assertThat(result.single().fagsakId).isEqualTo(utenTildelingMedKjennelse.fagsakId)
+        assertThat(result.single().journalpostId).isEqualTo("111111111")
     }
 
     @Test
@@ -397,7 +403,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             ),
         )
 
-        listOf(aldriTildelt, tildeltFoerOgFradeltEtter, tildeltOgFradeltFoer, tildeltOgFradeltEtter, tildeltNaa)
+        listOf(tildeltFoerOgFradeltEtter, tildeltOgFradeltFoer, tildeltOgFradeltEtter, tildeltNaa)
             .forEach {
                 persistDokument(
                     behandling = it,
@@ -406,6 +412,13 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     created = dokumentCreated,
                 )
             }
+        persistDokument(
+            behandling = aldriTildelt,
+            dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+            avsender = ORGNR_TRYGDERETTEN,
+            created = dokumentCreated,
+            journalpostId = "222222222",
+        )
         persistDokument(
             behandling = annenPostFraAndre,
             dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
@@ -429,6 +442,12 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(result.map { it.behandlingId }).containsExactlyInAnyOrder(
             aldriTildelt.id,
             tildeltOgFradeltFoer.id,
+        )
+        assertThat(result.associate { it.behandlingId to it.journalpostId }).isEqualTo(
+            mapOf(
+                aldriTildelt.id to "222222222",
+                tildeltOgFradeltFoer.id to null,
+            ),
         )
     }
 
@@ -799,6 +818,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         dokumentType: DokumentType,
         avsender: String? = null,
         created: LocalDateTime = LocalDateTime.now(),
+        journalpostId: String? = null,
     ) {
         val dokument =
             OpplastetDokumentUnderArbeidAsHoveddokument(
@@ -824,6 +844,14 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                     forceCentralPrint = false,
                     address = null,
                     navn = null,
+                ),
+            )
+        }
+        journalpostId?.let {
+            dokument.dokarkivReferences.add(
+                DokumentUnderArbeidDokarkivReference(
+                    journalpostId = it,
+                    dokumentInfoId = null,
                 ),
             )
         }
