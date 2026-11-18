@@ -417,14 +417,24 @@ class AdminService(
     private fun List<DokumentRowsForBehandling>.toResultLines(): String =
         joinToString(separator = "\n") { rows ->
             val first = rows.first()
-            val dokumentDatoer =
+            val dokumenter =
                 rows
-                    .map { it.dokumentCreated.toLocalDate() }
-                    .sorted()
-                    .joinToString(separator = ", ")
+                    .groupBy { it.dokumentId }
+                    .values
+                    .sortedBy { dokumentRows -> dokumentRows.first().dokumentCreated }
+                    .joinToString(separator = ", ") { dokumentRows ->
+                        val journalpostIder =
+                            dokumentRows
+                                .mapNotNull { it.journalpostId }
+                                .distinct()
+                                .sorted()
+                                .joinToString(separator = ", ")
+                                .ifEmpty { "mangler" }
+                        "${dokumentRows.first().dokumentCreated.toLocalDate()} (journalpostId: $journalpostIder)"
+                    }
             "${first.behandlingId} (saksnummer: ${first.fagsakId ?: first.arkivsaksnummer}, " +
                 "behandling opprettet: ${first.behandlingCreated.toLocalDate()}, " +
-                "dokument opprettet: $dokumentDatoer)"
+                "dokument opprettet: $dokumenter)"
         }
 
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {

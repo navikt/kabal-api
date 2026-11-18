@@ -32,6 +32,7 @@ data class UnassignedBehandlingWithInngaaendeDokument(
     val behandlingCreated: LocalDateTime,
     val dokumentId: UUID,
     val dokumentCreated: LocalDateTime,
+    val journalpostId: String?,
 )
 
 data class BehandlingIdProjection(
@@ -104,9 +105,10 @@ interface BehandlingRepository :
     @Query(
         """
             select distinct new no.nav.klage.oppgave.repositories.UnassignedBehandlingWithInngaaendeDokument(
-                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created
+                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created, r.journalpostId
             )
             from Behandling b, DokumentUnderArbeidAsHoveddokument d
+            left join d.dokarkivReferences r
             where d.behandlingId = b.id
             and b.ferdigstilling is null
             and b.feilregistrering is null
@@ -129,10 +131,11 @@ interface BehandlingRepository :
     @Query(
         """
             select distinct new no.nav.klage.oppgave.repositories.UnassignedBehandlingWithInngaaendeDokument(
-                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created
+                b.id, b.fagsakId, b.arkivsaksnummer, b.created, d.id, d.created, r.journalpostId
             )
             from Behandling b, DokumentUnderArbeidAsHoveddokument d
             join d.brevmottakere bm
+            left join d.dokarkivReferences r
             where d.behandlingId = b.id
             and b.ferdigstilling is null
             and b.feilregistrering is null
