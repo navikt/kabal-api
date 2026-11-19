@@ -302,6 +302,15 @@ class AdminService(
     }
 
     @Transactional
+    fun resendToDVHV2() {
+        logger.debug("Attempting to resend all events to DVH v2")
+        kafkaDispatcher.dispatchEventsToKafka(
+            type = EventType.STATS_DVH_V2,
+            utsendingStatusList = listOf(UtsendingStatus.IKKE_SENDT, UtsendingStatus.FEILET, UtsendingStatus.SENDT),
+        )
+    }
+
+    @Transactional
     fun logExpiredUsers() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()

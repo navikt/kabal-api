@@ -78,6 +78,17 @@ class KlagebehandlingSchedulerService(
         )
     }
 
+    @Scheduled(cron = "30 1/4 * * * *")
+    @SchedulerLock(name = "dispatchUnsentDVHStatsV2ToKafka")
+    fun dispatchUnsentDVHStatsV2ToKafka() {
+        if (!schedulerHealthGate.isReady()) return
+        logSchedulerMessage(functionName = ::dispatchUnsentDVHStatsV2ToKafka.name)
+        kafkaDispatcher.dispatchEventsToKafka(
+            type = EventType.STATS_DVH_V2,
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET),
+        )
+    }
+
     @Scheduled(cron = "0 2/4 * * * *")
     @SchedulerLock(name = "dispatchUnsentBehandlingEventsToKafka")
     fun dispatchUnsentBehandlingEventsToKafka() {
