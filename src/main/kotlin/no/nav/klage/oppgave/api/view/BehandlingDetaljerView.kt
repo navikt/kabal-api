@@ -11,9 +11,9 @@ data class BehandlingDetaljerView(
     val fraNAVEnhet: String?,
     val fraNAVEnhetNavn: String?,
     val mottattVedtaksinstans: LocalDate? = null,
-    val sakenGjelder: SakenGjelderViewWithUtsendingskanal,
-    val klager: PartViewWithUtsendingskanal,
-    val prosessfullmektig: PartViewWithUtsendingskanal?,
+    val sakenGjelder: SakenGjelderView,
+    val klager: PartView,
+    val prosessfullmektig: PartView?,
     val temaId: String,
     val ytelseId: String,
     val typeId: String,
@@ -151,9 +151,9 @@ data class BehandlingDetaljerView(
 
     data class PartView(
         override val id: UUID,
-        override val identifikator: String,
+        override val identifikator: String?,
         override val name: String,
-        override val type: IdType,
+        override val type: IdType?,
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
@@ -219,6 +219,7 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val sex: Sex,
         val address: Address?,
+        val protectedFamilyMembers: List<ProtectedFamilyMemberView>,
     ) : PartBase,
         IdPart,
         TechnicalPartId
