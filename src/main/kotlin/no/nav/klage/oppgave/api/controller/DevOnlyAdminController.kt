@@ -230,6 +230,12 @@ class DevOnlyAdminController(
         return tokenUtil.getCurrentTokenType().toString()
     }
 
+    @GetMapping("/backfill-kant")
+    fun backFillKant() {
+        logger.debug("backfillKant is called")
+        adminService.backfillKant()
+    }
+
 //    }
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")

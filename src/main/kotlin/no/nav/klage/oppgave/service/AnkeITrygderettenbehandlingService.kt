@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingFoer2027Input
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
@@ -52,6 +53,7 @@ class AnkeITrygderettenbehandlingService(
     private val dokumentService: DokumentService,
     private val gosysOppgaveService: GosysOppgaveService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val kantApiGateway: KantApiGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -174,6 +176,9 @@ class AnkeITrygderettenbehandlingService(
                     trygderettenSaksnummer = input.trygderettenSaksnummer,
                 ),
             )
+
+        ankeITrygderettenbehandling.kantReference = kantApiGateway.createSaksdataInKant(ankeITrygderettenbehandling).id
+
         logger.debug("Created ankeITrygderettenbehandlingEtter2027 {}", ankeITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
