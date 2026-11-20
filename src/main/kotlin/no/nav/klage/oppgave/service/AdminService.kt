@@ -1193,10 +1193,12 @@ class AdminService(
         logger.debug("Backfill kant, candidates: {}", candidates.size)
         var changed = 0
         candidates.forEach { candidate ->
-            candidate as BehandlingWithKantReference
-            if (candidate.kantReference == null) {
-                candidate.kantReference = kantApiGateway.createSaksdataInKant(behandling = candidate).id
-                changed++
+            transactionTemplate.execute {
+                val behandling = behandlingRepository.findByIdEager(candidate.id) as BehandlingWithKantReference
+                if (behandling.kantReference == null) {
+                    behandling.kantReference = kantApiGateway.createSaksdataInKant(behandling = behandling).id
+                    changed++
+                }
             }
         }
 
