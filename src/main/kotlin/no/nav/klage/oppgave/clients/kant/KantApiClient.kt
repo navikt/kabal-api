@@ -24,7 +24,7 @@ class KantApiClient(
     fun getValidationErrors(kantId: UUID): KantValidationErrors =
         kantApiWebClient
             .get()
-            .uri("/api/{kantId}/validationErrors", kantId)
+            .uri("/api/saksdata/{kantId}/validationErrors", kantId)
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithKantApiScope()}",
