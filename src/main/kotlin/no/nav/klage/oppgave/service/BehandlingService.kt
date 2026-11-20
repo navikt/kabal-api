@@ -51,6 +51,7 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
@@ -62,6 +63,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer202
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
@@ -197,6 +199,7 @@ class BehandlingService(
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val entityManager: EntityManager,
+    private val kantApiGateway: KantApiGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -584,6 +587,25 @@ class BehandlingService(
                     ValidationSection(
                         section = "kvalitetsvurdering",
                         properties = kvalitetsvurderingValidationErrors,
+                    ),
+                )
+            }
+        }
+
+        if (behandling.type in
+            listOf(
+                Type.ANKE_ETTER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            ) && behandling.utfall !in noKvalitetsvurderingNeeded
+        ) {
+            val kantKvalitetsvurderingValidationErrors =
+                kantApiGateway.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
+
+            if (kantKvalitetsvurderingValidationErrors.isNotEmpty()) {
+                sectionList.add(
+                    ValidationSection(
+                        section = "kvalitetsvurdering",
+                        properties = kantKvalitetsvurderingValidationErrors,
                     ),
                 )
             }

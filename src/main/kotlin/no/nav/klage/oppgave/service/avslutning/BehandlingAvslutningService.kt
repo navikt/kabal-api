@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
@@ -47,6 +48,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.GjenopptakITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.GjenopptaksbehandlingService
 import no.nav.klage.oppgave.service.GosysOppgaveService
+import no.nav.klage.oppgave.service.KantSaksdataService
 import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -72,6 +74,7 @@ class BehandlingAvslutningService(
     private val gosysOppgaveService: GosysOppgaveService,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
+    private val kantSaksdataService: KantSaksdataService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -113,6 +116,10 @@ class BehandlingAvslutningService(
 
         if (behandling.ferdigstilling?.avsluttet != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
+        }
+
+        if (behandling is BehandlingWithKantReference) {
+            kantSaksdataService.finalizeSaksdata(behandlingId)
         }
 
         when (behandling) {

@@ -56,6 +56,7 @@ data class BehandlingDetaljerView(
     val requiresGosysOppgave: Boolean,
     val tilbakekreving: Boolean,
     val timesPreviouslyExtended: Int,
+    val kantReference: UUID? = null,
 ) {
     data class ProtectedFamilyMemberView(
         val statusList: List<PartStatus>,

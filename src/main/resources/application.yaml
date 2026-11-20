@@ -109,6 +109,9 @@ KABAL_JSON_TO_PDF_BASE_URL: http://kabal-json-to-pdf
 KAKA_API_BASE_URL: http://kaka-api
 KAKA_API_APP_NAME: kaka-api
 
+KANT_API_BASE_URL: http://kant-api
+KANT_API_APP_NAME: kant-api
+
 KABAL_SEARCH_BASE_URL: http://kabal-search
 KABAL_SEARCH_APP_NAME: kabal-search
 

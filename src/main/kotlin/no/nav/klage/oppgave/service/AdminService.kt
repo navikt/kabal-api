@@ -10,6 +10,7 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
@@ -17,6 +18,7 @@ import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -40,6 +42,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
@@ -110,6 +113,7 @@ class AdminService(
     private val transactionTemplate: TransactionTemplate,
     private val safFacade: SafFacade,
     private val kabalDocumentGateway: KabalDocumentGateway,
+    private val kantApiGateway: KantApiGateway,
 ) {
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
@@ -1190,5 +1194,21 @@ class AdminService(
         }
 
         logger.debug("Backfill person protection done. Created: {}, failed/missed: {}", createdCount, failedCount)
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun backfillKant() {
+        val candidates = behandlingRepository.findAllByTypeIn(listOf(Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027))
+        logger.debug("Backfill kant, candidates: {}", candidates.size)
+        var changed = 0
+        candidates.forEach { candidate ->
+            candidate as BehandlingWithKantReference
+            if (candidate.kantReference == null) {
+                candidate.kantReference = kantApiGateway.createSaksdataInKant(behandling = candidate).id
+                changed++
+            }
+        }
+
+        logger.debug("Backfill kant, changed: {}", changed)
     }
 }
