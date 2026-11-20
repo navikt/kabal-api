@@ -28,6 +28,8 @@ class TokenUtil(
     private val kabalSmartEditorApiScope: String,
     @Value($$"api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KAKA_API_APP_NAME}/.default")
     private val kakaApiScope: String,
+    @Value($$"api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KANT_API_APP_NAME}/.default")
+    private val kantApiScope: String,
     @Value($$"api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_FILE_API_APP_NAME}/.default")
     private val kabalFileApiScope: String,
     @Value($$"api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_INNSTILLINGER_APP_NAME}/.default")
@@ -84,6 +86,8 @@ class TokenUtil(
     fun getSaksbehandlerAccessTokenWithKakaApiScope(): String = texasClient.onBehalfOfCurrentUser(kakaApiScope)
 
     fun getAppAccessTokenWithKakaApiScope(): String = texasClient.machineToMachineToken(kakaApiScope)
+
+    fun getAppAccessTokenWithKantApiScope(): String = texasClient.machineToMachineToken(kantApiScope)
 
     fun getUserAccessTokenWithKabalInnstillingerScope(): String = texasClient.onBehalfOfCurrentUser(kabalInnstillingerScope)
 

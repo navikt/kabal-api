@@ -600,6 +600,10 @@ interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingVersion: Int
 }
 
+interface BehandlingWithKantReference {
+    var kantReference: UUID?
+}
+
 interface BehandlingWithKlageBehandlendeEnhet {
     val klageBehandlendeEnhet: String
 }

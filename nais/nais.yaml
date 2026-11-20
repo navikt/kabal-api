@@ -99,6 +99,7 @@ spec:
         - application: kabal-document
         - application: kabal-smart-editor-api
         - application: kaka-api
+        - application: kant-api
         - application: kabal-file-api
         - application: kabal-json-to-pdf
         - application: klage-notifications-api

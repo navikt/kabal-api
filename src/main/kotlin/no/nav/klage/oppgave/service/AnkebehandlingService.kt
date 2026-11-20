@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
@@ -32,6 +33,7 @@ class AnkebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
+    private val kantApiGateway: KantApiGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -178,6 +180,7 @@ class AnkebehandlingService(
             )
 
         ankebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        ankebehandling.kantReference = kantApiGateway.createSaksdataInKant(ankebehandling).id
 
         logger.debug("Created ankebehandling etter 2027 {}", ankebehandling.id)
 
@@ -326,6 +329,7 @@ class AnkebehandlingService(
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 ),
             )
+        ankebehandling.kantReference = kantApiGateway.createSaksdataInKant(ankebehandling).id
         logger.debug(
             "Created ankebehandlingEtter2027 {} from ankeITrygderettenbehandlingEtter2027 {}",
             ankebehandling.id,
