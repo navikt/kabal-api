@@ -59,6 +59,19 @@ class AdminController(
         }
     }
 
+    @PostMapping("/dvh/v2/resend", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun resendStatsToDVHV2() {
+        krevAdminTilgang()
+
+        try {
+            adminService.resendToDVHV2()
+        } catch (e: Exception) {
+            logger.warn("Failed to resend to DVH v2", e)
+            throw e
+        }
+    }
+
     @GetMapping("/invalidregistreringshjemler")
     fun getInvalidRegistreringshjemler() {
         logger.debug("getInvalidRegistreringshjemler is called")

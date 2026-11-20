@@ -24,6 +24,9 @@ class KafkaDispatcher(
     @Value($$"${DVH_STATISTIKK_TOPIC}")
     lateinit var dvhTopic: String
 
+    @Value($$"${DVH_STATISTIKK_V2_TOPIC}")
+    lateinit var dvhV2Topic: String
+
     @Value($$"${VEDTAK_FATTET_TOPIC}")
     lateinit var vedtakTopic: String
 
@@ -63,6 +66,7 @@ class KafkaDispatcher(
         when (this) {
             EventType.KLAGE_VEDTAK -> vedtakTopic
             EventType.STATS_DVH -> dvhTopic
+            EventType.STATS_DVH_V2 -> dvhV2Topic
             EventType.BEHANDLING_EVENT -> behandlingEventTopic
             EventType.MINSIDE_MICROFRONTEND_EVENT -> minSideMicrofrontendTopic
         }

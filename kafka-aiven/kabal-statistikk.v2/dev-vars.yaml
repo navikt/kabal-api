@@ -1,0 +1,19 @@
+pool: nav-dev
+config:
+  cleanupPolicy: delete
+  maxMessageBytes: 2097176
+  minimumInSyncReplicas: 1
+  partitions: 1
+  replication: 3
+  retentionBytes: -1
+  retentionHours: 120
+acl:
+  - team: ptsak
+    application: pt-sak-kabal-dev
+    access: read
+  - team: ptsak
+    application: pt-sak-kabal-preprod
+    access: read
+  - team: klage
+    application: klage-kafka-manager
+    access: read
