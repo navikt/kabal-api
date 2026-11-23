@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingFoer2027
@@ -38,6 +39,7 @@ class GjenopptaksbehandlingServiceTest {
     private val kakaApiGateway = mockk<KakaApiGateway>()
     private val kakaVersionUtil = mockk<KakaVersionUtil>()
     private val kvalitetsvurderingId = UUID.randomUUID()
+    private val kantApiGateway = mockk<KantApiGateway>()
 
     private val service =
         GjenopptaksbehandlingService(
@@ -49,6 +51,7 @@ class GjenopptaksbehandlingServiceTest {
             kakaApiGateway = kakaApiGateway,
             systembrukerIdent = "SYSTEMBRUKER",
             kakaVersionUtil = kakaVersionUtil,
+            kantApiGateway = kantApiGateway,
         )
 
     @BeforeEach
