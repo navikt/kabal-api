@@ -107,7 +107,7 @@ class StatistikkTilDVHV2ServiceTest {
         assertThat(payload["behandlingStatus"].asString()).isEqualTo("TILDELT_SAKSBEHANDLER")
         assertThat(payload["saksbehandler"].asString()).isEqualTo(saksbehandler)
         assertThat(payload["saksbehandlerEnhet"].asString()).isEqualTo(enhet)
-        assertThat(payload["ansvarligEnhetKode"].asString()).isEqualTo(enhet)
+        assertThat(payload["ansvarligEnhetKode"].isNull).isTrue
         assertThat(payload["behandlingStartetKA"].asString()).isEqualTo("2026-04-30")
         assertThat(payload["endringstid"].asString()).startsWith("2026-05-03T14:20")
     }
@@ -135,7 +135,7 @@ class StatistikkTilDVHV2ServiceTest {
     }
 
     @Test
-    fun `AVSLUTTET klagebehandling has resultat, vedtaksdato and enhet`() {
+    fun `AVSLUTTET klagebehandling has resultat and vedtaksdato, but no ansvarligEnhetKode`() {
         val avsluttet = LocalDateTime.of(2026, 4, 30, 14, 32)
         val behandling =
             klagebehandling().apply {
@@ -150,7 +150,7 @@ class StatistikkTilDVHV2ServiceTest {
         assertThat(payload["behandlingStatus"].asString()).isEqualTo("AVSLUTTET")
         assertThat(payload["resultat"].asString()).isEqualTo(Utfall.STADFESTELSE.name)
         assertThat(payload["vedtaksdato"].asString()).isEqualTo("2026-04-30")
-        assertThat(payload["ansvarligEnhetKode"].asString()).isEqualTo(enhet)
+        assertThat(payload["ansvarligEnhetKode"].isNull).isTrue
         assertThat(payload["endringstid"].asString()).startsWith("2026-04-30T14:32")
     }
 
@@ -236,11 +236,12 @@ class StatistikkTilDVHV2ServiceTest {
     }
 
     @Test
-    fun `OPPRETTET then TILDELT_SAKSBEHANDLER when behandling is created already assigned`() {
-        val tildelt = LocalDateTime.of(2026, 5, 1, 8, 0)
+    fun `OPPRETTET then TILDELT_SAKSBEHANDLER when behandling is created already assigned, with behandlingStartetKA from created`() {
+        val tildeltIForrigeBehandling = LocalDateTime.of(2026, 5, 1, 8, 0)
+        val created = LocalDateTime.of(2026, 9, 14, 9, 0)
         val behandling =
-            klagebehandling(type = Type.ANKE_FOER_2027).apply {
-                tildeling = Tildeling(saksbehandlerident = saksbehandler, enhet = enhet, tidspunkt = tildelt)
+            klagebehandling(type = Type.ANKE_FOER_2027, created = created).apply {
+                tildeling = Tildeling(saksbehandlerident = saksbehandler, enhet = enhet, tidspunkt = tildeltIForrigeBehandling)
             }
 
         service.process(event(behandling, Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN))
@@ -254,7 +255,7 @@ class StatistikkTilDVHV2ServiceTest {
         assertThat(opprettet["behandlingStartetKA"].isNull).isTrue
         assertThat(tildeltPayload["behandlingStatus"].asString()).isEqualTo("TILDELT_SAKSBEHANDLER")
         assertThat(tildeltPayload["saksbehandler"].asString()).isEqualTo(saksbehandler)
-        assertThat(tildeltPayload["behandlingStartetKA"].asString()).isEqualTo("2026-05-01")
+        assertThat(tildeltPayload["behandlingStartetKA"].asString()).isEqualTo("2026-09-14")
     }
 
     @Test
@@ -309,7 +310,9 @@ class StatistikkTilDVHV2ServiceTest {
         fagsystem: Fagsystem = Fagsystem.K9,
         fagsakId: String = "fagsakId",
         gosysOppgaveRequired: Boolean = false,
+        created: LocalDateTime = LocalDateTime.of(2026, 4, 29, 14, 15),
     ) = Klagebehandling(
+        created = created,
         mottattVedtaksinstans = LocalDate.now(),
         previousSaksbehandlerident = null,
         avsenderEnhetFoersteinstans = "",

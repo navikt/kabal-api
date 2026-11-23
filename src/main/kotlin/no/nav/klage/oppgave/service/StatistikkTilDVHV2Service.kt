@@ -152,7 +152,7 @@ class StatistikkTilDVHV2Service(
             behandlingId = getDVHBehandlingId(behandling),
             behandlingIdKabal = behandling.id.toString(),
             behandlingStartetKA =
-                if (behandlingState == BehandlingStateV2.OPPRETTET) null else getFoersteTildelingsdato(behandling),
+                if (behandlingState == BehandlingStateV2.OPPRETTET) null else getFirstTildelingsdato(behandling),
             behandlingStatus = behandlingState,
             behandlingType = getBehandlingType(behandling.type),
             beslutter = behandling.medunderskriver?.saksbehandlerident,
@@ -177,10 +177,11 @@ class StatistikkTilDVHV2Service(
         behandlingState: BehandlingStateV2,
         saksbehandlerEnhet: String?,
     ): String? =
-        if (behandlingState == BehandlingStateV2.AVSLUTTET && isAvsluttetAvTrygderetten(behandling)) {
-            TR_ENHET
-        } else {
-            saksbehandlerEnhet
+        // As in v1: only set when a behandling i Trygderetten is avsluttet, to tell whether TR or KA made the result.
+        when {
+            behandlingState != BehandlingStateV2.AVSLUTTET || behandling !is BehandlingITrygderetten -> null
+            isAvsluttetAvTrygderetten(behandling) -> TR_ENHET
+            else -> saksbehandlerEnhet
         }
 
     private fun isAvsluttetAvTrygderetten(behandling: Behandling): Boolean {
@@ -196,13 +197,17 @@ class StatistikkTilDVHV2Service(
         return !nyBehandlingIKAUtenTR
     }
 
-    private fun getFoersteTildelingsdato(behandling: Behandling): LocalDate? =
-        (
-            behandling.tildelingHistorikk
-                .filter { it.saksbehandlerident != null }
-                .map { it.tidspunkt } +
-                listOfNotNull(behandling.tildeling?.takeIf { it.saksbehandlerident != null }?.tidspunkt)
-        ).minOrNull()?.toLocalDate()
+    private fun getFirstTildelingsdato(behandling: Behandling): LocalDate? {
+        val firstTildeling =
+            (
+                behandling.tildelingHistorikk
+                    .filter { it.saksbehandlerident != null }
+                    .map { it.tidspunkt } +
+                    listOfNotNull(behandling.tildeling?.takeIf { it.saksbehandlerident != null }?.tidspunkt)
+            ).minOrNull() ?: return null
+        // Behandlinger created from a previous behandling inherit its tildeling. Count from when this behandling was created.
+        return firstTildeling.coerceAtLeast(behandling.created).toLocalDate()
+    }
 
     private fun getEndringstid(
         behandling: Behandling,

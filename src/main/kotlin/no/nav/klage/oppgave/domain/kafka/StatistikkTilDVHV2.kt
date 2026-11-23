@@ -12,8 +12,8 @@ import java.util.UUID
  * Hver behandling i Kabal får hendelsene OPPRETTET, TILDELT_SAKSBEHANDLER (ved hver tildeling og fradeling)
  * og AVSLUTTET. En sak som går videre (f.eks. anke til Trygderetten) blir en ny behandling med egen behandlingIdKabal.
  *
- * Feltene har samme betydning som i StatistikkTilDVH (v1), med unntak av behandlingStatus, behandlingType,
- * ansvarligEnhetKode og behandlingStartetKA.
+ * Feltene har samme betydning som i StatistikkTilDVH (v1), med unntak av behandlingStatus, behandlingType
+ * og behandlingStartetKA.
  *
  * Navnendringer her krever at vi sender all data til DVH på nytt med nye navn. Derfor er vi forsiktige med å gjøre slik endringer
  * da dette blir litt dyrt. Hvis et felt endrer betydning så er det viktig å dokumentere.
@@ -29,7 +29,8 @@ data class StatistikkTilDVHV2(
     val eventId: UUID,
     /**
      * Kode som angir hvilken enhet som er ansvarlig for behandlingen på det gjeldende tidspunktet.
-     * Saksbehandlers enhet når behandlingen er tildelt, TR0000 når Trygderetten har avsluttet, ellers null.
+     * Settes bare når en behandling i Trygderetten avsluttes, og forteller om Trygderetten eller KA står for resultatet:
+     * TR0000 når Trygderetten har avgjort saken, ellers saksbehandlers enhet. Null for alle andre hendelser.
      */
     val ansvarligEnhetKode: String?,
     /** Kode som angir hvilken type enhetskode det er snakk om, som oftest NORG. */
@@ -40,7 +41,10 @@ data class StatistikkTilDVHV2(
     val behandlingId: String?,
     /** Nøkkel til den aktuelle behandling, som kan identifisere den i Kabal. */
     val behandlingIdKabal: String,
-    /** Dato for første tildeling til saksbehandler i KA. Endres ikke ved fradeling eller ny tildeling. Null ved OPPRETTET. */
+    /**
+     * Dato for første tildeling til saksbehandler i KA for denne behandlingen. Endres ikke ved fradeling eller ny tildeling.
+     * Hvis tildelingen er arvet fra en tidligere behandling, brukes datoen behandlingen ble opprettet. Null ved OPPRETTET.
+     */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DATE_FORMAT,
