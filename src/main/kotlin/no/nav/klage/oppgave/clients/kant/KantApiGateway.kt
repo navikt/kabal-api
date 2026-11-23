@@ -58,7 +58,7 @@ class KantApiGateway(
         val input =
             KantAvslutningInput(
                 utfall = checkNotNull(behandling.utfall) { "Cannot finalize Kant without utfall" },
-                registreringshjemler = behandling.registreringshjemler.toSet(),
+                registreringshjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
                 avsluttetAvSaksbehandler =
                     checkNotNull(behandling.ferdigstilling) {
                         "Cannot finalize Kant before user completion"
@@ -78,7 +78,7 @@ class KantApiGateway(
         behandling as Behandling
         val input =
             KantUpdateInput(
-                registreringshjemler = behandling.registreringshjemler.toSet(),
+                registreringshjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
             )
         val reference = checkNotNull(behandling.kantReference)
         val response = kantApiClient.updateSaksdata(id = reference, input = input)

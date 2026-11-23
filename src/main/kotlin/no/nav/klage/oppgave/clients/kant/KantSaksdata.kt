@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.kant
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
-import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,12 +16,12 @@ data class KantSaksdataInput(
 )
 
 data class KantUpdateInput(
-    val registreringshjemler: Set<Registreringshjemmel>,
+    val registreringshjemmelIdSet: Set<String>,
 )
 
 data class KantAvslutningInput(
     val utfall: Utfall,
-    val registreringshjemler: Set<Registreringshjemmel>,
+    val registreringshjemmelIdSet: Set<String>,
     val avsluttetAvSaksbehandler: LocalDateTime,
     val sakITrygderettenOpprettet: LocalDate? = null,
     val mottattKlageinstans: LocalDate? = null,
