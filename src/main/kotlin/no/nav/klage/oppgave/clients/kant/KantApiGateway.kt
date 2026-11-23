@@ -6,9 +6,10 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Service
 import java.time.temporal.ChronoUnit
 
@@ -43,13 +44,13 @@ class KantApiGateway(
         behandling as Behandling
         val tilknyttetEnhet = Enhet.entries.find { it.navn == behandling.tildeling?.enhet!! }
         val sakITrygderettenOpprettet =
-            if (behandling is AnkeITrygderettenbehandlingEtter2027) {
+            if (behandling is AnkeITrygderettenbehandlingEtter2027 || behandling is GjenopptakITrygderettenbehandlingEtter2027) {
                 behandling.sendtTilTrygderetten.toLocalDate()
             } else {
                 null
             }
         val mottattKlageinstans =
-            if (behandling is AnkebehandlingEtter2027) {
+            if (behandling is AnkebehandlingEtter2027 || behandling is GjenopptaksbehandlingEtter2027) {
                 behandling.mottattKlageinstans.toLocalDate()
             } else {
                 null
@@ -64,7 +65,7 @@ class KantApiGateway(
                     }.avsluttetAvSaksbehandler.truncatedTo(ChronoUnit.MICROS),
                 sakITrygderettenOpprettet = sakITrygderettenOpprettet,
                 mottattKlageinstans = mottattKlageinstans,
-                tilknyttetEnhet = tilknyttetEnhet!!.id,
+                tilknyttetEnhetId = tilknyttetEnhet!!.id,
                 tilbakekreving = behandling.tilbakekreving,
             )
 
@@ -73,7 +74,17 @@ class KantApiGateway(
         validateIdentity(behandling = behandling, response = response)
     }
 
-    @Retryable
+    fun updateSaksdata(behandling: BehandlingWithKantReference) {
+        behandling as Behandling
+        val input =
+            KantUpdateInput(
+                registreringshjemler = behandling.registreringshjemler.toSet(),
+            )
+        val reference = checkNotNull(behandling.kantReference)
+        val response = kantApiClient.updateSaksdata(id = reference, input = input)
+        validateIdentity(behandling = behandling, response = response)
+    }
+
     fun getValidationErrors(behandling: BehandlingWithKantReference): List<InvalidProperty> =
         behandling.kantReference?.let { kantApiClient.getValidationErrors(kantId = it) }?.validationErrors?.map {
             InvalidProperty(

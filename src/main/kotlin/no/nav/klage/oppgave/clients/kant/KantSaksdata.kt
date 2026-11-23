@@ -16,13 +16,17 @@ data class KantSaksdataInput(
     val trygderettenSaksnummer: String,
 )
 
+data class KantUpdateInput(
+    val registreringshjemler: Set<Registreringshjemmel>,
+)
+
 data class KantAvslutningInput(
     val utfall: Utfall,
     val registreringshjemler: Set<Registreringshjemmel>,
     val avsluttetAvSaksbehandler: LocalDateTime,
     val sakITrygderettenOpprettet: LocalDate? = null,
     val mottattKlageinstans: LocalDate? = null,
-    val tilknyttetEnhet: String,
+    val tilknyttetEnhetId: String,
     val tilbakekreving: Boolean,
 )
 

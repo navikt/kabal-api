@@ -3002,7 +3002,6 @@ class BehandlingService(
         behandlingId: UUID,
     ) {
         if (registreringsHjemmelSet != null) {
-            // TODO: Oppdater om det kommer ny versjon
             val washedRegistreringshjemmelSet =
                 registreringsHjemmelSet
                     .filter {
@@ -3029,10 +3028,14 @@ class BehandlingService(
                 behandlingId = behandlingId,
                 systemUserContext = systemUserContext,
             )
-        // TODO: Versjonssjekk på input
+
         val event =
             behandling.setRegistreringshjemler(nyVerdi = registreringshjemler, saksbehandlerident = utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
+
+        if (behandling is BehandlingWithKantReference) {
+            kantApiGateway.updateSaksdata(behandling = behandling)
+        }
 
         publishInternalEvent(
             data =
