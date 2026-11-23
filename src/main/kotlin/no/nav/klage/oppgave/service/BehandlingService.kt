@@ -592,12 +592,7 @@ class BehandlingService(
             }
         }
 
-        if (behandling.type in
-            listOf(
-                Type.ANKE_ETTER_2027,
-                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
-            ) && behandling.utfall !in noKvalitetsvurderingNeeded
-        ) {
+        if (behandling is BehandlingWithKantReference && behandling.utfall !in noKvalitetsvurderingNeeded) {
             val kantKvalitetsvurderingValidationErrors =
                 kantApiGateway.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
 

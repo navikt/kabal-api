@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
@@ -29,6 +30,7 @@ class GjenopptaksbehandlingService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
+    private val kantApiGateway: KantApiGateway,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
@@ -192,6 +194,7 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
+        gjenopptaksbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptaksbehandling).id
         gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
         logger.debug("Created {} with id {}", gjenopptaksbehandling.javaClass.name, gjenopptaksbehandling.id)
@@ -358,6 +361,8 @@ class GjenopptaksbehandlingService(
                     trygderettenSaksnummer = gjenopptakITrygderettenbehandlingEtter2027.trygderettenSaksnummer,
                 ),
             )
+
+        gjenopptaksbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptaksbehandling).id
 
         logger.debug(
             "Created gjenopptaksbehandlingEtter2027 {} from gjenopptakITrygderettenbehandlingEtter2027 {}",

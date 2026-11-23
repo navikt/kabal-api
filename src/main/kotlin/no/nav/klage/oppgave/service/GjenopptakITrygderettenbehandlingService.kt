@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027Input
@@ -24,6 +25,7 @@ class GjenopptakITrygderettenbehandlingService(
     private val gjenopptakITrygderettenbehandlingEtter2027Repository: GjenopptakITrygderettenbehandlingEtter2027Repository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val kantApiGateway: KantApiGateway,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
@@ -149,6 +151,8 @@ class GjenopptakITrygderettenbehandlingService(
                 ),
             )
         logger.debug("Created gjenopptakITrygderettenbehandlingEtter2027 {}", gjenopptakITrygderettenbehandling.id)
+
+        gjenopptakITrygderettenbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptakITrygderettenbehandling).id
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,

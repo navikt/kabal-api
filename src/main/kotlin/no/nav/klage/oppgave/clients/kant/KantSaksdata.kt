@@ -13,6 +13,7 @@ data class KantSaksdataInput(
     val kabalReference: UUID,
     val sakstype: Type,
     val ytelse: Ytelse,
+    val trygderettenSaksnummer: String,
 )
 
 data class KantAvslutningInput(

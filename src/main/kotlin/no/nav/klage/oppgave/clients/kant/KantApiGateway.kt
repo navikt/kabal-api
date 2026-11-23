@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter20
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.resilience.annotation.Retryable
@@ -28,6 +29,7 @@ class KantApiGateway(
                     kabalReference = behandling.id,
                     sakstype = behandling.type,
                     ytelse = behandling.ytelse,
+                    trygderettenSaksnummer = (behandling as BehandlingWithTrygderettenSaksnummer).trygderettenSaksnummer,
                 ),
             )
         validateIdentity(behandling, response)

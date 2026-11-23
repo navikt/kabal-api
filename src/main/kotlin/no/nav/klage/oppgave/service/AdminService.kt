@@ -1198,7 +1198,15 @@ class AdminService(
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun backfillKant() {
-        val candidates = behandlingRepository.findAllByTypeIn(listOf(Type.ANKE_ETTER_2027, Type.ANKE_I_TRYGDERETTEN_ETTER_2027))
+        val candidates =
+            behandlingRepository.findAllByTypeIn(
+                listOf(
+                    Type.ANKE_ETTER_2027,
+                    Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+                ),
+            )
         logger.debug("Backfill kant, candidates: {}", candidates.size)
         var changed = 0
         candidates.forEach { candidate ->
