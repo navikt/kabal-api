@@ -119,7 +119,13 @@ class BehandlingAvslutningService(
         }
 
         if (behandling is BehandlingWithKantReference) {
-            kantSaksdataService.finalizeSaksdata(behandlingId)
+            if (behandling is GjenopptakITrygderettenbehandlingEtter2027 && behandling.nyGjenopptaksbehandlingKA != null) {
+                // TODO: handle, maybe delete in kant-api?
+            } else if (behandling is AnkeITrygderettenbehandlingEtter2027 && behandling.nyAnkebehandlingKA != null) {
+                // TODO: handle, maybe delete in kant-api?
+            } else {
+                kantSaksdataService.finalizeSaksdata(behandlingId)
+            }
         }
 
         when (behandling) {
