@@ -4,10 +4,12 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatusCode
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 @Component
 class DokDistKanalClient(
@@ -17,6 +19,13 @@ class DokDistKanalClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        private val noDistributionResponse =
+            BestemDistribusjonskanalResponse(
+                distribusjonskanal = BestemDistribusjonskanalResponse.DistribusjonKanalCode.INGEN_DISTRIBUSJON,
+                regel = "",
+                regelBegrunnelse = "",
+            )
     }
 
     fun getDistribusjonskanal(input: Request): BestemDistribusjonskanalResponse {
@@ -28,14 +37,7 @@ class DokDistKanalClient(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getOnBehalfOfTokenWithDokDistKanalScope()}",
             ).bodyValue(input)
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(
-                    response = response,
-                    functionName = ::getDistribusjonskanal.name,
-                    classLogger = logger,
-                )
-            }.bodyToMono<BestemDistribusjonskanalResponse>()
+            .exchangeToMono(::handleResponse)
             .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
     }
 
@@ -48,16 +50,28 @@ class DokDistKanalClient(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithDokDistKanalScope()}",
             ).bodyValue(input)
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
+            .exchangeToMono(::handleResponse)
+            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
+    }
+
+    private fun handleResponse(response: ClientResponse): Mono<BestemDistribusjonskanalResponse> =
+        when {
+            response.statusCode() == HttpStatus.GONE -> {
+                Mono.just(noDistributionResponse)
+            }
+
+            response.statusCode().isError -> {
                 logErrorResponse(
                     response = response,
                     functionName = ::getDistribusjonskanal.name,
                     classLogger = logger,
-                )
-            }.bodyToMono<BestemDistribusjonskanalResponse>()
-            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
-    }
+                ).flatMap { Mono.error(it) }
+            }
+
+            else -> {
+                response.bodyToMono<BestemDistribusjonskanalResponse>()
+            }
+        }
 
     data class Request(
         val mottakerId: String,
