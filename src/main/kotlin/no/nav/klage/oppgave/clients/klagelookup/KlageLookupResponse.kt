@@ -79,6 +79,7 @@ data class PersonResponse(
     val egenAnsatt: Boolean,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val sikkerhetstiltak: SikkerhetstiltakResponse?,
+    val falskId: Boolean,
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class SikkerhetstiltakResponse(

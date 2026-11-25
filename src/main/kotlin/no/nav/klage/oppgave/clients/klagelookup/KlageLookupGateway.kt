@@ -211,6 +211,7 @@ class KlageLookupGateway(
             egenAnsatt = egenAnsatt,
             vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
             sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
+            falskId = falskId,
         )
 
     private fun PersonResponse.SikkerhetstiltakResponse.toSikkerhetstiltak(): Person.Sikkerhetstiltak =
