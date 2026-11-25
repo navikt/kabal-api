@@ -16,6 +16,7 @@ data class Person(
     val egenAnsatt: Boolean,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val sikkerhetstiltak: Sikkerhetstiltak?,
+    val falskId: Boolean,
 ) {
     data class Sikkerhetstiltak(
         val tiltakstype: Tiltakstype,

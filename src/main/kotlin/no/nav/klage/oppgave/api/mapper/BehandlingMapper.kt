@@ -1252,6 +1252,12 @@ class BehandlingMapper(
                     date = person.doed,
                 )
         }
+        if (person.falskId) {
+            statusList +=
+                BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.FALSK_ID,
+                )
+        }
         if (person.vergemaalEllerFremtidsfullmakt) {
             statusList +=
                 BehandlingDetaljerView.PartStatus(
