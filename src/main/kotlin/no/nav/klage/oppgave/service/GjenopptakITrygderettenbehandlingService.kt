@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027Input
@@ -25,7 +24,7 @@ class GjenopptakITrygderettenbehandlingService(
     private val gjenopptakITrygderettenbehandlingEtter2027Repository: GjenopptakITrygderettenbehandlingEtter2027Repository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val kantApiGateway: KantApiGateway,
+    private val kantService: KantService,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
@@ -36,7 +35,7 @@ class GjenopptakITrygderettenbehandlingService(
     fun createGjenopptakITrygderettenbehandlingFoer2027(
         input: GjenopptakITrygderettenbehandlingFoer2027Input,
     ): GjenopptakITrygderettenbehandlingFoer2027 {
-        val gjenopptakITrygderettenbehandling =
+        val gjenopptakITrygderettenbehandlingFoer2027 =
             gjenopptakITrygderettenbehandlingFoer2027Repository.save(
                 GjenopptakITrygderettenbehandlingFoer2027(
                     klager = input.klager.copy(),
@@ -70,16 +69,21 @@ class GjenopptakITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created gjenopptakITrygderettenbehandlingFoer2027 {}", gjenopptakITrygderettenbehandling.id)
+        logger.debug("Created gjenopptakITrygderettenbehandlingFoer2027 {}", gjenopptakITrygderettenbehandlingFoer2027.id)
+
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            gjenopptakITrygderettenbehandlingFoer2027.kantReference =
+                kantService.createSaksdataInKant(gjenopptakITrygderettenbehandlingFoer2027).id
+        }
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
             ytelse = input.ytelse,
-            behandlingId = gjenopptakITrygderettenbehandling.id,
+            behandlingId = gjenopptakITrygderettenbehandlingFoer2027.id,
         )
 
         behandlingService.connectDocumentsToBehandling(
-            behandlingId = gjenopptakITrygderettenbehandling.id,
+            behandlingId = gjenopptakITrygderettenbehandlingFoer2027.id,
             journalfoertDokumentReferenceSet =
                 input.saksdokumenter
                     .map {
@@ -95,7 +99,7 @@ class GjenopptakITrygderettenbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptakITrygderettenbehandling,
+                behandling = gjenopptakITrygderettenbehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -103,19 +107,19 @@ class GjenopptakITrygderettenbehandlingService(
                             felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptakITrygderettenbehandling.id,
+                            behandlingId = gjenopptakITrygderettenbehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        return gjenopptakITrygderettenbehandling
+        return gjenopptakITrygderettenbehandlingFoer2027
     }
 
     fun createGjenopptakITrygderettenbehandlingEtter2027(
         input: GjenopptakITrygderettenbehandlingEtter2027Input,
     ): GjenopptakITrygderettenbehandlingEtter2027 {
-        val gjenopptakITrygderettenbehandling =
+        val gjenopptakITrygderettenbehandlingEtter2027 =
             gjenopptakITrygderettenbehandlingEtter2027Repository.save(
                 GjenopptakITrygderettenbehandlingEtter2027(
                     klager = input.klager.copy(),
@@ -150,18 +154,19 @@ class GjenopptakITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created gjenopptakITrygderettenbehandlingEtter2027 {}", gjenopptakITrygderettenbehandling.id)
+        logger.debug("Created gjenopptakITrygderettenbehandlingEtter2027 {}", gjenopptakITrygderettenbehandlingEtter2027.id)
 
-        gjenopptakITrygderettenbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptakITrygderettenbehandling).id
+        gjenopptakITrygderettenbehandlingEtter2027.kantReference =
+            kantService.createSaksdataInKant(gjenopptakITrygderettenbehandlingEtter2027).id
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
             ytelse = input.ytelse,
-            behandlingId = gjenopptakITrygderettenbehandling.id,
+            behandlingId = gjenopptakITrygderettenbehandlingEtter2027.id,
         )
 
         behandlingService.connectDocumentsToBehandling(
-            behandlingId = gjenopptakITrygderettenbehandling.id,
+            behandlingId = gjenopptakITrygderettenbehandlingEtter2027.id,
             journalfoertDokumentReferenceSet =
                 input.saksdokumenter
                     .map {
@@ -177,7 +182,7 @@ class GjenopptakITrygderettenbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptakITrygderettenbehandling,
+                behandling = gjenopptakITrygderettenbehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -185,12 +190,12 @@ class GjenopptakITrygderettenbehandlingService(
                             felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptakITrygderettenbehandling.id,
+                            behandlingId = gjenopptakITrygderettenbehandlingEtter2027.id,
                         ),
                     ),
             ),
         )
 
-        return gjenopptakITrygderettenbehandling
+        return gjenopptakITrygderettenbehandlingEtter2027
     }
 }

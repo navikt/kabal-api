@@ -48,7 +48,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.GjenopptakITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.GjenopptaksbehandlingService
 import no.nav.klage.oppgave.service.GosysOppgaveService
-import no.nav.klage.oppgave.service.KantSaksdataService
+import no.nav.klage.oppgave.service.KantService
 import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -74,7 +74,7 @@ class BehandlingAvslutningService(
     private val gosysOppgaveService: GosysOppgaveService,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
-    private val kantSaksdataService: KantSaksdataService,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -119,12 +119,16 @@ class BehandlingAvslutningService(
         }
 
         if (behandling is BehandlingWithKantReference) {
-            if (behandling is GjenopptakITrygderettenbehandlingEtter2027 && behandling.nyGjenopptaksbehandlingKA != null) {
+            if ((behandling is GjenopptakITrygderettenbehandlingFoer2027 || behandling is GjenopptakITrygderettenbehandlingEtter2027) &&
+                behandling.nyGjenopptaksbehandlingKA != null
+            ) {
                 // TODO: handle, maybe delete in kant-api?
-            } else if (behandling is AnkeITrygderettenbehandlingEtter2027 && behandling.nyAnkebehandlingKA != null) {
+            } else if ((behandling is AnkeITrygderettenbehandlingFoer2027 || behandling is AnkeITrygderettenbehandlingEtter2027) &&
+                behandling.nyAnkebehandlingKA != null
+            ) {
                 // TODO: handle, maybe delete in kant-api?
             } else {
-                kantSaksdataService.finalizeSaksdata(behandlingId)
+                kantService.finalizeSaksdata(behandling)
             }
         }
 

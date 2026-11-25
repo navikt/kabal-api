@@ -51,7 +51,6 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
@@ -199,7 +198,7 @@ class BehandlingService(
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val entityManager: EntityManager,
-    private val kantApiGateway: KantApiGateway,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -594,7 +593,7 @@ class BehandlingService(
 
         if (behandling is BehandlingWithKantReference && behandling.utfall !in noKvalitetsvurderingNeeded) {
             val kantKvalitetsvurderingValidationErrors =
-                kantApiGateway.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
+                kantService.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
 
             if (kantKvalitetsvurderingValidationErrors.isNotEmpty()) {
                 sectionList.add(
@@ -3034,7 +3033,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         if (behandling is BehandlingWithKantReference) {
-            kantApiGateway.updateSaksdata(behandling = behandling)
+            kantService.updateSaksdata(behandling = behandling)
         }
 
         publishInternalEvent(

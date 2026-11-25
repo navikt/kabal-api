@@ -1,6 +1,11 @@
-package no.nav.klage.oppgave.clients.kant
+package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.oppgave.clients.kant.KantApiClient
+import no.nav.klage.oppgave.clients.kant.KantAvslutningInput
+import no.nav.klage.oppgave.clients.kant.KantSaksdata
+import no.nav.klage.oppgave.clients.kant.KantSaksdataInput
+import no.nav.klage.oppgave.clients.kant.KantUpdateInput
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -10,17 +15,24 @@ import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingE
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 @Service
-class KantApiGateway(
+class KantService(
     private val kantApiClient: KantApiClient,
+    @Value($$"#{T(java.time.LocalDate).parse('${USE_KANT_FOR_OLD_TYPES_DATE}')}")
+    private val useKantForOldTypesDate: LocalDate,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
+
+    fun kantShouldBeUsedForOldTypes(): Boolean =
+        (LocalDate.now().isAfter(useKantForOldTypesDate) || LocalDate.now().isEqual(useKantForOldTypesDate))
 
     fun createSaksdataInKant(behandling: BehandlingWithKantReference): KantSaksdata {
         behandling as Behandling
@@ -42,6 +54,7 @@ class KantApiGateway(
 
     fun finalizeSaksdata(behandling: BehandlingWithKantReference) {
         behandling as Behandling
+        check(behandling.feilregistrering == null) { "Cannot finalize Kant for feilregistrert behandling" }
         val tilknyttetEnhet = Enhet.entries.find { it.navn == behandling.tildeling?.enhet!! }
         val sakITrygderettenOpprettet =
             if (behandling is AnkeITrygderettenbehandlingEtter2027 || behandling is GjenopptakITrygderettenbehandlingEtter2027) {

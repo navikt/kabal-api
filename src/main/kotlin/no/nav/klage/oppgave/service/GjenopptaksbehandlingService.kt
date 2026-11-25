@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
@@ -30,7 +29,7 @@ class GjenopptaksbehandlingService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
-    private val kantApiGateway: KantApiGateway,
+    private val kantService: KantService,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
@@ -41,7 +40,7 @@ class GjenopptaksbehandlingService(
 
     fun createGjenopptaksbehandlingFoer2027FromMottak(mottak: Mottak): GjenopptaksbehandlingFoer2027 {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
-        val gjenopptaksbehandling =
+        val gjenopptaksbehandlingFoer2027 =
             gjenopptaksbehandlingFoer2027Repository.save(
                 GjenopptaksbehandlingFoer2027(
                     klager = mottak.klager.copy(),
@@ -89,12 +88,17 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
-        gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        gjenopptaksbehandlingFoer2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
-        logger.debug("Created {} with id {}", gjenopptaksbehandling.javaClass.name, gjenopptaksbehandling.id)
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            gjenopptaksbehandlingFoer2027.kantReference =
+                kantService.createSaksdataInKant(gjenopptaksbehandlingFoer2027).id
+        }
+
+        logger.debug("Created {} with id {}", gjenopptaksbehandlingFoer2027.javaClass.name, gjenopptaksbehandlingFoer2027.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = gjenopptaksbehandling.id,
+            behandlingId = gjenopptaksbehandlingFoer2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -102,7 +106,7 @@ class GjenopptaksbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptaksbehandling,
+                behandling = gjenopptaksbehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -110,7 +114,7 @@ class GjenopptaksbehandlingService(
                             felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptaksbehandling.id,
+                            behandlingId = gjenopptaksbehandlingFoer2027.id,
                         ),
                     ),
             ),
@@ -118,7 +122,7 @@ class GjenopptaksbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptaksbehandling,
+                behandling = gjenopptaksbehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -126,15 +130,15 @@ class GjenopptaksbehandlingService(
                             felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptaksbehandling.id,
+                            behandlingId = gjenopptaksbehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        gjenopptaksbehandling.opprettetSendt = true
+        gjenopptaksbehandlingFoer2027.opprettetSendt = true
 
-        return gjenopptaksbehandling
+        return gjenopptaksbehandlingFoer2027
     }
 
     fun createGjenopptaksbehandlingEtter2027FromMottak(mottak: Mottak): GjenopptaksbehandlingEtter2027 {
@@ -147,7 +151,7 @@ class GjenopptaksbehandlingService(
                     "Mottak with kildereferanse ${mottak.kildeReferanse} for gjenopptak etter 2027 is missing saksnummer fra Trygderetten.",
                 )
 
-        val gjenopptaksbehandling =
+        val gjenopptaksbehandlingEtter2027 =
             gjenopptaksbehandlingEtter2027Repository.save(
                 GjenopptaksbehandlingEtter2027(
                     klager = mottak.klager.copy(),
@@ -194,13 +198,13 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
-        gjenopptaksbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptaksbehandling).id
-        gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        gjenopptaksbehandlingEtter2027.kantReference = kantService.createSaksdataInKant(gjenopptaksbehandlingEtter2027).id
+        gjenopptaksbehandlingEtter2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
-        logger.debug("Created {} with id {}", gjenopptaksbehandling.javaClass.name, gjenopptaksbehandling.id)
+        logger.debug("Created {} with id {}", gjenopptaksbehandlingEtter2027.javaClass.name, gjenopptaksbehandlingEtter2027.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = gjenopptaksbehandling.id,
+            behandlingId = gjenopptaksbehandlingEtter2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -208,7 +212,7 @@ class GjenopptaksbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptaksbehandling,
+                behandling = gjenopptaksbehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -216,7 +220,7 @@ class GjenopptaksbehandlingService(
                             felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_MOTTATT,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptaksbehandling.id,
+                            behandlingId = gjenopptaksbehandlingEtter2027.id,
                         ),
                     ),
             ),
@@ -224,7 +228,7 @@ class GjenopptaksbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptaksbehandling,
+                behandling = gjenopptaksbehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -232,15 +236,15 @@ class GjenopptaksbehandlingService(
                             felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptaksbehandling.id,
+                            behandlingId = gjenopptaksbehandlingEtter2027.id,
                         ),
                     ),
             ),
         )
 
-        gjenopptaksbehandling.opprettetSendt = true
+        gjenopptaksbehandlingEtter2027.opprettetSendt = true
 
-        return gjenopptaksbehandling
+        return gjenopptaksbehandlingEtter2027
     }
 
     fun createGjenopptaksbehandlingFoer2027FromGjenopptakITrygderettenbehandlingFoer2027(
@@ -248,7 +252,7 @@ class GjenopptaksbehandlingService(
     ): GjenopptaksbehandlingFoer2027 {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
-        val gjenopptaksbehandling =
+        val gjenopptaksbehandlingFoer2027 =
             gjenopptaksbehandlingFoer2027Repository.save(
                 GjenopptaksbehandlingFoer2027(
                     klager = gjenopptakITrygderettenbehandlingFoer2027.klager.copy(),
@@ -287,14 +291,19 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            gjenopptaksbehandlingFoer2027.kantReference =
+                kantService.createSaksdataInKant(gjenopptaksbehandlingFoer2027).id
+        }
+
         logger.debug(
             "Created gjenopptaksbehandlingFoer2027 {} from gjenopptakITrygderettenbehandlingFoer2027 {}",
-            gjenopptaksbehandling.id,
+            gjenopptaksbehandlingFoer2027.id,
             gjenopptakITrygderettenbehandlingFoer2027.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = gjenopptaksbehandling.id,
+            behandlingId = gjenopptaksbehandlingFoer2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -302,7 +311,7 @@ class GjenopptaksbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = gjenopptaksbehandling,
+                behandling = gjenopptaksbehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -310,13 +319,13 @@ class GjenopptaksbehandlingService(
                             felt = Felt.BEGJAERING_OM_GJENOPPTAKSBEHANDLING_OPPRETTET_BASERT_PAA_BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = gjenopptaksbehandling.id,
+                            behandlingId = gjenopptaksbehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        return gjenopptaksbehandling
+        return gjenopptaksbehandlingFoer2027
     }
 
     fun createGjenopptaksbehandlingEtter2027FromGjenopptakITrygderettenbehandlingEtter2027(
@@ -362,7 +371,7 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
-        gjenopptaksbehandling.kantReference = kantApiGateway.createSaksdataInKant(gjenopptaksbehandling).id
+        gjenopptaksbehandling.kantReference = kantService.createSaksdataInKant(gjenopptaksbehandling).id
 
         logger.debug(
             "Created gjenopptaksbehandlingEtter2027 {} from gjenopptakITrygderettenbehandlingEtter2027 {}",

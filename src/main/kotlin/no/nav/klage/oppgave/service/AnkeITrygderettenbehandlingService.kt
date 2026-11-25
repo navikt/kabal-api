@@ -9,7 +9,6 @@ import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFromArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingFoer2027Input
 import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingFoer2027Input
-import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027Input
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
@@ -53,7 +52,7 @@ class AnkeITrygderettenbehandlingService(
     private val dokumentService: DokumentService,
     private val gosysOppgaveService: GosysOppgaveService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val kantApiGateway: KantApiGateway,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -62,7 +61,7 @@ class AnkeITrygderettenbehandlingService(
     }
 
     fun createAnkeITrygderettenbehandlingFoer2027(input: AnkeITrygderettenbehandlingFoer2027Input): AnkeITrygderettenbehandlingFoer2027 {
-        val ankeITrygderettenbehandling =
+        val ankeITrygderettenbehandlingFoer2027 =
             ankeITrygderettenbehandlingFoer2027Repository.save(
                 AnkeITrygderettenbehandlingFoer2027(
                     klager = input.klager.copy(),
@@ -96,17 +95,21 @@ class AnkeITrygderettenbehandlingService(
                     previousBehandlingId = input.previousBehandlingId,
                 ),
             )
-        logger.debug("Created ankeITrygderettenbehandlingFoer2027 {}", ankeITrygderettenbehandling.id)
+        logger.debug("Created ankeITrygderettenbehandlingFoer2027 {}", ankeITrygderettenbehandlingFoer2027.id)
+
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            ankeITrygderettenbehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankeITrygderettenbehandlingFoer2027).id
+        }
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
             ytelse = input.ytelse,
-            behandlingId = ankeITrygderettenbehandling.id,
+            behandlingId = ankeITrygderettenbehandlingFoer2027.id,
         )
 
         if (input.saksdokumenter.isNotEmpty()) {
             behandlingService.connectDocumentsToBehandling(
-                behandlingId = ankeITrygderettenbehandling.id,
+                behandlingId = ankeITrygderettenbehandlingFoer2027.id,
                 journalfoertDokumentReferenceSet =
                     input.saksdokumenter
                         .map {
@@ -123,7 +126,7 @@ class AnkeITrygderettenbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankeITrygderettenbehandling,
+                behandling = ankeITrygderettenbehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -131,17 +134,17 @@ class AnkeITrygderettenbehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankeITrygderettenbehandling.id,
+                            behandlingId = ankeITrygderettenbehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        return ankeITrygderettenbehandling
+        return ankeITrygderettenbehandlingFoer2027
     }
 
     fun createAnkeITrygderettenbehandlingEtter2027(input: AnkeITrygderettenbehandlingEtter2027Input): AnkeITrygderettenbehandlingEtter2027 {
-        val ankeITrygderettenbehandling =
+        val ankeITrygderettenbehandlingEtter2027 =
             ankeITrygderettenbehandlingEtter2027Repository.save(
                 AnkeITrygderettenbehandlingEtter2027(
                     klager = input.klager.copy(),
@@ -177,19 +180,19 @@ class AnkeITrygderettenbehandlingService(
                 ),
             )
 
-        ankeITrygderettenbehandling.kantReference = kantApiGateway.createSaksdataInKant(ankeITrygderettenbehandling).id
+        ankeITrygderettenbehandlingEtter2027.kantReference = kantService.createSaksdataInKant(ankeITrygderettenbehandlingEtter2027).id
 
-        logger.debug("Created ankeITrygderettenbehandlingEtter2027 {}", ankeITrygderettenbehandling.id)
+        logger.debug("Created ankeITrygderettenbehandlingEtter2027 {}", ankeITrygderettenbehandlingEtter2027.id)
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
             ytelse = input.ytelse,
-            behandlingId = ankeITrygderettenbehandling.id,
+            behandlingId = ankeITrygderettenbehandlingEtter2027.id,
         )
 
         if (input.saksdokumenter.isNotEmpty()) {
             behandlingService.connectDocumentsToBehandling(
-                behandlingId = ankeITrygderettenbehandling.id,
+                behandlingId = ankeITrygderettenbehandlingEtter2027.id,
                 journalfoertDokumentReferenceSet =
                     input.saksdokumenter
                         .map {
@@ -206,7 +209,7 @@ class AnkeITrygderettenbehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankeITrygderettenbehandling,
+                behandling = ankeITrygderettenbehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -214,31 +217,31 @@ class AnkeITrygderettenbehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankeITrygderettenbehandling.id,
+                            behandlingId = ankeITrygderettenbehandlingEtter2027.id,
                         ),
                     ),
             ),
         )
 
-        return ankeITrygderettenbehandling
+        return ankeITrygderettenbehandlingEtter2027
     }
 
     fun createAnkeITrygderettenbehandlingFromExternalApi(input: OversendtAnkeITrygderettenV1) {
         mottakService.validateAnkeITrygderettenV1(input)
         val inputDocuments =
             dokumentService.createSaksdokumenterFromJournalpostIdList(input.tilknyttedeJournalposter.map { it.journalpostId })
-        val ankeITrygderettenbehandling =
+        val ankeITrygderettenbehandlingFoer2027 =
             createAnkeITrygderettenbehandlingFoer2027(
                 input.createAnkeITrygderettenbehandlingFoer2027Input(inputDocuments),
             )
 
         // Custom handling for Pesys:
-        if (ankeITrygderettenbehandling.fagsystem == Fagsystem.PP01) {
+        if (ankeITrygderettenbehandlingFoer2027.fagsystem == Fagsystem.PP01) {
             val statistikkTilDVH =
                 StatistikkTilDVH(
                     eventId = UUID.randomUUID(),
-                    behandlingId = ankeITrygderettenbehandling.dvhReferanse,
-                    behandlingIdKabal = ankeITrygderettenbehandling.toString(),
+                    behandlingId = ankeITrygderettenbehandlingFoer2027.dvhReferanse,
+                    behandlingIdKabal = ankeITrygderettenbehandlingFoer2027.toString(),
                     // Means enhetTildeltDato
                     behandlingStartetKA = null,
                     ansvarligEnhetKode = "TR0000",
@@ -246,35 +249,35 @@ class AnkeITrygderettenbehandlingService(
                     behandlingType = BehandlingType.ANKE,
                     // Means medunderskriver
                     beslutter = null,
-                    endringstid = ankeITrygderettenbehandling.sendtTilTrygderetten,
+                    endringstid = ankeITrygderettenbehandlingFoer2027.sendtTilTrygderetten,
                     hjemmel = emptyList(),
                     klager =
                         getDVHPart(
-                            type = ankeITrygderettenbehandling.klager.partId.type,
-                            value = ankeITrygderettenbehandling.klager.partId.value,
+                            type = ankeITrygderettenbehandlingFoer2027.klager.partId.type,
+                            value = ankeITrygderettenbehandlingFoer2027.klager.partId.value,
                         ),
-                    opprinneligFagsaksystem = ankeITrygderettenbehandling.fagsystem.navn,
-                    overfoertKA = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
+                    opprinneligFagsaksystem = ankeITrygderettenbehandlingFoer2027.fagsystem.navn,
+                    overfoertKA = ankeITrygderettenbehandlingFoer2027.mottattKlageinstans.toLocalDate(),
                     resultat = null,
                     sakenGjelder =
                         getDVHPart(
-                            type = ankeITrygderettenbehandling.sakenGjelder.partId.type,
-                            value = ankeITrygderettenbehandling.sakenGjelder.partId.value,
+                            type = ankeITrygderettenbehandlingFoer2027.sakenGjelder.partId.type,
+                            value = ankeITrygderettenbehandlingFoer2027.sakenGjelder.partId.value,
                         ),
-                    saksbehandler = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                    saksbehandlerEnhet = ankeITrygderettenbehandling.tildeling?.enhet,
+                    saksbehandler = ankeITrygderettenbehandlingFoer2027.tildeling?.saksbehandlerident,
+                    saksbehandlerEnhet = ankeITrygderettenbehandlingFoer2027.tildeling?.enhet,
                     tekniskTid = LocalDateTime.now(),
                     vedtaksdato = null,
-                    ytelseType = ankeITrygderettenbehandling.ytelse.name,
-                    opprinneligFagsakId = ankeITrygderettenbehandling.fagsakId,
+                    ytelseType = ankeITrygderettenbehandlingFoer2027.ytelse.name,
+                    opprinneligFagsakId = ankeITrygderettenbehandlingFoer2027.fagsakId,
                 )
 
             kafkaEventRepository.save(
                 KafkaEvent(
                     id = UUID.randomUUID(),
-                    behandlingId = ankeITrygderettenbehandling.id,
-                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    behandlingId = ankeITrygderettenbehandlingFoer2027.id,
+                    kilde = ankeITrygderettenbehandlingFoer2027.fagsystem.navn,
+                    kildeReferanse = ankeITrygderettenbehandlingFoer2027.kildeReferanse,
                     status = UtsendingStatus.IKKE_SENDT,
                     jsonPayload = statistikkTilDVH.toJson(),
                     type = EventType.STATS_DVH,

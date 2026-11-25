@@ -74,6 +74,8 @@ class AnkebehandlingFoer2027(
     )
     @NotAudited
     override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    @Column(name = "kant_reference")
+    override var kantReference: UUID? = null,
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
 //    var avsluttetAvSaksbehandler: LocalDateTime? = null,
@@ -172,7 +174,8 @@ class AnkebehandlingFoer2027(
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,
-    BehandlingWithTrygderettenMetadata {
+    BehandlingWithTrygderettenMetadata,
+    BehandlingWithKantReference {
     override fun toString(): String =
         "AnkebehandlingFoer2027(id=$id, " +
             "modified=$modified, " +

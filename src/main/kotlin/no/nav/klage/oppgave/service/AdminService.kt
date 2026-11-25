@@ -18,7 +18,6 @@ import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
-import no.nav.klage.oppgave.clients.kant.KantApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -113,7 +112,7 @@ class AdminService(
     private val transactionTemplate: TransactionTemplate,
     private val safFacade: SafFacade,
     private val kabalDocumentGateway: KabalDocumentGateway,
-    private val kantApiGateway: KantApiGateway,
+    private val kantService: KantService,
 ) {
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
@@ -1198,14 +1197,27 @@ class AdminService(
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun backfillKant() {
+        val typeList =
+            mutableListOf(
+                Type.ANKE_ETTER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            )
+
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            typeList.addAll(
+                listOf(
+                    Type.ANKE_FOER_2027,
+                    Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                ),
+            )
+        }
         val candidates =
             behandlingRepository.findAllByTypeIn(
-                listOf(
-                    Type.ANKE_ETTER_2027,
-                    Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
-                    Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
-                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
-                ),
+                typeList,
             )
         logger.debug("Backfill kant, candidates: {}", candidates.size)
         var changed = 0
@@ -1213,7 +1225,7 @@ class AdminService(
             transactionTemplate.execute {
                 val behandling = behandlingRepository.findByIdEager(candidate.id) as BehandlingWithKantReference
                 if (behandling.kantReference == null) {
-                    behandling.kantReference = kantApiGateway.createSaksdataInKant(behandling = behandling).id
+                    behandling.kantReference = kantService.createSaksdataInKant(behandling = behandling).id
                     changed++
                 }
             }

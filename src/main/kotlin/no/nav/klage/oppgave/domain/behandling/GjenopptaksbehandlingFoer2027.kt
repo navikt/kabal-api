@@ -75,6 +75,8 @@ class GjenopptaksbehandlingFoer2027(
     )
     @NotAudited
     override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    @Column(name = "kant_reference")
+    override var kantReference: UUID? = null,
     // Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -170,7 +172,8 @@ class GjenopptaksbehandlingFoer2027(
     BehandlingWithMottakDokument,
     BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,
-    BehandlingWithTrygderettenMetadata {
+    BehandlingWithTrygderettenMetadata,
+    BehandlingWithKantReference {
     override fun toString(): String =
         "GjenopptaksbehandlingFoer2027(id=$id, " +
             "modified=$modified, " +
