@@ -185,16 +185,7 @@ class BehandlingAvslutningService(
         }
 
         if (klagebehandling.gosysOppgaveRequired) {
-            if (klagebehandling.gosysOppgaveId != null && klagebehandling.gosysOppgaveUpdate != null &&
-                !klagebehandling.ignoreGosysOppgave
-            ) {
-                logger.debug("Klage med id ${klagebehandling.id} har Gosys-oppgave, oppdaterer den.")
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = klagebehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = klagebehandling)
         }
     }
 
@@ -251,14 +242,7 @@ class BehandlingAvslutningService(
             logger.debug("Unknown situation behandling ${ankebehandling.id}")
         }
         if (ankebehandling.gosysOppgaveRequired) {
-            if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
-                logger.debug("AnkebehandlingFoer2027 med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = ankebehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = ankebehandling)
         }
     }
 
@@ -306,14 +290,7 @@ class BehandlingAvslutningService(
         }
 
         if (ankebehandling.gosysOppgaveRequired) {
-            if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
-                logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = ankebehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = ankebehandling)
         }
     }
 
@@ -399,16 +376,7 @@ class BehandlingAvslutningService(
         }
 
         if (ankeITrygderettenbehandling.gosysOppgaveRequired && ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
-            if (ankeITrygderettenbehandling.gosysOppgaveId != null && ankeITrygderettenbehandling.gosysOppgaveUpdate != null &&
-                !ankeITrygderettenbehandling.ignoreGosysOppgave
-            ) {
-                logger.debug("AnkeITrygderetten med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = ankeITrygderettenbehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = ankeITrygderettenbehandling)
         }
     }
 
@@ -494,18 +462,7 @@ class BehandlingAvslutningService(
         }
 
         if (ankeITrygderettenbehandling.gosysOppgaveRequired && ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
-            if (ankeITrygderettenbehandling.gosysOppgaveId != null && ankeITrygderettenbehandling.gosysOppgaveUpdate != null &&
-                !ankeITrygderettenbehandling.ignoreGosysOppgave
-            ) {
-                logger.debug(
-                    "AnkeITrygderettenbehandlingEtter2027 med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
-                )
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = ankeITrygderettenbehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = ankeITrygderettenbehandling)
         }
     }
 
@@ -543,19 +500,7 @@ class BehandlingAvslutningService(
         }
 
         if (behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired) {
-            if (behandlingEtterTrygderettenOpphevet.gosysOppgaveId != null &&
-                behandlingEtterTrygderettenOpphevet.gosysOppgaveUpdate != null &&
-                !behandlingEtterTrygderettenOpphevet.ignoreGosysOppgave
-            ) {
-                logger.debug(
-                    "BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} har Gosys-oppgave, oppdaterer den.",
-                )
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = behandlingEtterTrygderettenOpphevet,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = behandlingEtterTrygderettenOpphevet)
         }
     }
 
@@ -563,18 +508,7 @@ class BehandlingAvslutningService(
         if (omgjoeringskravbehandling.shouldBeSentToVedtaksinstans()) {
             logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har utfall som skal formidles til førsteinstans.")
             if (omgjoeringskravbehandling.gosysOppgaveRequired) {
-                if (!omgjoeringskravbehandling.ignoreGosysOppgave) {
-                    logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                        behandling = omgjoeringskravbehandling,
-                        systemContext = true,
-                        throwExceptionIfFerdigstilt = true,
-                    )
-                } else {
-                    logger.debug(
-                        "Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har Gosys-oppgave, men den skal ignoreres.",
-                    )
-                }
+                updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = omgjoeringskravbehandling)
             } else {
                 logger.debug(
                     "Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.",
@@ -603,16 +537,7 @@ class BehandlingAvslutningService(
         if (gjenopptaksbehandling.shouldBeSentToVedtaksinstans()) {
             logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har utfall som skal formidles til førsteinstans.")
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
-                if (!gjenopptaksbehandling.ignoreGosysOppgave) {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                        behandling = gjenopptaksbehandling,
-                        systemContext = true,
-                        throwExceptionIfFerdigstilt = true,
-                    )
-                } else {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, men den skal ignoreres.")
-                }
+                updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptaksbehandling)
             } else {
                 logger.debug(
                     "Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.",
@@ -624,16 +549,7 @@ class BehandlingAvslutningService(
         } else if (gjenopptaksbehandling.shouldBeSentToTrygderetten()) {
             createGjenopptakITrygderettenbehandlingFoer2027(gjenopptaksbehandling)
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
-                if (gjenopptaksbehandling.gosysOppgaveId != null && gjenopptaksbehandling.gosysOppgaveUpdate != null &&
-                    !gjenopptaksbehandling.ignoreGosysOppgave
-                ) {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                        behandling = gjenopptaksbehandling,
-                        systemContext = true,
-                        throwExceptionIfFerdigstilt = true,
-                    )
-                }
+                updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptaksbehandling)
             }
         } else if (gjenopptaksbehandling.shouldBeCompletedInKA()) {
             // Saken avsluttes ved "Trukket" og "Henlagt"
@@ -657,16 +573,7 @@ class BehandlingAvslutningService(
         if (gjenopptaksbehandling.shouldBeSentToVedtaksinstans()) {
             logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har utfall som skal formidles til førsteinstans.")
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
-                if (!gjenopptaksbehandling.ignoreGosysOppgave) {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                        behandling = gjenopptaksbehandling,
-                        systemContext = true,
-                        throwExceptionIfFerdigstilt = true,
-                    )
-                } else {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, men den skal ignoreres.")
-                }
+                updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptaksbehandling)
             } else {
                 logger.debug(
                     "Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.",
@@ -677,16 +584,7 @@ class BehandlingAvslutningService(
             }
         } else if (gjenopptaksbehandling.shouldBeSentToTrygderetten()) {
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
-                if (gjenopptaksbehandling.gosysOppgaveId != null && gjenopptaksbehandling.gosysOppgaveUpdate != null &&
-                    !gjenopptaksbehandling.ignoreGosysOppgave
-                ) {
-                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                        behandling = gjenopptaksbehandling,
-                        systemContext = true,
-                        throwExceptionIfFerdigstilt = true,
-                    )
-                }
+                updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptaksbehandling)
             }
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand i behandling med id ${gjenopptaksbehandling.id}, undersøk.")
@@ -759,18 +657,7 @@ class BehandlingAvslutningService(
                 behandling = gjenopptakITrygderettenbehandling,
             )
         } else {
-            if (gjenopptakITrygderettenbehandling.gosysOppgaveId != null && gjenopptakITrygderettenbehandling.gosysOppgaveUpdate != null &&
-                !gjenopptakITrygderettenbehandling.ignoreGosysOppgave
-            ) {
-                logger.debug(
-                    "GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
-                )
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = gjenopptakITrygderettenbehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptakITrygderettenbehandling)
         }
     }
 
@@ -840,18 +727,36 @@ class BehandlingAvslutningService(
                 behandling = gjenopptakITrygderettenbehandling,
             )
         } else {
-            if (gjenopptakITrygderettenbehandling.gosysOppgaveId != null && gjenopptakITrygderettenbehandling.gosysOppgaveUpdate != null &&
-                !gjenopptakITrygderettenbehandling.ignoreGosysOppgave
-            ) {
-                logger.debug(
-                    "GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.",
-                )
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = gjenopptakITrygderettenbehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
+            updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling = gjenopptakITrygderettenbehandling)
+        }
+    }
+
+    private fun updateOrAvsluttGosysOppgaveOnCompletedBehandling(behandling: Behandling) {
+        if (behandling.gosysOppgaveId == null || behandling.ignoreGosysOppgave) {
+            logger.debug("Behandling med id {} har ingen Gosys-oppgave som skal håndteres.", behandling.id)
+            return
+        }
+
+        if (behandling.avsluttGosysOppgave) {
+            logger.debug("Behandling med id {} har Gosys-oppgave som saksbehandler har valgt å avslutte, avslutter den.", behandling.id)
+            gosysOppgaveService.avsluttGosysOppgave(
+                behandling = behandling,
+                throwExceptionIfFerdigstilt = true,
+                kommentar = behandling.avsluttGosysOppgaveKommentar,
+            )
+        } else if (behandling.gosysOppgaveUpdate != null) {
+            logger.debug("Behandling med id {} har Gosys-oppgave, oppdaterer den.", behandling.id)
+            gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                behandling = behandling,
+                systemContext = true,
+                throwExceptionIfFerdigstilt = true,
+            )
+        } else {
+            logger.error(
+                "Behandling med id {} har Gosys-oppgave, men verken oppdatering, avslutning eller ignorering er valgt. " +
+                    "Gosys-oppgaven er ikke oppdatert. Undersøk.",
+                behandling.id,
+            )
         }
     }
 

@@ -763,6 +763,9 @@ object BehandlingSetters {
                 oppgaveUpdateKommentar = kommentar,
             )
 
+        ignoreGosysOppgave = false
+        avsluttGosysOppgave = false
+        avsluttGosysOppgaveKommentar = null
         modified = tidspunkt
         val change =
             createChange(
@@ -782,7 +785,11 @@ object BehandlingSetters {
         val tidspunkt = LocalDateTime.now()
         val gammelVerdi = ignoreGosysOppgave
         ignoreGosysOppgave = ignoreGosysOppgaveNewValue
-        modified = tidspunkt
+        if (ignoreGosysOppgaveNewValue) {
+            gosysOppgaveUpdate = null
+            avsluttGosysOppgave = false
+            avsluttGosysOppgaveKommentar = null
+        }
         modified = tidspunkt
         val change =
             createChange(
@@ -791,6 +798,28 @@ object BehandlingSetters {
                 felt = BehandlingChangedEvent.Felt.IGNORE_GOSYS_OPPGAVE,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = ignoreGosysOppgave.toString(),
+            )
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
+    }
+
+    fun Behandling.setAvsluttGosysOppgave(
+        kommentar: String,
+        saksbehandlerident: String,
+    ): BehandlingChangedEvent {
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdi = avsluttGosysOppgave
+        avsluttGosysOppgave = true
+        avsluttGosysOppgaveKommentar = kommentar
+        gosysOppgaveUpdate = null
+        ignoreGosysOppgave = false
+        modified = tidspunkt
+        val change =
+            createChange(
+                behandlingId = this.id,
+                saksbehandlerident = saksbehandlerident,
+                felt = BehandlingChangedEvent.Felt.AVSLUTT_GOSYS_OPPGAVE,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = "true",
             )
         return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }

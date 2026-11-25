@@ -441,6 +441,7 @@ class GosysOppgaveService(
     fun avsluttGosysOppgave(
         behandling: Behandling,
         throwExceptionIfFerdigstilt: Boolean,
+        kommentar: String? = null,
     ) {
         logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
         val currentGosysOppgave =
@@ -461,8 +462,9 @@ class GosysOppgaveService(
                 status = Status.FERDIGSTILT,
                 kommentar =
                     Kommentar(
-                        tekst = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}.",
-                        automatiskGenerert = true,
+                        tekst =
+                            kommentar ?: "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}.",
+                        automatiskGenerert = kommentar == null,
                     ),
             )
 

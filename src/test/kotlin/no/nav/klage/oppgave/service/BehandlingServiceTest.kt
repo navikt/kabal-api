@@ -20,6 +20,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.AvsluttGosysOppgaveInput
 import no.nav.klage.oppgave.api.view.GosysOppgaveInput
 import no.nav.klage.oppgave.api.view.GosysOppgaveUpdateInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlowStateResponse
@@ -688,6 +689,62 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                                 kommentar = "Kommentar",
                             ),
                         ignoreGosysOppgave = true,
+                    ),
+                nyBehandlingEtterTROpphevet = false,
+            )
+        }
+    }
+
+    @Test
+    fun `Ferdigstill behandling med både avsluttGosysOppgave og ignoreGosysOppgave gir feil`() {
+        assertThrows<SectionedValidationErrorWithDetailsException> {
+            behandlingService.ferdigstillBehandling(
+                behandlingId = UUID.randomUUID(),
+                innloggetIdent = saksbehandlerIdent,
+                gosysOppgaveInput =
+                    GosysOppgaveInput(
+                        gosysOppgaveUpdate = null,
+                        ignoreGosysOppgave = true,
+                        avsluttGosysOppgave = AvsluttGosysOppgaveInput(kommentar = "Kommentar"),
+                    ),
+                nyBehandlingEtterTROpphevet = false,
+            )
+        }
+    }
+
+    @Test
+    fun `Ferdigstill behandling med både avsluttGosysOppgave og gosysOppgaveUpdateInput gir feil`() {
+        assertThrows<SectionedValidationErrorWithDetailsException> {
+            behandlingService.ferdigstillBehandling(
+                behandlingId = UUID.randomUUID(),
+                innloggetIdent = saksbehandlerIdent,
+                gosysOppgaveInput =
+                    GosysOppgaveInput(
+                        gosysOppgaveUpdate =
+                            GosysOppgaveUpdateInput(
+                                tildeltEnhet = Enhet.E0119.id,
+                                mappeId = 123,
+                                kommentar = "Kommentar",
+                            ),
+                        ignoreGosysOppgave = null,
+                        avsluttGosysOppgave = AvsluttGosysOppgaveInput(kommentar = "Kommentar"),
+                    ),
+                nyBehandlingEtterTROpphevet = false,
+            )
+        }
+    }
+
+    @Test
+    fun `Ferdigstill behandling med avsluttGosysOppgave uten kommentar gir feil`() {
+        assertThrows<SectionedValidationErrorWithDetailsException> {
+            behandlingService.ferdigstillBehandling(
+                behandlingId = UUID.randomUUID(),
+                innloggetIdent = saksbehandlerIdent,
+                gosysOppgaveInput =
+                    GosysOppgaveInput(
+                        gosysOppgaveUpdate = null,
+                        ignoreGosysOppgave = null,
+                        avsluttGosysOppgave = AvsluttGosysOppgaveInput(kommentar = "  "),
                     ),
                 nyBehandlingEtterTROpphevet = false,
             )

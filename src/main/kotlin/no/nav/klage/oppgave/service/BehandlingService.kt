@@ -85,6 +85,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksd
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSaksdokumenter
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttGosysOppgave
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setFeilregistrering
@@ -210,24 +211,7 @@ class BehandlingService(
         gosysOppgaveInput: GosysOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (gosysOppgaveInput?.gosysOppgaveUpdate != null && gosysOppgaveInput.ignoreGosysOppgave == true) {
-            throw SectionedValidationErrorWithDetailsException(
-                title = "Validation error",
-                sections =
-                    listOf(
-                        ValidationSection(
-                            section = "behandling",
-                            properties =
-                                listOf(
-                                    InvalidProperty(
-                                        field = "gosysOppgaveInput",
-                                        reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven.",
-                                    ),
-                                ),
-                        ),
-                    ),
-            )
-        }
+        validateGosysOppgaveInputChoices(gosysOppgaveInput)
 
         val behandling =
             getBehandlingForUpdate(
@@ -321,6 +305,43 @@ class BehandlingService(
         )
     }
 
+    private fun validateGosysOppgaveInputChoices(gosysOppgaveInput: GosysOppgaveInput?) {
+        if (gosysOppgaveInput == null) return
+
+        val numberOfChoices =
+            listOf(
+                gosysOppgaveInput.gosysOppgaveUpdate != null,
+                gosysOppgaveInput.ignoreGosysOppgave == true,
+                gosysOppgaveInput.avsluttGosysOppgave != null,
+            ).count { it }
+
+        val reason =
+            if (numberOfChoices > 1) {
+                "Du kan bare velge ett av alternativene: oppdatere, avslutte eller ignorere Gosys-oppgaven."
+            } else if (gosysOppgaveInput.avsluttGosysOppgave?.kommentar?.isBlank() == true) {
+                "Du må skrive en kommentar når Gosys-oppgaven skal avsluttes."
+            } else {
+                return
+            }
+
+        throw SectionedValidationErrorWithDetailsException(
+            title = "Validation error",
+            sections =
+                listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties =
+                            listOf(
+                                InvalidProperty(
+                                    field = "gosysOppgaveInput",
+                                    reason = reason,
+                                ),
+                            ),
+                    ),
+                ),
+        )
+    }
+
     private fun validateAndUpdateGosysOppgaveInput(
         behandling: Behandling,
         gosysOppgaveInput: GosysOppgaveInput?,
@@ -357,7 +378,10 @@ class BehandlingService(
                     )
                 }
 
-                if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                if (gosysOppgaveInput?.gosysOppgaveUpdate == null &&
+                    gosysOppgaveInput?.ignoreGosysOppgave != true &&
+                    gosysOppgaveInput?.avsluttGosysOppgave == null
+                ) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
                         sections =
@@ -369,8 +393,7 @@ class BehandlingService(
                                             InvalidProperty(
                                                 field = "gosysOppgaveUpdate",
                                                 reason =
-                                                    "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte " +
-                                                        "behandlingen.",
+                                                    "Du må oppdatere, avslutte eller ignorere Gosys-oppgaven for å avslutte behandlingen.",
                                             ),
                                         ),
                                 ),
@@ -411,6 +434,12 @@ class BehandlingService(
                             tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
                             mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
                             kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
+                            saksbehandlerident = innloggetIdent,
+                        )
+                    } else if (gosysOppgaveInput.avsluttGosysOppgave != null) {
+                        logger.debug("Updating behandling {} with avsluttGosysOppgave", behandling.id)
+                        behandling.setAvsluttGosysOppgave(
+                            kommentar = gosysOppgaveInput.avsluttGosysOppgave.kommentar.trim(),
                             saksbehandlerident = innloggetIdent,
                         )
                     } else {
