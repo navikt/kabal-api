@@ -177,7 +177,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -231,7 +233,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -261,6 +265,84 @@ class BehandlingAvslutningServiceTest {
             }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
+
+        @Test
+        fun `Klagebehandling from Infotrygd with avsluttGosysOppgave closes GosysOppgave with kommentar instead of updating it`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns null
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.avsluttGosysOppgave } returns true
+            every { behandling.avsluttGosysOppgaveKommentar } returns "Kommentar fra saksbehandler"
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = behandling,
+                    throwExceptionIfFerdigstilt = true,
+                    kommentar = "Kommentar fra saksbehandler",
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 1) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+        }
+
+        @Test
+        fun `Klagebehandling with gosysOppgaveId but no Gosys choice does not touch Gosys and completes`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns null
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.avsluttGosysOppgave } returns false
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) {
+                gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any())
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 1) { klankeService.setToFinishedWithAppAccess(sakId = any(), input = any()) }
+        }
+
+        @Test
+        fun `Klagebehandling with avsluttGosysOppgave but no gosysOppgaveId does not touch Gosys`() {
+            every { behandling.utfall } returns Utfall.STADFESTELSE
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns null
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.avsluttGosysOppgave } returns true
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) {
+                gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any())
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+        }
     }
 
     @Nested
@@ -284,6 +366,37 @@ class BehandlingAvslutningServiceTest {
         fun before() {
             every { behandling.shouldNotifyVedtaksinstans() } answers { callOriginal() }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
+        }
+
+        @Test
+        fun `AnkebehandlingFoer2027 going to Trygderetten with avsluttGosysOppgave creates AnkeITrygderettenbehandlingFoer2027 and closes GosysOppgave`() {
+            every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns null
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.avsluttGosysOppgave } returns true
+            every { behandling.avsluttGosysOppgaveKommentar } returns "Kommentar"
+            every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
+            every { behandling.ytelse } returns Ytelse.SYK_SYK
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFoer2027(any()) }
+            verify(exactly = 1) {
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = behandling,
+                    throwExceptionIfFerdigstilt = true,
+                    kommentar = "Kommentar",
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
         }
 
         @Test
@@ -323,7 +436,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -383,7 +498,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -429,7 +546,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -483,7 +602,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -769,7 +890,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -818,7 +941,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -864,7 +989,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -912,7 +1039,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -959,7 +1088,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1008,7 +1139,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1055,7 +1188,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1109,7 +1244,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1226,7 +1363,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1275,7 +1414,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1321,7 +1462,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1369,7 +1512,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1416,7 +1561,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1465,7 +1612,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1512,7 +1661,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1566,7 +1717,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1668,7 +1821,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1728,6 +1883,36 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
+        fun `Omgjoeringskravbehandling with utfall MEDHOLD_ETTER_FVL_35 and avsluttGosysOppgave closes Gosys`() {
+            every { behandling.utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
+            every { behandling.gosysOppgaveUpdate } returns null
+            every { behandling.ignoreGosysOppgave } returns false
+            every { behandling.avsluttGosysOppgave } returns true
+            every { behandling.avsluttGosysOppgaveKommentar } returns "Kommentar"
+            every { behandling.fagsystem } returns Fagsystem.IT01
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 1) {
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = behandling,
+                    throwExceptionIfFerdigstilt = true,
+                    kommentar = "Kommentar",
+                )
+            }
+            verify(exactly = 0) {
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = any(),
+                    systemContext = any(),
+                    throwExceptionIfFerdigstilt = any(),
+                )
+            }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
         fun `Omgjoeringskravbehandling with utfall MEDHOLD_ETTER_FVL_35 based on Infotrygd should update Gosys`() {
             every { behandling.utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
             every { behandling.gosysOppgaveId } returns 123L
@@ -1763,7 +1948,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1809,7 +1996,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1861,7 +2050,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 1,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1912,7 +2103,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -1976,7 +2169,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2045,7 +2240,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2099,7 +2296,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2233,7 +2432,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2298,7 +2499,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2353,7 +2556,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2401,7 +2606,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2456,7 +2663,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 1,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2504,7 +2713,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2580,7 +2791,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2635,7 +2848,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 1,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2684,7 +2899,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2740,7 +2957,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2789,7 +3008,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2845,7 +3066,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2893,7 +3116,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2948,7 +3173,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 1) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -2994,7 +3221,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -3042,7 +3271,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = any(),
@@ -3138,7 +3369,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = true,
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) {
                 gosysOppgaveService.addKommentar(
                     behandling = any(),
@@ -3330,7 +3563,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -3362,7 +3597,9 @@ class BehandlingAvslutningServiceTest {
                     throwExceptionIfFerdigstilt = any(),
                 )
             }
-            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any()) }
+            verify(
+                exactly = 0,
+            ) { gosysOppgaveService.avsluttGosysOppgave(behandling = any(), throwExceptionIfFerdigstilt = any(), kommentar = any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 

@@ -310,6 +310,10 @@ abstract class Behandling(
     open var gosysOppgaveUpdate: GosysOppgaveUpdate?,
     @Column(name = "ignore_gosys_oppgave", nullable = false)
     open var ignoreGosysOppgave: Boolean,
+    @Column(name = "avslutt_gosys_oppgave", nullable = false)
+    open var avsluttGosysOppgave: Boolean = false,
+    @Column(name = "avslutt_gosys_oppgave_kommentar")
+    open var avsluttGosysOppgaveKommentar: String? = null,
     @Column(name = "tilbakekreving", nullable = false)
     var tilbakekreving: Boolean,
     @Column(name = "opprettet_sendt", nullable = false)

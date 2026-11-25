@@ -22,7 +22,12 @@ data class GosysOppgaveUpdateInput(
     val kommentar: String,
 )
 
+data class AvsluttGosysOppgaveInput(
+    val kommentar: String,
+)
+
 data class GosysOppgaveInput(
     val gosysOppgaveUpdate: GosysOppgaveUpdateInput?,
     val ignoreGosysOppgave: Boolean?,
+    val avsluttGosysOppgave: AvsluttGosysOppgaveInput? = null,
 )
