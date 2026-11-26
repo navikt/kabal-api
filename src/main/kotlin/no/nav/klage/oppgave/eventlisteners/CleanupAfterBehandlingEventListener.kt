@@ -2,9 +2,11 @@ package no.nav.klage.oppgave.eventlisteners
 
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.clients.kant.KantApiException
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingDetaljer
@@ -19,6 +21,7 @@ import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.KantService
 import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -40,6 +43,7 @@ class CleanupAfterBehandlingEventListener(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingRepository: BehandlingRepository,
     private val klankeService: KlankeService,
+    private val kantService: KantService,
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
@@ -90,6 +94,19 @@ class CleanupAfterBehandlingEventListener(
                 behandling.id,
             )
             deleteDokumenterUnderBehandling(behandling)
+            if (behandling is BehandlingWithKantReference && behandling.kantReference != null) {
+                try {
+                    kantService.deleteSaksdata(behandling)
+                    behandling.kantReference = null
+                } catch (e: Exception) {
+                    logger.error(
+                        "Could not delete Kant data for feilregistrert behandling {} ({}), status={}",
+                        behandling.id,
+                        e.javaClass.simpleName,
+                        (e as? KantApiException)?.status,
+                    )
+                }
+            }
             deleteFromKaka(behandling)
 
             if (behandling.shouldUpdateInfotrygd()) {

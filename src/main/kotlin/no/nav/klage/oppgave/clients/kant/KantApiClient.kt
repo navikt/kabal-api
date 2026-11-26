@@ -88,6 +88,22 @@ class KantApiClient(
                 response.releaseBody().thenReturn(KantApiException(response.statusCode().value()))
             }.bodyToMono<KantSaksdata>()
             .block() ?: throw RuntimeException("Error when updating saksdata in kant-api")
+
+    @Retryable
+    fun deleteSaksdata(id: UUID) {
+        kantApiWebClient
+            .delete()
+            .uri("/api/saksdata/{id}", id)
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKantApiScope()}",
+            ).retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logger.error("Kant request failed with HTTP status {}", response.statusCode().value())
+                response.releaseBody().thenReturn(KantApiException(response.statusCode().value()))
+            }.toBodilessEntity()
+            .block()
+    }
 }
 
 class KantApiException(

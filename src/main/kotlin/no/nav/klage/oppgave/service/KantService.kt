@@ -121,6 +121,11 @@ class KantService(
         validateIdentity(behandling = behandling, response = response)
     }
 
+    fun deleteSaksdata(behandling: BehandlingWithKantReference) {
+        val reference = behandling.kantReference ?: return
+        kantApiClient.deleteSaksdata(id = reference)
+    }
+
     fun getValidationErrors(behandling: BehandlingWithKantReference): List<InvalidProperty> =
         behandling.kantReference?.let { kantApiClient.getValidationErrors(kantId = it) }?.validationErrors?.map {
             InvalidProperty(
