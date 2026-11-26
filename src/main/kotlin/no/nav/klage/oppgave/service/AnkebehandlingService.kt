@@ -63,11 +63,7 @@ class AnkebehandlingService(
                         dokumentService.createSaksdokumenterFromJournalpostIdList(
                             mottak.mottakDokument.map { it.journalpostId },
                         ),
-                    kakaKvalitetsvurderingId =
-                        kakaApiGateway
-                            .createKvalitetsvurdering(
-                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                            ).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingId = null,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -83,8 +79,15 @@ class AnkebehandlingService(
                 ),
             )
 
+        // TODO: Remove after the switch
         if (kantService.kantShouldBeUsedForOldTypes()) {
             ankebehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankebehandlingFoer2027).id
+        } else {
+            ankebehandlingFoer2027.kakaKvalitetsvurderingId =
+                kakaApiGateway
+                    .createKvalitetsvurdering(
+                        kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                    ).kvalitetsvurderingId
         }
 
         ankebehandlingFoer2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
@@ -141,8 +144,6 @@ class AnkebehandlingService(
      * carry the saksnummer Trygderetten gave the case.
      */
     fun createAnkebehandlingEtter2027FromMottak(mottak: Mottak): AnkebehandlingEtter2027 {
-        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
-
         // Validated when the mottak is created, so this only guards against future callers.
         val trygderettenSaksnummer =
             mottak.trygderettenSaksnummer
@@ -234,6 +235,7 @@ class AnkebehandlingService(
     fun createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(
         ankeITrygderettenbehandlingFoer2027: AnkeITrygderettenbehandlingFoer2027,
     ): AnkebehandlingFoer2027 {
+        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
         val ankebehandlingFoer2027 =
             ankebehandlingFoer2027Repository.save(
                 AnkebehandlingFoer2027(
@@ -252,8 +254,8 @@ class AnkebehandlingService(
                     mottattKlageinstans = ankeITrygderettenbehandlingFoer2027.mottattKlageinstans,
                     tildeling = ankeITrygderettenbehandlingFoer2027.tildeling,
                     frist = LocalDate.now() + Period.ofWeeks(0),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
+                    kakaKvalitetsvurderingId = null,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = ankeITrygderettenbehandlingFoer2027.hjemler,
                     klageBehandlendeEnhet = ankeITrygderettenbehandlingFoer2027.tildeling?.enhet!!,
                     paaanketVedtaksdato = ankeITrygderettenbehandlingFoer2027.paaanketVedtaksdato,
@@ -273,8 +275,12 @@ class AnkebehandlingService(
             ankeITrygderettenbehandlingFoer2027.id,
         )
 
+        // TODO: Remove after the switch
         if (kantService.kantShouldBeUsedForOldTypes()) {
             ankebehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankebehandlingFoer2027).id
+        } else {
+            ankebehandlingFoer2027.kakaKvalitetsvurderingId =
+                kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId
         }
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(

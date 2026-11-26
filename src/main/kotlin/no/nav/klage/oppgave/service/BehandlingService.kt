@@ -591,7 +591,9 @@ class BehandlingService(
             }
         }
 
-        if (behandling is BehandlingWithKantReference && behandling.utfall !in noKvalitetsvurderingNeeded) {
+        if (behandling.utfall !in noKvalitetsvurderingNeeded &&
+            kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)
+        ) {
             val kantKvalitetsvurderingValidationErrors =
                 kantService.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
 
@@ -3032,8 +3034,8 @@ class BehandlingService(
             behandling.setRegistreringshjemler(nyVerdi = registreringshjemler, saksbehandlerident = utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
 
-        if (behandling is BehandlingWithKantReference) {
-            kantService.updateSaksdata(behandling = behandling)
+        if (kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)) {
+            kantService.updateSaksdata(behandling = behandling as BehandlingWithKantReference)
         }
 
         publishInternalEvent(

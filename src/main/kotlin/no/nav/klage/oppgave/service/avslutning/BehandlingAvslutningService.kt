@@ -128,7 +128,9 @@ class BehandlingAvslutningService(
             ) {
                 // TODO: handle, maybe delete in kant-api?
             } else {
-                kantService.finalizeSaksdata(behandling)
+                if (kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)) {
+                    kantService.finalizeSaksdata(behandling)
+                }
             }
         }
 

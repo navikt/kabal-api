@@ -28,7 +28,6 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
-import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -237,6 +236,7 @@ class BehandlingMapper(
             tilbakekreving = klagebehandling.tilbakekreving,
             timesPreviouslyExtended = klagebehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = klagebehandling.gosysOppgaveRequired,
+            kantReference = null,
         )
     }
 
@@ -324,6 +324,7 @@ class BehandlingMapper(
             tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
             timesPreviouslyExtended = omgjoeringskravbehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = omgjoeringskravbehandling.gosysOppgaveRequired,
+            kantReference = null,
         )
     }
 
@@ -459,6 +460,7 @@ class BehandlingMapper(
             tilbakekreving = ankebehandling.tilbakekreving,
             timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = ankebehandling.gosysOppgaveRequired,
+            kantReference = ankebehandling.kantReference,
         )
     }
 
@@ -540,7 +542,7 @@ class BehandlingMapper(
             tilbakekreving = ankebehandling.tilbakekreving,
             timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = ankebehandling.gosysOppgaveRequired,
-            kantReference = (ankebehandling as? BehandlingWithKantReference)?.kantReference,
+            kantReference = ankebehandling.kantReference,
         )
     }
 
@@ -624,7 +626,14 @@ class BehandlingMapper(
             tilbakekreving = behandling.tilbakekreving,
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = behandling.gosysOppgaveRequired,
-            kantReference = if (behandling is AnkeITrygderettenbehandlingEtter2027) behandling.kantReference else null,
+            kantReference =
+                if (behandling is AnkeITrygderettenbehandlingEtter2027 ||
+                    behandling is AnkeITrygderettenbehandlingFoer2027
+                ) {
+                    behandling.kantReference
+                } else {
+                    null
+                },
         )
     }
 
@@ -715,6 +724,7 @@ class BehandlingMapper(
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
             timesPreviouslyExtended = behandlingEtterTrygderettenOpphevet.getTimesPreviouslyExtended(),
             requiresGosysOppgave = behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired,
+            kantReference = null,
         )
     }
 
@@ -805,6 +815,7 @@ class BehandlingMapper(
             tilbakekreving = gjenopptaksbehandling.tilbakekreving,
             timesPreviouslyExtended = gjenopptaksbehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = gjenopptaksbehandling.gosysOppgaveRequired,
+            kantReference = null,
         )
     }
 
@@ -886,6 +897,7 @@ class BehandlingMapper(
             tilbakekreving = gjenopptaksbehandling.tilbakekreving,
             timesPreviouslyExtended = gjenopptaksbehandling.getTimesPreviouslyExtended(),
             requiresGosysOppgave = gjenopptaksbehandling.gosysOppgaveRequired,
+            kantReference = null,
         )
     }
 

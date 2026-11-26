@@ -97,6 +97,7 @@ class AnkeITrygderettenbehandlingService(
             )
         logger.debug("Created ankeITrygderettenbehandlingFoer2027 {}", ankeITrygderettenbehandlingFoer2027.id)
 
+        // TODO: Remove after the switch
         if (kantService.kantShouldBeUsedForOldTypes()) {
             ankeITrygderettenbehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankeITrygderettenbehandlingFoer2027).id
         }

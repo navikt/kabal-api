@@ -90,6 +90,7 @@ class GjenopptaksbehandlingService(
 
         gjenopptaksbehandlingFoer2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
 
+        // TODO: Remove after the switch
         if (kantService.kantShouldBeUsedForOldTypes()) {
             gjenopptaksbehandlingFoer2027.kantReference =
                 kantService.createSaksdataInKant(gjenopptaksbehandlingFoer2027).id
@@ -291,6 +292,7 @@ class GjenopptaksbehandlingService(
                 ),
             )
 
+        // TODO: Remove after the switch
         if (kantService.kantShouldBeUsedForOldTypes()) {
             gjenopptaksbehandlingFoer2027.kantReference =
                 kantService.createSaksdataInKant(gjenopptaksbehandlingFoer2027).id

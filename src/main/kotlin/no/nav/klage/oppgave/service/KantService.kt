@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kant.KantApiClient
 import no.nav.klage.oppgave.clients.kant.KantAvslutningInput
 import no.nav.klage.oppgave.clients.kant.KantSaksdata
@@ -29,6 +30,28 @@ class KantService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+    }
+
+    fun kantShouldBeUsedForThisBehandling(behandling: Behandling): Boolean {
+        if (behandling !is BehandlingWithKantReference) return false
+        return when (behandling.type) {
+            Type.ANKE_FOER_2027,
+            Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+            -> kantShouldBeUsedForOldTypes()
+
+            Type.KLAGE,
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+            Type.OMGJOERINGSKRAV,
+            -> false
+
+            Type.ANKE_ETTER_2027,
+            Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            -> true
+        }
     }
 
     fun kantShouldBeUsedForOldTypes(): Boolean =
