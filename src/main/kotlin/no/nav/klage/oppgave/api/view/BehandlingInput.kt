@@ -10,6 +10,10 @@ data class BehandlingDateNullableInput(
     val date: LocalDate?,
 )
 
+data class TrygderettenSaksnummerInput(
+    val trygderettenSaksnummer: String?,
+)
+
 data class SattPaaVentInput(
     val to: LocalDate,
     val reason: String?,

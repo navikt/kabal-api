@@ -13,12 +13,18 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.person.Person
+import no.nav.klage.oppgave.domain.representasjon.Representasjonsforhold
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.service.DokDistKanalService
@@ -102,6 +108,138 @@ class BehandlingMapperTest {
         assertThat(viewResult.employee?.navIdent).isEqualTo(medunderskriverIdent)
         assertThat(flytViewResult.flowState).isEqualTo(FlowState.SENT)
     }
+
+    @Test
+    fun `mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView maps optional saksnummer for pre-2027 appeal`() {
+        assertTrygderettenSaksnummerIsMapped(
+            behandling = createAnkeITrygderettenbehandlingFoer2027("2026123"),
+            expectedSaksnummer = "2026123",
+        )
+        assertTrygderettenSaksnummerIsMapped(behandling = createAnkeITrygderettenbehandlingFoer2027(null), expectedSaksnummer = null)
+    }
+
+    @Test
+    fun `mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView maps optional saksnummer for pre-2027 reopening`() {
+        assertTrygderettenSaksnummerIsMapped(
+            behandling = createGjenopptakITrygderettenbehandlingFoer2027("2026124"),
+            expectedSaksnummer = "2026124",
+        )
+        assertTrygderettenSaksnummerIsMapped(behandling = createGjenopptakITrygderettenbehandlingFoer2027(null), expectedSaksnummer = null)
+    }
+
+    @Test
+    fun `mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView retains mandatory post-2027 saksnummer`() {
+        assertTrygderettenSaksnummerIsMapped(
+            behandling = createAnkeITrygderettenbehandlingEtter2027(),
+            expectedSaksnummer = "2027123",
+        )
+    }
+
+    private fun assertTrygderettenSaksnummerIsMapped(
+        behandling: BehandlingITrygderetten,
+        expectedSaksnummer: String?,
+    ) {
+        every { personService.getPerson(fnr) } returns testPerson
+        every { krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(fnr) } returns null
+        every { klageLookupGateway.getAddressForPerson(fnr) } returns null
+        every { klageLookupGateway.getRepresentasjonsforhold(fnr) } returns
+            Representasjonsforhold(fullmakt = emptyList(), vergemaal = emptyList())
+
+        val view =
+            behandlingMapper.mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(
+                behandling = behandling,
+                person = testPerson,
+            )
+
+        assertThat(view.trygderettenSaksnummer).isEqualTo(expectedSaksnummer)
+    }
+
+    private val testPerson =
+        Person(
+            foedselsnr = fnr,
+            fornavn = "Test",
+            mellomnavn = null,
+            etternavn = "Person",
+            sammensattNavn = "Test Person",
+            kjoenn = null,
+            doed = null,
+            strengtFortrolig = false,
+            strengtFortroligUtland = false,
+            fortrolig = false,
+            egenAnsatt = false,
+            vergemaalEllerFremtidsfullmakt = false,
+            sikkerhetstiltak = null,
+            falskId = false,
+        )
+
+    private fun createAnkeITrygderettenbehandlingFoer2027(trygderettenSaksnummer: String?) =
+        AnkeITrygderettenbehandlingFoer2027(
+            sendtTilTrygderetten = LocalDateTime.of(2026, 1, 1, 0, 0),
+            trygderettenSaksnummer = trygderettenSaksnummer,
+            klager = Klager(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            sakenGjelder =
+                SakenGjelder(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+            kildeReferanse = "test-reference",
+            fagsystem = Fagsystem.AO01,
+            fagsakId = null,
+            sakstype = Sakstype.GENERELL_SAK,
+            arkivsaksnummer = "TEST-123",
+            mottattKlageinstans = LocalDateTime.of(2026, 1, 1, 0, 0),
+            previousSaksbehandlerident = null,
+            gosysOppgaveId = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
+
+    private fun createGjenopptakITrygderettenbehandlingFoer2027(trygderettenSaksnummer: String?) =
+        GjenopptakITrygderettenbehandlingFoer2027(
+            sendtTilTrygderetten = LocalDateTime.of(2026, 1, 1, 0, 0),
+            trygderettenSaksnummer = trygderettenSaksnummer,
+            klager = Klager(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            sakenGjelder =
+                SakenGjelder(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+            kildeReferanse = "test-reference",
+            fagsystem = Fagsystem.AO01,
+            fagsakId = null,
+            sakstype = Sakstype.GENERELL_SAK,
+            arkivsaksnummer = "TEST-123",
+            mottattKlageinstans = LocalDateTime.of(2026, 1, 1, 0, 0),
+            previousSaksbehandlerident = null,
+            gosysOppgaveId = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
+
+    private fun createAnkeITrygderettenbehandlingEtter2027() =
+        AnkeITrygderettenbehandlingEtter2027(
+            sendtTilTrygderetten = LocalDateTime.of(2027, 1, 1, 0, 0),
+            trygderettenSaksnummer = "2027123",
+            klager = Klager(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            sakenGjelder =
+                SakenGjelder(id = UUID.randomUUID(), partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+            kildeReferanse = "test-reference",
+            fagsystem = Fagsystem.AO01,
+            fagsakId = null,
+            sakstype = Sakstype.GENERELL_SAK,
+            arkivsaksnummer = "TEST-123",
+            mottattKlageinstans = LocalDateTime.of(2027, 1, 1, 0, 0),
+            previousSaksbehandlerident = null,
+            gosysOppgaveId = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 
     private fun getKlagebehandling(): Klagebehandling =
         Klagebehandling(
