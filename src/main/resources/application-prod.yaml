@@ -38,8 +38,7 @@ KAKA_VERSION_3_DATE: 2026-01-01
 
 USE_KANT_FOR_OLD_TYPES_DATE: 2027-01-01
 
-# TODO: Delete after run
-MIGRATE_CRON: 0 0 0 1 JAN *
+MIGRATE_FROM_KAKA_TO_KANT_CRON: 0 0 0 1 JAN *
 
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt.prod-fss-pub.nais.io/
 
