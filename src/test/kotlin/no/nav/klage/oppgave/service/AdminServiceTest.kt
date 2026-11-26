@@ -58,6 +58,8 @@ internal class AdminServiceTest {
             transactionTemplate = mockk(relaxed = true),
             safFacade = mockk(relaxed = true),
             kabalDocumentGateway = mockk(relaxed = true),
+            kantService = mockk(relaxed = true),
+            kakaApiGateway = mockk(relaxed = true),
         ).apply {
             klageBackendGroupId = "klage-backend-group-id"
         }

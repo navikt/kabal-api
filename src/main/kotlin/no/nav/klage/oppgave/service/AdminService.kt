@@ -10,6 +10,7 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
@@ -17,6 +18,7 @@ import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -36,10 +38,12 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTST
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.PersonProtection
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
@@ -110,6 +114,8 @@ class AdminService(
     private val transactionTemplate: TransactionTemplate,
     private val safFacade: SafFacade,
     private val kabalDocumentGateway: KabalDocumentGateway,
+    private val kantService: KantService,
+    private val kakaApiGateway: KakaApiGateway,
 ) {
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
@@ -1190,5 +1196,95 @@ class AdminService(
         }
 
         logger.debug("Backfill person protection done. Created: {}, failed/missed: {}", createdCount, failedCount)
+    }
+
+    @Scheduled(cron = $$"${MIGRATE_FROM_KAKA_TO_KANT_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "migrateFromKakaToKant")
+    fun migrateFromKakaToKant() {
+        if (!schedulerHealthGate.isReady()) return
+        val ankeCandidates =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
+                it.type in listOf(Type.ANKE_FOER_2027)
+            }
+
+        logger.debug("Migrating ankebehandlingFoer2027 from Kaka to Kant. Number of candidates: {}", ankeCandidates.size)
+
+        ankeCandidates.forEach {
+            it as AnkebehandlingFoer2027
+            it.kantReference = kantService.createSaksdataInKant(behandling = it).id
+
+            if (it.kakaKvalitetsvurderingId == null) {
+                logger.warn("Missing kakaKvalitetsvurderingId for behandling {}. Investigate.", it.id)
+            } else {
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = it.kakaKvalitetsvurderingId!!,
+                    kvalitetsvurderingVersion = it.kakaKvalitetsvurderingVersion,
+                )
+                it.kakaKvalitetsvurderingId = null
+            }
+        }
+
+        logger.debug("Finished migrating ankebehandlingFoer2027 from Kaka to Kant.")
+
+        val ankeITRCandidates =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
+                it.type in listOf(Type.ANKE_I_TRYGDERETTEN_FOER_2027)
+            }
+
+        logger.debug("Creating Kant data for ankeITRFoer2027. Number of candidates: {}", ankeITRCandidates.size)
+
+        ankeITRCandidates.forEach {
+            it as AnkeITrygderettenbehandlingFoer2027
+            it.kantReference = kantService.createSaksdataInKant(behandling = it).id
+        }
+
+        logger.debug("Finished creating Kant data for ankebehandlingFoer2027.")
+
+        val candidatesAfterMigration =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
+                (it is AnkebehandlingFoer2027 && it.kantReference == null) ||
+                    (it is AnkeITrygderettenbehandlingFoer2027 && it.kantReference == null)
+            }
+
+        logger.debug("Number of candidates after migration: ${candidatesAfterMigration.size}")
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    fun backfillKant() {
+        val typeList =
+            mutableListOf(
+                Type.ANKE_ETTER_2027,
+                Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_ETTER_2027,
+            )
+
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            typeList.addAll(
+                listOf(
+                    Type.ANKE_FOER_2027,
+                    Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_FOER_2027,
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+                ),
+            )
+        }
+        val candidates =
+            behandlingRepository.findAllByTypeIn(
+                typeList,
+            )
+        logger.debug("Backfill kant, candidates: {}", candidates.size)
+        var changed = 0
+        candidates.forEach { candidate ->
+            transactionTemplate.execute {
+                val behandling = behandlingRepository.findByIdEager(candidate.id) as BehandlingWithKantReference
+                if (behandling.kantReference == null) {
+                    behandling.kantReference = kantService.createSaksdataInKant(behandling = behandling).id
+                    changed++
+                }
+            }
+        }
+
+        logger.debug("Backfill kant, changed: {}", changed)
     }
 }

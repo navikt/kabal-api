@@ -54,10 +54,8 @@ class GjenopptaksbehandlingEtter2027(
     override var forsterketRett: Boolean? = null,
     @Column(name = "klage_behandlende_enhet", nullable = false)
     override val klageBehandlendeEnhet: String,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    override var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    override var kakaKvalitetsvurderingVersion: Int,
+    @Column(name = "kant_reference")
+    override var kantReference: UUID? = null,
     @OneToMany(
         mappedBy = "behandling",
         cascade = [CascadeType.ALL],
@@ -158,10 +156,10 @@ class GjenopptaksbehandlingEtter2027(
         initiatingSystem = initiatingSystem,
     ),
     BehandlingWithMottakDokument,
-    BehandlingWithKvalitetsvurdering,
     BehandlingWithKlageBehandlendeEnhet,
     BehandlingWithTrygderettenMetadata,
-    BehandlingWithTrygderettenSaksnummer {
+    BehandlingWithTrygderettenSaksnummer,
+    BehandlingWithKantReference {
     override fun toString(): String =
         "GjenopptaksbehandlingEtter2027(id=$id, " +
             "modified=$modified, " +

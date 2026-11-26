@@ -38,6 +38,7 @@ class GjenopptaksbehandlingServiceTest {
     private val kakaApiGateway = mockk<KakaApiGateway>()
     private val kakaVersionUtil = mockk<KakaVersionUtil>()
     private val kvalitetsvurderingId = UUID.randomUUID()
+    private val kantService = mockk<KantService>()
 
     private val service =
         GjenopptaksbehandlingService(
@@ -49,6 +50,7 @@ class GjenopptaksbehandlingServiceTest {
             kakaApiGateway = kakaApiGateway,
             systembrukerIdent = "SYSTEMBRUKER",
             kakaVersionUtil = kakaVersionUtil,
+            kantService = kantService,
         )
 
     @BeforeEach
@@ -58,6 +60,7 @@ class GjenopptaksbehandlingServiceTest {
             KakaOutput(kvalitetsvurderingId = kvalitetsvurderingId, kvalitetsvurderingVersion = 2)
         every { dokumentService.createSaksdokumenterFromJournalpostIdList(any()) } returns mutableSetOf()
         every { repositoryFoer2027.save(any<GjenopptaksbehandlingFoer2027>()) } answers { firstArg() }
+        every { kantService.kantShouldBeUsedForOldTypes() } answers { false }
     }
 
     @Test

@@ -739,8 +739,6 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
                 GjenopptaksbehandlingEtter2027(
                     trygderettenSaksnummer = saksnummer,
                     klageBehandlendeEnhet = "4219",
-                    kakaKvalitetsvurderingId = null,
-                    kakaKvalitetsvurderingVersion = 2,
                     previousBehandlingId = null,
                     klager = klager,
                     sakenGjelder = sakenGjelder,

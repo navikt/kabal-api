@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.EntityManager
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
@@ -59,9 +58,9 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
-import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
@@ -159,11 +158,9 @@ import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -197,6 +194,7 @@ class BehandlingService(
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val entityManager: EntityManager,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -576,14 +574,32 @@ class BehandlingService(
                 Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
-            val kvalitetsvurderingValidationErrors =
-                kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
+                val kvalitetsvurderingValidationErrors =
+                    kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
 
-            if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
+                if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
+                    sectionList.add(
+                        ValidationSection(
+                            section = "kvalitetsvurdering",
+                            properties = kvalitetsvurderingValidationErrors,
+                        ),
+                    )
+                }
+            }
+        }
+
+        if (behandling.utfall !in noKvalitetsvurderingNeeded && behandling is BehandlingWithKantReference &&
+            behandling.kantReference != null
+        ) {
+            val kantKvalitetsvurderingValidationErrors =
+                kantService.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
+
+            if (kantKvalitetsvurderingValidationErrors.isNotEmpty()) {
                 sectionList.add(
                     ValidationSection(
                         section = "kvalitetsvurdering",
-                        properties = kvalitetsvurderingValidationErrors,
+                        properties = kantKvalitetsvurderingValidationErrors,
                     ),
                 )
             }
@@ -1015,8 +1031,8 @@ class BehandlingService(
                     input = null,
                 )
             }
-// TODO: Juster når kvalitetsvurderingsgreier er landet
-            if (behandling is BehandlingWithKvalitetsvurdering && behandling !is AnkebehandlingEtter2027) {
+
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
                 kakaApiGateway.deleteKvalitetsvurdering(
                     kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                     kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
@@ -1225,8 +1241,7 @@ class BehandlingService(
             )
         }
 
-        // Fjern påbegynt kvalitetsvurdering.
-        if (behandling is BehandlingWithKvalitetsvurdering) {
+        if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
             kakaApiGateway.deleteKvalitetsvurdering(
                 kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                 kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
@@ -2985,7 +3000,6 @@ class BehandlingService(
         behandlingId: UUID,
     ) {
         if (registreringsHjemmelSet != null) {
-            // TODO: Oppdater om det kommer ny versjon
             val washedRegistreringshjemmelSet =
                 registreringsHjemmelSet
                     .filter {
@@ -3012,10 +3026,14 @@ class BehandlingService(
                 behandlingId = behandlingId,
                 systemUserContext = systemUserContext,
             )
-        // TODO: Versjonssjekk på input
+
         val event =
             behandling.setRegistreringshjemler(nyVerdi = registreringshjemler, saksbehandlerident = utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
+
+        if (kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)) {
+            kantService.updateSaksdata(behandling = behandling as BehandlingWithKantReference)
+        }
 
         publishInternalEvent(
             data =
@@ -3627,48 +3645,6 @@ class BehandlingService(
         return gosysOppgave.copy(
             alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id),
         )
-    }
-
-    // TODO: Delete after run
-    @Scheduled(cron = $$"${MIGRATE_CRON}", zone = "Europe/Oslo")
-    @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
-    fun migrateKvalitetsvurderingerFromV2ToV3() {
-        if (!schedulerHealthGate.isReady()) return
-        val candidates =
-            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
-                it is BehandlingWithKvalitetsvurdering && it.kakaKvalitetsvurderingVersion == 2
-            }
-
-        logger.debug("Migrating kvalitetsvurdering from v2 to v3.")
-        logger.debug("Number of candidates: ${candidates.size}")
-
-        candidates.forEach {
-            it as BehandlingWithKvalitetsvurdering
-            val oldKvalitetsvurderingId = it.kakaKvalitetsvurderingId
-
-            logger.debug("Migrating behandling ${it.id}, kvalitetsvurdering ${it.kakaKvalitetsvurderingId}")
-            val newKvalitetsvurderingId =
-                kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 3).kvalitetsvurderingId
-            it.kakaKvalitetsvurderingId = newKvalitetsvurderingId
-            it.kakaKvalitetsvurderingVersion = 3
-            it.modified = LocalDateTime.now()
-
-            try {
-                kakaApiGateway.deleteKvalitetsvurdering(
-                    kvalitetsvurderingId = oldKvalitetsvurderingId!!,
-                    kvalitetsvurderingVersion = 2,
-                )
-            } catch (notFound: WebClientResponseException.NotFound) {
-                logger.warn("Got a 404 deleting kvalitetsvurdering with id $oldKvalitetsvurderingId. Continuing.")
-            }
-        }
-
-        val candidatesAfterMigration =
-            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
-                it is BehandlingWithKvalitetsvurdering && it.kakaKvalitetsvurderingVersion == 2
-            }
-
-        logger.debug("Number of candidates after migration: ${candidatesAfterMigration.size}")
     }
 
     fun getBehandlingerWithPreviousBehandlingId(previousBehandlingId: UUID): List<Behandling> =

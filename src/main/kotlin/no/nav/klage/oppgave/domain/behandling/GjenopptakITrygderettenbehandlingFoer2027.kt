@@ -53,6 +53,8 @@ class GjenopptakITrygderettenbehandlingFoer2027(
     /** Skal det opprettes ny behandling etter TR har opphevet? */
     @Column(name = "ny_behandling_etter_tr_opphevet")
     override var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
+    @Column(name = "kant_reference")
+    override var kantReference: UUID? = null,
     // Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -147,7 +149,8 @@ class GjenopptakITrygderettenbehandlingFoer2027(
     ),
     GjenopptakITrygderettenbehandling,
     BehandlingITrygderetten,
-    BehandlingWithTrygderettenMetadata {
+    BehandlingWithTrygderettenMetadata,
+    BehandlingWithKantReference {
     override fun toString(): String =
         "GjenopptakITrygderettenbehandlingFoer2027(id=$id, " +
             "modified=$modified, " +

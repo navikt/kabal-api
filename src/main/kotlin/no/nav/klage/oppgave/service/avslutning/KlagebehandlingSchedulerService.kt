@@ -3,14 +3,20 @@ package no.nav.klage.oppgave.service.avslutning
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.config.SchedulerHealthGate
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.FEILET
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.IKKE_SENDT
 import no.nav.klage.oppgave.eventlisteners.CleanupAfterBehandlingEventListener
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KafkaDispatcher
+import no.nav.klage.oppgave.service.KantService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -23,6 +29,7 @@ class KlagebehandlingSchedulerService(
     private val kakaApiGateway: KakaApiGateway,
     private val cleanupAfterBehandlingEventListener: CleanupAfterBehandlingEventListener,
     private val schedulerHealthGate: SchedulerHealthGate,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -45,13 +52,36 @@ class KlagebehandlingSchedulerService(
         val behandlingList: List<Behandling> = behandlingService.findBehandlingerForAvslutning()
 
         behandlingList.forEach { behandling ->
-            if (behandling is BehandlingWithKvalitetsvurdering) {
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
                 kakaApiGateway.finalizeBehandling(
                     behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
                         behandling.id,
                     ) as BehandlingWithKvalitetsvurdering,
                 )
             }
+
+            if (behandling is BehandlingWithKantReference && behandling.kantReference != null) {
+                if ((behandling is GjenopptakITrygderettenbehandlingFoer2027 || behandling is GjenopptakITrygderettenbehandlingEtter2027) &&
+                    behandling.nyGjenopptaksbehandlingKA != null
+                ) {
+                    kantService.deleteSaksdata(behandling)
+                    behandling.kantReference = null
+                } else if ((behandling is AnkeITrygderettenbehandlingFoer2027 || behandling is AnkeITrygderettenbehandlingEtter2027) &&
+                    behandling.nyAnkebehandlingKA != null
+                ) {
+                    kantService.deleteSaksdata(behandling)
+                    behandling.kantReference = null
+                } else {
+                    if (kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)) {
+                        kantService.finalizeSaksdata(
+                            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
+                                behandling.id,
+                            ) as BehandlingWithKantReference,
+                        )
+                    }
+                }
+            }
+
             behandlingAvslutningService.avsluttBehandling(behandling.id)
         }
     }

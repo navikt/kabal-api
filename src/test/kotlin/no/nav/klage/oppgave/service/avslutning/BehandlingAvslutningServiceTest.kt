@@ -41,6 +41,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.GjenopptakITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.GjenopptaksbehandlingService
 import no.nav.klage.oppgave.service.GosysOppgaveService
+import no.nav.klage.oppgave.service.KantService
 import no.nav.klage.oppgave.service.KlankeService
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -71,6 +72,7 @@ class BehandlingAvslutningServiceTest {
     private val systembrukerIdent = "system"
     private val dokumentUnderArbeidCommonService = mockk<DokumentUnderArbeidCommonService>(relaxed = true)
     private val gjenopptaksbehandlingService = mockk<GjenopptaksbehandlingService>(relaxed = true)
+    private val kantService = mockk<KantService>(relaxed = true)
     private val gjenopptakITrygderettenbehandlingService =
         mockk<GjenopptakITrygderettenbehandlingService>(relaxed = true)
 
@@ -88,6 +90,7 @@ class BehandlingAvslutningServiceTest {
             systembrukerIdent = systembrukerIdent,
             gjenopptaksbehandlingService = gjenopptaksbehandlingService,
             gjenopptakITrygderettenbehandlingService = gjenopptakITrygderettenbehandlingService,
+            kantService = kantService,
         )
 
     private val behandlingId = UUID.randomUUID()

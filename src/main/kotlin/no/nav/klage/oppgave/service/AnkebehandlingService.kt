@@ -32,16 +32,17 @@ class AnkebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
+    private val kantService: KantService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createAnkebehandlingFromMottak(mottak: Mottak): AnkebehandlingFoer2027 {
+    fun createAnkebehandlingFoer2027FromMottak(mottak: Mottak): AnkebehandlingFoer2027 {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
-        val ankebehandling =
+        val ankebehandlingFoer2027 =
             ankebehandlingFoer2027Repository.save(
                 AnkebehandlingFoer2027(
                     klager = mottak.klager.copy(),
@@ -62,11 +63,7 @@ class AnkebehandlingService(
                         dokumentService.createSaksdokumenterFromJournalpostIdList(
                             mottak.mottakDokument.map { it.journalpostId },
                         ),
-                    kakaKvalitetsvurderingId =
-                        kakaApiGateway
-                            .createKvalitetsvurdering(
-                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                            ).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingId = null,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -82,12 +79,23 @@ class AnkebehandlingService(
                 ),
             )
 
-        ankebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        // TODO: Remove after the switch
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            ankebehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankebehandlingFoer2027).id
+        } else {
+            ankebehandlingFoer2027.kakaKvalitetsvurderingId =
+                kakaApiGateway
+                    .createKvalitetsvurdering(
+                        kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                    ).kvalitetsvurderingId
+        }
 
-        logger.debug("Created ankebehandling {}", ankebehandling.id)
+        ankebehandlingFoer2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
+        logger.debug("Created ankebehandling {}", ankebehandlingFoer2027.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = ankebehandling.id,
+            behandlingId = ankebehandlingFoer2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -95,7 +103,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -103,7 +111,7 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingFoer2027.id,
                         ),
                     ),
             ),
@@ -111,7 +119,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -119,15 +127,15 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        ankebehandling.opprettetSendt = true
+        ankebehandlingFoer2027.opprettetSendt = true
 
-        return ankebehandling
+        return ankebehandlingFoer2027
     }
 
     /**
@@ -136,14 +144,12 @@ class AnkebehandlingService(
      * carry the saksnummer Trygderetten gave the case.
      */
     fun createAnkebehandlingEtter2027FromMottak(mottak: Mottak): AnkebehandlingEtter2027 {
-        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
-
         // Validated when the mottak is created, so this only guards against future callers.
         val trygderettenSaksnummer =
             mottak.trygderettenSaksnummer
                 ?: error("Mottak with kildereferanse ${mottak.kildeReferanse} for anke etter 2027 is missing saksnummer fra Trygderetten.")
 
-        val ankebehandling =
+        val ankebehandlingEtter2027 =
             ankebehandlingEtter2027Repository.save(
                 AnkebehandlingEtter2027(
                     klager = mottak.klager.copy(),
@@ -177,12 +183,13 @@ class AnkebehandlingService(
                 ),
             )
 
-        ankebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        ankebehandlingEtter2027.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+        ankebehandlingEtter2027.kantReference = kantService.createSaksdataInKant(ankebehandlingEtter2027).id
 
-        logger.debug("Created ankebehandling etter 2027 {}", ankebehandling.id)
+        logger.debug("Created ankebehandling etter 2027 {}", ankebehandlingEtter2027.id)
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = ankebehandling.id,
+            behandlingId = ankebehandlingEtter2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -190,7 +197,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -198,7 +205,7 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingEtter2027.id,
                         ),
                     ),
             ),
@@ -206,7 +213,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -214,21 +221,22 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingEtter2027.id,
                         ),
                     ),
             ),
         )
 
-        ankebehandling.opprettetSendt = true
+        ankebehandlingEtter2027.opprettetSendt = true
 
-        return ankebehandling
+        return ankebehandlingEtter2027
     }
 
     fun createAnkebehandlingFoer2027FromAnkeITrygderettenbehandlingFoer2027(
         ankeITrygderettenbehandlingFoer2027: AnkeITrygderettenbehandlingFoer2027,
     ): AnkebehandlingFoer2027 {
-        val ankebehandling =
+        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
+        val ankebehandlingFoer2027 =
             ankebehandlingFoer2027Repository.save(
                 AnkebehandlingFoer2027(
                     previousBehandlingId = ankeITrygderettenbehandlingFoer2027.id,
@@ -246,8 +254,8 @@ class AnkebehandlingService(
                     mottattKlageinstans = ankeITrygderettenbehandlingFoer2027.mottattKlageinstans,
                     tildeling = ankeITrygderettenbehandlingFoer2027.tildeling,
                     frist = LocalDate.now() + Period.ofWeeks(0),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
+                    kakaKvalitetsvurderingId = null,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = ankeITrygderettenbehandlingFoer2027.hjemler,
                     klageBehandlendeEnhet = ankeITrygderettenbehandlingFoer2027.tildeling?.enhet!!,
                     paaanketVedtaksdato = ankeITrygderettenbehandlingFoer2027.paaanketVedtaksdato,
@@ -263,12 +271,20 @@ class AnkebehandlingService(
             )
         logger.debug(
             "Created ankebehandlingFoer2027 {} from ankeITrygderettenbehandlingFoer2027 {}",
-            ankebehandling.id,
+            ankebehandlingFoer2027.id,
             ankeITrygderettenbehandlingFoer2027.id,
         )
 
+        // TODO: Remove after the switch
+        if (kantService.kantShouldBeUsedForOldTypes()) {
+            ankebehandlingFoer2027.kantReference = kantService.createSaksdataInKant(ankebehandlingFoer2027).id
+        } else {
+            ankebehandlingFoer2027.kakaKvalitetsvurderingId =
+                kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId
+        }
+
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = ankebehandling.id,
+            behandlingId = ankebehandlingFoer2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -276,7 +292,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingFoer2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -284,19 +300,19 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingFoer2027.id,
                         ),
                     ),
             ),
         )
 
-        return ankebehandling
+        return ankebehandlingFoer2027
     }
 
     fun createAnkebehandlingEtter2027FromAnkeITrygderettenbehandlingEtter2027(
         ankeITrygderettenbehandlingEtter2027: AnkeITrygderettenbehandlingEtter2027,
     ): AnkebehandlingEtter2027 {
-        val ankebehandling =
+        val ankebehandlingEtter2027 =
             ankebehandlingEtter2027Repository.save(
                 AnkebehandlingEtter2027(
                     previousBehandlingId = ankeITrygderettenbehandlingEtter2027.id,
@@ -326,14 +342,15 @@ class AnkebehandlingService(
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 ),
             )
+        ankebehandlingEtter2027.kantReference = kantService.createSaksdataInKant(ankebehandlingEtter2027).id
         logger.debug(
             "Created ankebehandlingEtter2027 {} from ankeITrygderettenbehandlingEtter2027 {}",
-            ankebehandling.id,
+            ankebehandlingEtter2027.id,
             ankeITrygderettenbehandlingEtter2027.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
-            behandlingId = ankebehandling.id,
+            behandlingId = ankebehandlingEtter2027.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -341,7 +358,7 @@ class AnkebehandlingService(
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
-                behandling = ankebehandling,
+                behandling = ankebehandlingEtter2027,
                 changeList =
                     listOfNotNull(
                         createChange(
@@ -349,12 +366,12 @@ class AnkebehandlingService(
                             felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
-                            behandlingId = ankebehandling.id,
+                            behandlingId = ankebehandlingEtter2027.id,
                         ),
                     ),
             ),
         )
 
-        return ankebehandling
+        return ankebehandlingEtter2027
     }
 }

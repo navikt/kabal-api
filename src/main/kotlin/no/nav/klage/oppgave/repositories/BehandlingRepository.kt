@@ -302,6 +302,8 @@ interface BehandlingRepository :
     )
     fun findAllForAdminStreamed(): Stream<Behandling>
 
+    fun findAllByTypeIn(types: List<Type>): List<Behandling>
+
     @EntityGraph("Behandling.oppgaveProperties")
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdForOppgave(id: UUID): Behandling

@@ -36,8 +36,9 @@ DOKARKIV_BASE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1
 KAKA_VERSION_2_DATE: 2023-01-01
 KAKA_VERSION_3_DATE: 2026-01-01
 
-# TODO: Delete after run
-MIGRATE_CRON: 0 0 0 1 JAN *
+USE_KANT_FOR_OLD_TYPES_DATE: 2027-01-01
+
+MIGRATE_FROM_KAKA_TO_KANT_CRON: 0 0 0 1 JAN *
 
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt.prod-fss-pub.nais.io/
 

@@ -30,7 +30,7 @@ class CreateBehandlingFromMottak(
 
             Type.ANKE_FOER_2027 -> {
                 val ankebehandling =
-                    ankebehandlingService.createAnkebehandlingFromMottak(
+                    ankebehandlingService.createAnkebehandlingFoer2027FromMottak(
                         mottak = mottak,
                     )
 
