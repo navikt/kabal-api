@@ -173,12 +173,6 @@ class GjenopptaksbehandlingService(
                         dokumentService.createSaksdokumenterFromJournalpostIdList(
                             mottak.mottakDokument.map { it.journalpostId },
                         ),
-                    kakaKvalitetsvurderingId =
-                        kakaApiGateway
-                            .createKvalitetsvurdering(
-                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                            ).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -353,12 +347,6 @@ class GjenopptaksbehandlingService(
                     tildeling = gjenopptakITrygderettenbehandlingEtter2027.tildeling,
                     // Hva slags frist?
                     frist = LocalDate.now() + Period.ofWeeks(0),
-                    kakaKvalitetsvurderingId =
-                        kakaApiGateway
-                            .createKvalitetsvurdering(
-                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                            ).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = gjenopptakITrygderettenbehandlingEtter2027.hjemler,
                     klageBehandlendeEnhet = gjenopptakITrygderettenbehandlingEtter2027.tildeling?.enhet!!,
                     paaanketVedtaksdato = gjenopptakITrygderettenbehandlingEtter2027.paaanketVedtaksdato,

@@ -107,7 +107,15 @@ class CleanupAfterBehandlingEventListener(
                     )
                 }
             }
-            deleteFromKaka(behandling)
+
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
+                    kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+                )
+                behandling.kakaKvalitetsvurderingId = null
+                behandlingRepository.save(behandling)
+            }
 
             if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")

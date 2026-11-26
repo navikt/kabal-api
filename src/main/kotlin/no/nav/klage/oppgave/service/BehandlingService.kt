@@ -58,7 +58,6 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingFoer2027
-import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
@@ -575,21 +574,23 @@ class BehandlingService(
                 Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
-            val kvalitetsvurderingValidationErrors =
-                kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
+                val kvalitetsvurderingValidationErrors =
+                    kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
 
-            if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
-                sectionList.add(
-                    ValidationSection(
-                        section = "kvalitetsvurdering",
-                        properties = kvalitetsvurderingValidationErrors,
-                    ),
-                )
+                if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
+                    sectionList.add(
+                        ValidationSection(
+                            section = "kvalitetsvurdering",
+                            properties = kvalitetsvurderingValidationErrors,
+                        ),
+                    )
+                }
             }
         }
 
-        if (behandling.utfall !in noKvalitetsvurderingNeeded &&
-            kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)
+        if (behandling.utfall !in noKvalitetsvurderingNeeded && behandling is BehandlingWithKantReference &&
+            behandling.kantReference != null
         ) {
             val kantKvalitetsvurderingValidationErrors =
                 kantService.getValidationErrors(behandling = behandling as BehandlingWithKantReference)
@@ -1030,8 +1031,8 @@ class BehandlingService(
                     input = null,
                 )
             }
-// TODO: Juster når kvalitetsvurderingsgreier er landet
-            if (behandling is BehandlingWithKvalitetsvurdering && behandling !is AnkebehandlingEtter2027) {
+
+            if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
                 kakaApiGateway.deleteKvalitetsvurdering(
                     kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                     kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
@@ -1240,8 +1241,7 @@ class BehandlingService(
             )
         }
 
-        // Fjern påbegynt kvalitetsvurdering.
-        if (behandling is BehandlingWithKvalitetsvurdering) {
+        if (behandling is BehandlingWithKvalitetsvurdering && behandling.kakaKvalitetsvurderingId != null) {
             kakaApiGateway.deleteKvalitetsvurdering(
                 kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                 kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,

@@ -16,7 +16,6 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.behandling.BehandlingWithKantReference
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptaksbehandlingEtter2027
@@ -116,24 +115,6 @@ class BehandlingAvslutningService(
 
         if (behandling.ferdigstilling?.avsluttet != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
-        }
-
-        if (behandling is BehandlingWithKantReference) {
-            if ((behandling is GjenopptakITrygderettenbehandlingFoer2027 || behandling is GjenopptakITrygderettenbehandlingEtter2027) &&
-                behandling.nyGjenopptaksbehandlingKA != null
-            ) {
-                kantService.deleteSaksdata(behandling)
-                behandling.kantReference = null
-            } else if ((behandling is AnkeITrygderettenbehandlingFoer2027 || behandling is AnkeITrygderettenbehandlingEtter2027) &&
-                behandling.nyAnkebehandlingKA != null
-            ) {
-                kantService.deleteSaksdata(behandling)
-                behandling.kantReference = null
-            } else {
-                if (kantService.kantShouldBeUsedForThisBehandling(behandling = behandling)) {
-                    kantService.finalizeSaksdata(behandling)
-                }
-            }
         }
 
         when (behandling) {

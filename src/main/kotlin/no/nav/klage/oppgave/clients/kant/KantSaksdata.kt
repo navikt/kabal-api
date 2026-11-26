@@ -12,11 +12,12 @@ data class KantSaksdataInput(
     val kabalReference: UUID,
     val sakstype: Type,
     val ytelse: Ytelse,
-    val trygderettenSaksnummer: String,
+    val trygderettenSaksnummer: String?,
 )
 
 data class KantUpdateInput(
     val registreringshjemmelIdSet: Set<String>,
+    val trygderettenSaksnummer: String?,
 )
 
 data class KantAvslutningInput(
@@ -25,6 +26,7 @@ data class KantAvslutningInput(
     val avsluttetAvSaksbehandler: LocalDateTime,
     val sakITrygderettenOpprettet: LocalDate? = null,
     val mottattKlageinstans: LocalDate? = null,
+    val trygderettenSaksnummer: String?,
     val tilknyttetEnhetId: String,
     val tilbakekreving: Boolean,
 )

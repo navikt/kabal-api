@@ -65,7 +65,7 @@ class KantService(
                     kabalReference = behandling.id,
                     sakstype = behandling.type,
                     ytelse = behandling.ytelse,
-                    trygderettenSaksnummer = (behandling as BehandlingWithTrygderettenSaksnummer).trygderettenSaksnummer,
+                    trygderettenSaksnummer = if (behandling is BehandlingWithTrygderettenSaksnummer) behandling.trygderettenSaksnummer else null,
                 ),
             )
         validateIdentity(behandling, response)
@@ -103,6 +103,7 @@ class KantService(
                 mottattKlageinstans = mottattKlageinstans,
                 tilknyttetEnhetId = tilknyttetEnhet!!.id,
                 tilbakekreving = behandling.tilbakekreving,
+                trygderettenSaksnummer = if (behandling is BehandlingWithTrygderettenSaksnummer) behandling.trygderettenSaksnummer else null,
             )
 
         val reference = checkNotNull(behandling.kantReference)
@@ -115,6 +116,7 @@ class KantService(
         val input =
             KantUpdateInput(
                 registreringshjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
+                trygderettenSaksnummer = if (behandling is BehandlingWithTrygderettenSaksnummer) behandling.trygderettenSaksnummer else null,
             )
         val reference = checkNotNull(behandling.kantReference)
         val response = kantApiClient.updateSaksdata(id = reference, input = input)
