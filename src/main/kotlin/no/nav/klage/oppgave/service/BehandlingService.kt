@@ -63,6 +63,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithOptionalTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -81,6 +82,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlin
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSaksdokument
@@ -1610,6 +1612,31 @@ class BehandlingService(
         } else {
             throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
         }
+    }
+
+    fun setTrygderettenSaksnummer(
+        behandlingId: UUID,
+        trygderettenSaksnummer: String?,
+        utfoerendeSaksbehandlerIdent: String,
+    ): LocalDateTime {
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
+            )
+
+        if (behandling !is BehandlingWithOptionalTrygderettenSaksnummer) {
+            throw IllegalOperation("Dette feltet kan bare settes i behandlinger med valgfritt saksnummer i Trygderetten")
+        }
+        val event =
+            behandling.setTrygderettenSaksnummer(
+                nyVerdi = trygderettenSaksnummer,
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+            )
+        if (event != null) {
+            applicationEventPublisher.publishEvent(event)
+        }
+        return behandling.modified
     }
 
     fun setKjennelseMottatt(
@@ -3352,10 +3379,11 @@ class BehandlingService(
             entityManager.metamodel.entities
                 .map { it.javaType }
                 .filter {
-                    BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it)
+                    BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it) ||
+                        BehandlingWithOptionalTrygderettenSaksnummer::class.java.isAssignableFrom(it)
                 }
         check(implementationClasses.isNotEmpty()) {
-            "No entities implement ${BehandlingWithTrygderettenSaksnummer::class.java.name}"
+            "No entities implement a Trygderetten saksnummer interface"
         }
         val implementationTypes =
             implementationClasses.map { implementationClass ->

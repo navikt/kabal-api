@@ -29,6 +29,7 @@ import no.nav.klage.oppgave.api.view.Rols
 import no.nav.klage.oppgave.api.view.SattPaaVentInput
 import no.nav.klage.oppgave.api.view.TilbakekrevingInput
 import no.nav.klage.oppgave.api.view.TildelingEvent
+import no.nav.klage.oppgave.api.view.TrygderettenSaksnummerInput
 import no.nav.klage.oppgave.api.view.UrlView
 import no.nav.klage.oppgave.api.view.UtfallEditedView
 import no.nav.klage.oppgave.api.view.ValidationPassedResponse
@@ -193,6 +194,28 @@ class BehandlingController(
             behandlingService.setSendtTilTrygderetten(
                 behandlingId = behandlingId,
                 date = input.date.atStartOfDay(),
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
+    @PutMapping("/{behandlingId}/trygderettensaksnummer")
+    fun setTrygderettenSaksnummer(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: TrygderettenSaksnummerInput,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            methodName = ::setTrygderettenSaksnummer.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
+        )
+
+        val modified =
+            behandlingService.setTrygderettenSaksnummer(
+                behandlingId = behandlingId,
+                trygderettenSaksnummer = input.trygderettenSaksnummer,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
 

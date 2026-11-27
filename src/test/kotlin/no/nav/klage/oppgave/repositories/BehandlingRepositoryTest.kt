@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithOptionalTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingFoer2027
@@ -452,6 +453,32 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     }
 
     @ParameterizedTest
+    @MethodSource("optionalTrygderettenTypes")
+    fun `clearing an optional number persists null and removes it from duplicate search`(type: Type) {
+        val saksnummer = syntheticTrygderettenSaksnummer()
+        val behandling = newTrygderettenBehandling(type = type, saksnummer = saksnummer)
+        behandlingRepository.saveAndFlush(behandling)
+        testEntityManager.clear()
+
+        val reloaded = behandlingRepository.findById(behandling.id).get() as BehandlingWithOptionalTrygderettenSaksnummer
+        assertThat(reloaded.trygderettenSaksnummer).isEqualTo(saksnummer)
+        reloaded.trygderettenSaksnummer = null
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(
+            (behandlingRepository.findById(behandling.id).get() as BehandlingWithOptionalTrygderettenSaksnummer)
+                .trygderettenSaksnummer,
+        ).isNull()
+        assertThat(
+            behandlingRepository.existsByTrygderettenSaksnummerAndFeilregistreringIsNull(
+                trygderettenSaksnummer = saksnummer,
+                behandlingTypes = trygderettenDiscriminatorValues(),
+            ),
+        ).isFalse()
+    }
+
+    @ParameterizedTest
     @MethodSource("trygderettenTypes")
     fun `approved duplicate check matches each supported type whether open or completed`(type: Type) {
         val openSaksnummer = syntheticTrygderettenSaksnummer()
@@ -534,7 +561,7 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
     @Test
     fun `approved duplicate check ignores treatment types without Trygderetten number support`() {
-        val behandling = getAnkeITrygderettenbehandling()
+        val behandling = getKlagebehandling()
         val saksnummer = syntheticTrygderettenSaksnummer()
         behandlingRepository.save(behandling)
         testEntityManager.flush()
@@ -626,7 +653,10 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         val implementationClasses =
             testEntityManager.entityManager.metamodel.entities
                 .map { it.javaType }
-                .filter { BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it) }
+                .filter {
+                    BehandlingWithTrygderettenSaksnummer::class.java.isAssignableFrom(it) ||
+                        BehandlingWithOptionalTrygderettenSaksnummer::class.java.isAssignableFrom(it)
+                }
         check(implementationClasses.isNotEmpty()) {
             "No entities implement ${BehandlingWithTrygderettenSaksnummer::class.java.name}"
         }
@@ -683,6 +713,22 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             )
 
         return when (type) {
+            Type.ANKE_I_TRYGDERETTEN_FOER_2027 -> {
+                getAnkeITrygderettenbehandling().apply {
+                    trygderettenSaksnummer = saksnummer
+                    this.feilregistrering = feilregistrering
+                    this.ferdigstilling = ferdigstilling
+                }
+            }
+
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027 -> {
+                getGjenopptakITrygderettenbehandling().apply {
+                    trygderettenSaksnummer = saksnummer
+                    this.feilregistrering = feilregistrering
+                    this.ferdigstilling = ferdigstilling
+                }
+            }
+
             Type.ANKE_ETTER_2027 -> {
                 AnkebehandlingEtter2027(
                     trygderettenSaksnummer = saksnummer,
@@ -863,8 +909,17 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
         private val PAAANKET_VEDTAKSDATO: LocalDate = LocalDate.of(2020, 1, 1)
 
         @JvmStatic
+        fun optionalTrygderettenTypes(): Stream<Type> =
+            Stream.of(
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
+            )
+
+        @JvmStatic
         fun trygderettenTypes(): Stream<Type> =
             Stream.of(
+                Type.ANKE_I_TRYGDERETTEN_FOER_2027,
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_FOER_2027,
                 Type.ANKE_ETTER_2027,
                 Type.ANKE_I_TRYGDERETTEN_ETTER_2027,
                 Type.BEGJAERING_OM_GJENOPPTAK_ETTER_2027,

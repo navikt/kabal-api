@@ -26,6 +26,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.Tilleggsopplysni
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.TrygderettenMetadataInput
 import no.nav.klage.oppgave.clients.klageunleashproxy.KlageUnleashProxyClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithOptionalTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingEtter2027
@@ -268,7 +269,12 @@ class KabalDocumentMapper(
                             GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME,
                         ),
                 lovhenvisning = behandling.hjemler.map { "${behandling.ytelse.navn}|${it.lovKilde.navn}|${it.spesifikasjon}" }.toSet(),
-                trygderettenSaksnummer = (behandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
+                trygderettenSaksnummer =
+                    when (behandling) {
+                        is BehandlingWithTrygderettenSaksnummer -> behandling.trygderettenSaksnummer
+                        is BehandlingWithOptionalTrygderettenSaksnummer -> behandling.trygderettenSaksnummer
+                        else -> null
+                    },
                 representant =
                     behandling.prosessfullmektig?.let { prosessfullmektig ->
                         TrygderettenMetadataInput.Representant(

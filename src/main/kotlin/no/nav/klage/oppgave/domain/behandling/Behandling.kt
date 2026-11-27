@@ -622,3 +622,10 @@ interface BehandlingWithTrygderettenSaksnummer {
      */
     var trygderettenSaksnummer: String
 }
+
+interface BehandlingWithOptionalTrygderettenSaksnummer {
+    /**
+     * Year + counter, e.g. 2027123. Kabal-document uses it as saksaar and sakssekvensnummer in the avtalemelding.
+     */
+    var trygderettenSaksnummer: String?
+}

@@ -28,6 +28,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkebehandlingFoer2027
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithOptionalTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenSaksnummer
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -604,7 +605,12 @@ class BehandlingMapper(
             kjennelseMottatt = behandling.kjennelseMottatt,
             paaanketVedtaksdato = (behandling as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
             forsterketRett = behandling.forsterketRett,
-            trygderettenSaksnummer = (behandling as? BehandlingWithTrygderettenSaksnummer)?.trygderettenSaksnummer,
+            trygderettenSaksnummer =
+                when (behandling) {
+                    is BehandlingWithTrygderettenSaksnummer -> behandling.trygderettenSaksnummer
+                    is BehandlingWithOptionalTrygderettenSaksnummer -> behandling.trygderettenSaksnummer
+                    else -> null
+                },
             feilregistrering = behandling.feilregistrering.toView(),
             fagsystemId = behandling.fagsystem.id,
             relevantDocumentIdList =
